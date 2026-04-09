@@ -1,0 +1,11 @@
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\bin\Debug\net10.0\BeeHive.Domain.deps.json
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\bin\Debug\net10.0\BeeHive.Domain.dll
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\bin\Debug\net10.0\BeeHive.Domain.pdb
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\BeeHive.Domain.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\BeeHive.Domain.AssemblyInfoInputs.cache
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\BeeHive.Domain.AssemblyInfo.cs
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\BeeHive.Domain.csproj.CoreCompileInputs.cache
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\BeeHive.Domain.dll
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\refint\BeeHive.Domain.dll
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\BeeHive.Domain.pdb
+C:\Users\asimh\Downloads\beehive-app\beehive-app\backend\BeeHive.Domain\obj\Debug\net10.0\ref\BeeHive.Domain.dll

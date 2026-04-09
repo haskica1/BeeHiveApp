@@ -1,0 +1,45 @@
+using BeeHive.Domain.Entities;
+using BeeHive.Infrastructure.Data.Configurations;
+using BeeHive.Infrastructure.Data.Seed;
+using Microsoft.EntityFrameworkCore;
+
+namespace BeeHive.Infrastructure.Data;
+
+/// <summary>
+/// Main EF Core database context for the BeeHive application.
+/// Each DbSet corresponds to a database table managed by EF Core migrations.
+/// </summary>
+public class BeeHiveDbContext : DbContext
+{
+    public BeeHiveDbContext(DbContextOptions<BeeHiveDbContext> options) : base(options) { }
+
+    public DbSet<Apiary> Apiaries => Set<Apiary>();
+    public DbSet<Beehive> Beehives => Set<Beehive>();
+    public DbSet<Inspection> Inspections => Set<Inspection>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Apply all IEntityTypeConfiguration<T> classes in this assembly
+        modelBuilder.ApplyConfigurationsFromAssembly(typeof(BeeHiveDbContext).Assembly);
+
+        // Seed initial data
+        DataSeeder.Seed(modelBuilder);
+    }
+
+    /// <summary>
+    /// Automatically sets UpdatedAt on modified entities before saving.
+    /// </summary>
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (var entry in ChangeTracker.Entries()
+            .Where(e => e.State == EntityState.Modified))
+        {
+            if (entry.Entity is BeeHive.Domain.Common.BaseEntity entity)
+                entity.UpdatedAt = DateTime.UtcNow;
+        }
+
+        return base.SaveChangesAsync(cancellationToken);
+    }
+}

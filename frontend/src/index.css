@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-honey-50 text-gray-800;
+  }
+
+  h1, h2, h3 {
+    font-family: 'Playfair Display', Georgia, serif;
+  }
+}
+
+@layer components {
+  /* Reusable card */
+  .card {
+    @apply bg-white rounded-2xl shadow-card border border-honey-100 p-5;
+  }
+
+  /* Primary button */
+  .btn-primary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-honey-600 hover:bg-honey-700
+           text-white font-medium rounded-xl transition-colors shadow-honey
+           focus:outline-none focus:ring-2 focus:ring-honey-500 focus:ring-offset-2
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Secondary / outline button */
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-honey-50
+           text-honey-700 font-medium rounded-xl border border-honey-300 transition-colors
+           focus:outline-none focus:ring-2 focus:ring-honey-400 focus:ring-offset-2;
+  }
+
+  /* Danger button */
+  .btn-danger {
+    @apply inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600
+           text-white font-medium rounded-xl transition-colors
+           focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
+  }
+
+  /* Form input */
+  .form-input {
+    @apply w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm
+           placeholder:text-gray-400 focus:outline-none focus:ring-2
+           focus:ring-honey-400 focus:border-honey-400 transition;
+  }
+
+  /* Form label */
+  .form-label {
+    @apply block text-sm font-medium text-gray-700 mb-1.5;
+  }
+
+  /* Error text */
+  .form-error {
+    @apply mt-1 text-xs text-red-600;
+  }
+
+  /* Badge */
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+}
+
+/* Honeycomb decorative background pattern */
+.bg-honeycomb {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2.33L54 49.08V17.25L28 2.33 2 17.25v31.83L28 63.67z' fill='%23fde68a' fill-opacity='0.25'/%3E%3C/svg%3E");
+}
