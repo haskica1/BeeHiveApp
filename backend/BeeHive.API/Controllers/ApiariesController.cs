@@ -1,5 +1,6 @@
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Apiaries.DTOs;
+using BeeHive.Application.Features.Weather;
 using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,15 +16,18 @@ namespace BeeHive.API.Controllers;
 public class ApiariesController : ControllerBase
 {
     private readonly IApiaryService _service;
+    private readonly IWeatherService _weather;
     private readonly IValidator<CreateApiaryDto> _createValidator;
     private readonly IValidator<UpdateApiaryDto> _updateValidator;
 
     public ApiariesController(
         IApiaryService service,
+        IWeatherService weather,
         IValidator<CreateApiaryDto> createValidator,
         IValidator<UpdateApiaryDto> updateValidator)
     {
         _service = service;
+        _weather = weather;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -84,5 +88,21 @@ public class ApiariesController : ControllerBase
     {
         await _service.DeleteAsync(id);
         return NoContent();
+    }
+
+    /// <summary>Returns a 7-day weather forecast for the apiary's location.</summary>
+    [HttpGet("{id:int}/weather")]
+    [ProducesResponseType(typeof(WeatherForecastDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetWeather(int id)
+    {
+        var apiary = await _service.GetByIdAsync(id);
+
+        if (!apiary.HasLocation)
+            return BadRequest(new { message = "This apiary has no location set. Add latitude and longitude to enable weather forecasts." });
+
+        var forecast = await _weather.GetForecastAsync(apiary.Latitude!.Value, apiary.Longitude!.Value);
+        return Ok(forecast);
     }
 }

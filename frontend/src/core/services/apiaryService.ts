@@ -4,6 +4,7 @@ import type {
   ApiaryDetail,
   CreateApiaryPayload,
   UpdateApiaryPayload,
+  WeatherForecast,
 } from '../models'
 
 const BASE = '/apiaries'
@@ -31,5 +32,10 @@ export const apiaryService = {
 
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`${BASE}/${id}`)
+  },
+
+  getWeather: async (id: number): Promise<WeatherForecast> => {
+    const res = await apiClient.get<WeatherForecast>(`${BASE}/${id}/weather`)
+    return res.data
   },
 }

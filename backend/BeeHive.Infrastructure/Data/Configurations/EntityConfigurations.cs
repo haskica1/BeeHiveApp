@@ -17,6 +17,12 @@ public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
         builder.Property(a => a.Description)
             .HasMaxLength(1000);
 
+        builder.Property(a => a.Latitude)
+            .HasColumnType("float");
+
+        builder.Property(a => a.Longitude)
+            .HasColumnType("float");
+
         // One apiary → many beehives; cascade delete removes beehives when apiary is deleted
         builder.HasMany(a => a.Beehives)
             .WithOne(b => b.Apiary)

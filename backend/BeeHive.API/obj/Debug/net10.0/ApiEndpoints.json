@@ -152,6 +152,44 @@
     ]
   },
   {
+    "ContainingType": "BeeHive.API.Controllers.ApiariesController",
+    "Method": "GetWeather",
+    "RelativePath": "api/Apiaries/{id}/weather",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "id",
+        "Type": "System.Int32",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": [
+      {
+        "Type": "BeeHive.Application.Features.Weather.WeatherForecastDto",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 200
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 400
+      },
+      {
+        "Type": "Microsoft.AspNetCore.Mvc.ProblemDetails",
+        "MediaTypes": [
+          "application/json"
+        ],
+        "StatusCode": 404
+      }
+    ]
+  },
+  {
     "ContainingType": "BeeHive.API.Controllers.BeehivesController",
     "Method": "Create",
     "RelativePath": "api/Beehives",

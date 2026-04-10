@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\asimh\\Downloads\\beehive-app\\beehive-app\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj": {}
+    "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj": {}
   },
   "projects": {
-    "C:\\Users\\asimh\\Downloads\\beehive-app\\beehive-app\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj": {
+    "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\asimh\\Downloads\\beehive-app\\beehive-app\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj",
+        "projectUniqueName": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj",
         "projectName": "BeeHive.Domain",
-        "projectPath": "C:\\Users\\asimh\\Downloads\\beehive-app\\beehive-app\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj",
+        "projectPath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Domain\\BeeHive.Domain.csproj",
         "packagesPath": "C:\\Users\\asimh\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\asimh\\Downloads\\beehive-app\\beehive-app\\backend\\BeeHive.Domain\\obj\\",
+        "outputPath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Domain\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

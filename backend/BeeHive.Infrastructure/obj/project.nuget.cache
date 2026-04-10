@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "1a7nX+UCohY=",
+  "dgSpecHash": "MlkQSE+gKNE=",
   "success": true,
-  "projectFilePath": "C:\\Users\\asimh\\Downloads\\beehive-app\\beehive-app\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
+  "projectFilePath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\asimh\\.nuget\\packages\\automapper\\13.0.1\\automapper.13.0.1.nupkg.sha512",
     "C:\\Users\\asimh\\.nuget\\packages\\azure.core\\1.47.1\\azure.core.1.47.1.nupkg.sha512",

@@ -1,5 +1,6 @@
 using BeeHive.API.Middleware;
 using BeeHive.Application;
+using BeeHive.Application.Features.Weather;
 using BeeHive.Infrastructure;
 using BeeHive.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -30,6 +31,13 @@ builder.Services.AddSwaggerGen(c =>
 // Register Application and Infrastructure layers via extension methods
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Weather service — typed HttpClient targeting Open-Meteo (free, no API key needed)
+builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
+{
+    client.BaseAddress = new Uri("https://api.open-meteo.com/");
+    client.Timeout = TimeSpan.FromSeconds(10);
+});
 
 // CORS — allow the Angular/React frontend running on localhost during development
 builder.Services.AddCors(options =>

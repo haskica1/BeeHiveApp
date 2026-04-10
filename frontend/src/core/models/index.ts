@@ -46,6 +46,9 @@ export interface Apiary {
   id: number
   name: string
   description?: string
+  latitude?: number
+  longitude?: number
+  hasLocation: boolean
   beehiveCount: number
   createdAt: string
 }
@@ -57,9 +60,30 @@ export interface ApiaryDetail extends Apiary {
 export interface CreateApiaryPayload {
   name: string
   description?: string
+  latitude?: number | null
+  longitude?: number | null
 }
 
 export interface UpdateApiaryPayload extends CreateApiaryPayload {}
+
+// ── Weather ───────────────────────────────────────────────────────────────────
+
+export interface WeatherForecast {
+  latitude: number
+  longitude: number
+  timezone: string
+  daily: DailyWeather[]
+}
+
+export interface DailyWeather {
+  date: string
+  maxTemp?: number
+  minTemp?: number
+  weatherCode?: number
+  precipitationSum?: number
+  maxWindSpeed?: number
+  precipitationProbability?: number
+}
 
 // ── Beehive ───────────────────────────────────────────────────────────────────
 

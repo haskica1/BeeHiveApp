@@ -212,6 +212,56 @@
         }
       }
     },
+    "/api/Apiaries/{id}/weather": {
+      "get": {
+        "tags": [
+          "Apiaries"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WeatherForecastDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Beehives/by-apiary/{apiaryId}": {
       "get": {
         "tags": [
@@ -688,6 +738,20 @@
             "type": "string",
             "nullable": true
           },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "hasLocation": {
+            "type": "boolean",
+            "readOnly": true
+          },
           "beehiveCount": {
             "type": "integer",
             "format": "int32"
@@ -720,6 +784,20 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "hasLocation": {
+            "type": "boolean",
+            "readOnly": true
           },
           "beehiveCount": {
             "type": "integer",
@@ -865,6 +943,16 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -923,6 +1011,46 @@
           "beehiveId": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "DailyWeatherDto": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string",
+            "nullable": true
+          },
+          "maxTemp": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "minTemp": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "weatherCode": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "precipitationSum": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "maxWindSpeed": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "precipitationProbability": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1015,6 +1143,16 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1073,6 +1211,31 @@
           "beehiveId": {
             "type": "integer",
             "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "WeatherForecastDto": {
+        "type": "object",
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "timezone": {
+            "type": "string",
+            "nullable": true
+          },
+          "daily": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DailyWeatherDto"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false

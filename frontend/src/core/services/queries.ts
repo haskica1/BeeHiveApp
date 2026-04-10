@@ -15,6 +15,7 @@ import type {
 export const queryKeys = {
   apiaries:          ['apiaries'] as const,
   apiary:            (id: number) => ['apiaries', id] as const,
+  apiaryWeather:     (id: number) => ['apiaries', id, 'weather'] as const,
   beehivesByApiary:  (apiaryId: number) => ['beehives', 'apiary', apiaryId] as const,
   beehive:           (id: number) => ['beehives', id] as const,
   inspectionsByHive: (beehiveId: number) => ['inspections', 'beehive', beehiveId] as const,
@@ -28,6 +29,14 @@ export const useApiaries = () =>
 
 export const useApiary = (id: number) =>
   useQuery({ queryKey: queryKeys.apiary(id), queryFn: () => apiaryService.getById(id), enabled: !!id })
+
+export const useApiaryWeather = (id: number, hasLocation: boolean) =>
+  useQuery({
+    queryKey: queryKeys.apiaryWeather(id),
+    queryFn: () => apiaryService.getWeather(id),
+    enabled: !!id && hasLocation,
+    staleTime: 1000 * 60 * 30, // weather data stays fresh for 30 minutes
+  })
 
 export const useCreateApiary = () => {
   const qc = useQueryClient()
