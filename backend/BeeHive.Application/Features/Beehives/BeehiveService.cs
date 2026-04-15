@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Beehives.DTOs;
 using BeeHive.Domain.Entities;
 
@@ -23,11 +24,13 @@ public class BeehiveService : IBeehiveService
 {
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
+    private readonly IQrCodeService _qr;
 
-    public BeehiveService(IUnitOfWork uow, IMapper mapper)
+    public BeehiveService(IUnitOfWork uow, IMapper mapper, IQrCodeService qr)
     {
-        _uow = uow;
+        _uow    = uow;
         _mapper = mapper;
+        _qr     = qr;
     }
 
     public async Task<IEnumerable<BeehiveDto>> GetByApiaryIdAsync(int apiaryId)
@@ -55,6 +58,11 @@ public class BeehiveService : IBeehiveService
             throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
 
         var beehive = _mapper.Map<Beehive>(dto);
+
+        // Assign a permanent unique ID and generate the QR code once, on creation
+        beehive.UniqueId      = Guid.NewGuid();
+        beehive.QrCodeBase64  = _qr.GeneratePngBase64(beehive.UniqueId.Value.ToString());
+
         await _uow.Beehives.AddAsync(beehive);
         await _uow.SaveChangesAsync();
 

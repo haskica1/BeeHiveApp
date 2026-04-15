@@ -10,7 +10,9 @@
       "Bash(cmd /c \"where node 2>&1\")",
       "Bash(cmd /c \"node --version 2>&1 & where node 2>&1\")",
       "Bash(export PATH=\"/c/Users/asimh/AppData/Local/nvm/v25.2.1:$PATH\")",
-      "Bash(node node_modules/typescript/bin/tsc --noEmit)"
+      "Bash(node node_modules/typescript/bin/tsc --noEmit)",
+      "Bash(npm install:*)",
+      "Bash(npm ls:*)"
     ]
   }
 }

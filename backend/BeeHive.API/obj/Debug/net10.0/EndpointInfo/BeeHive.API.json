@@ -855,6 +855,15 @@
             "type": "string",
             "format": "date-time"
           },
+          "uniqueId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "qrCodeBase64": {
+            "type": "string",
+            "nullable": true
+          },
           "inspections": {
             "type": "array",
             "items": {
@@ -909,6 +918,15 @@
           "createdAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "uniqueId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "qrCodeBase64": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false

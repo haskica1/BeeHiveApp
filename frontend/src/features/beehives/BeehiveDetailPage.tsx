@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, Thermometer, Trash2 } from 'lucide-react'
+import { ArrowLeft, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
+import { jsPDF } from 'jspdf'
 import { useBeehive, useDeleteInspection } from '../../core/services/queries'
 import {
   LoadingSpinner,
@@ -13,6 +14,62 @@ import {
 } from '../../shared/components'
 import type { Inspection } from '../../core/models'
 
+// ── PDF download helper ───────────────────────────────────────────────────────
+
+function downloadQrPdf(beehiveName: string, uniqueId: string, qrBase64: string) {
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+
+  const pageW = doc.internal.pageSize.getWidth()
+
+  // Title
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(22)
+  doc.setTextColor(180, 120, 20)        // honey colour
+  doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
+
+  // Divider
+  doc.setDrawColor(180, 120, 20)
+  doc.setLineWidth(0.5)
+  doc.line(20, 27, pageW - 20, 27)
+
+  // Beehive name
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(16)
+  doc.setTextColor(40, 40, 40)
+  doc.text(beehiveName, pageW / 2, 40, { align: 'center' })
+
+  // QR code image — centre it
+  const imgSize = 100
+  const imgX = (pageW - imgSize) / 2
+  doc.addImage(`data:image/png;base64,${qrBase64}`, 'PNG', imgX, 50, imgSize, imgSize)
+
+  // Unique ID label
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(120, 120, 120)
+  doc.text('Unique ID', pageW / 2, 158, { align: 'center' })
+
+  doc.setFont('courier', 'normal')
+  doc.setFontSize(10)
+  doc.setTextColor(60, 60, 60)
+  doc.text(uniqueId, pageW / 2, 165, { align: 'center' })
+
+  // Footer
+  doc.setFont('helvetica', 'italic')
+  doc.setFontSize(8)
+  doc.setTextColor(160, 160, 160)
+  doc.text(
+    `Generated ${format(new Date(), 'dd MMM yyyy')}`,
+    pageW / 2,
+    285,
+    { align: 'center' },
+  )
+
+  doc.save(`beehive-${beehiveName.replace(/\s+/g, '-')}-qr.pdf`)
+}
+
+// ── Component ─────────────────────────────────────────────────────────────────
+
 export default function BeehiveDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
@@ -22,6 +79,7 @@ export default function BeehiveDetailPage() {
   const deleteMutation = useDeleteInspection(beehiveId)
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null)
+  const [qrOpen, setQrOpen] = useState(false)
 
   const handleDelete = async () => {
     if (!deleteTarget) return
@@ -32,6 +90,8 @@ export default function BeehiveDetailPage() {
   if (isLoading) return <LoadingSpinner message="Loading beehive…" />
   if (error) return <ErrorMessage message={error.message} />
   if (!beehive) return null
+
+  const hasQr = !!beehive.uniqueId && !!beehive.qrCodeBase64
 
   return (
     <div className="animate-fade-in">
@@ -48,6 +108,14 @@ export default function BeehiveDetailPage() {
         }
         actions={
           <>
+            {hasQr && (
+              <button
+                onClick={() => setQrOpen(true)}
+                className="btn-secondary text-sm"
+              >
+                <QrCode className="w-4 h-4" /> QR Code
+              </button>
+            )}
             <Link to={`/beehives/${beehiveId}/edit`} className="btn-secondary text-sm">
               <Pencil className="w-4 h-4" /> Edit
             </Link>
@@ -80,6 +148,13 @@ export default function BeehiveDetailPage() {
         {beehive.notes && (
           <p className="mt-4 pt-4 border-t border-honey-100 text-sm text-gray-600 italic">
             📝 {beehive.notes}
+          </p>
+        )}
+        {/* Unique ID chip */}
+        {beehive.uniqueId && (
+          <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-400 font-mono flex items-center gap-1.5">
+            <QrCode className="w-3.5 h-3.5 shrink-0 text-honey-400" />
+            {beehive.uniqueId}
           </p>
         )}
       </div>
@@ -151,6 +226,7 @@ export default function BeehiveDetailPage() {
         </div>
       )}
 
+      {/* Delete inspection confirmation */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
         title="Delete Inspection"
@@ -159,6 +235,47 @@ export default function BeehiveDetailPage() {
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}
       />
+
+      {/* QR code modal */}
+      {qrOpen && hasQr && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setQrOpen(false)}
+        >
+          <div
+            className="bg-white rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 animate-fade-in"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center mb-4">
+              <h2 className="font-display text-xl font-bold text-gray-800">{beehive.name}</h2>
+              <p className="text-xs text-gray-400 font-mono mt-1">{beehive.uniqueId}</p>
+            </div>
+
+            <img
+              src={`data:image/png;base64,${beehive.qrCodeBase64}`}
+              alt={`QR code for ${beehive.name}`}
+              className="w-full max-w-[240px] mx-auto block rounded-lg border border-gray-100 p-2"
+            />
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setQrOpen(false)}
+                className="btn-secondary flex-1"
+              >
+                Close
+              </button>
+              <button
+                onClick={() =>
+                  downloadQrPdf(beehive.name, beehive.uniqueId!, beehive.qrCodeBase64!)
+                }
+                className="btn-primary flex-1"
+              >
+                <Download className="w-4 h-4" /> Download PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -17,6 +17,8 @@ public class BeehiveDto
     public int ApiaryId { get; set; }
     public int InspectionCount { get; set; }
     public DateTime CreatedAt { get; set; }
+    public Guid? UniqueId { get; set; }
+    public string? QrCodeBase64 { get; set; }
 }
 
 /// <summary>Full beehive representation including its inspections.</summary>

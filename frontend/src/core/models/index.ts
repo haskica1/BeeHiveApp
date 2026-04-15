@@ -99,6 +99,8 @@ export interface Beehive {
   apiaryId: number
   inspectionCount: number
   createdAt: string
+  uniqueId?: string
+  qrCodeBase64?: string
 }
 
 export interface BeehiveDetail extends Beehive {

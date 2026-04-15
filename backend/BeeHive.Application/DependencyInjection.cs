@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Behaviors;
 using BeeHive.Application.Common.Mappings;
+using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Inspections;
@@ -26,6 +27,7 @@ public static class DependencyInjection
         services.AddScoped<IApiaryService, ApiaryService>();
         services.AddScoped<IBeehiveService, BeehiveService>();
         services.AddScoped<IInspectionService, InspectionService>();
+        services.AddSingleton<IQrCodeService, QrCodeService>();
 
         return services;
     }

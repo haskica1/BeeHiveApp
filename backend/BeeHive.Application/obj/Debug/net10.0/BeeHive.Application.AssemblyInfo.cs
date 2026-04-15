@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BeeHive.Application")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+c625eed63322028d005dbf3a94ac7fd212f9f817")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+59a176594529012f873bb4dce3f0986de261eaac")]
 [assembly: System.Reflection.AssemblyProductAttribute("BeeHive.Application")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BeeHive.Application")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

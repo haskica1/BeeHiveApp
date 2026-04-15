@@ -14,6 +14,12 @@ public class Beehive : BaseEntity
     public DateTime DateCreated { get; set; }
     public string? Notes { get; set; }
 
+    /// <summary>Permanent, globally-unique identifier for this hive. Encoded into the QR code.</summary>
+    public Guid? UniqueId { get; set; }
+
+    /// <summary>PNG QR code image stored as a Base64 string. Generated once on creation.</summary>
+    public string? QrCodeBase64 { get; set; }
+
     // Foreign key
     public int ApiaryId { get; set; }
 

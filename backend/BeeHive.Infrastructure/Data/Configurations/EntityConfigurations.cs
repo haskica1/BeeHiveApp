@@ -46,6 +46,17 @@ public class BeehiveConfiguration : IEntityTypeConfiguration<Beehive>
         builder.Property(b => b.Notes)
             .HasMaxLength(2000);
 
+        builder.Property(b => b.UniqueId)
+            .HasColumnType("uniqueidentifier");
+
+        builder.Property(b => b.QrCodeBase64)
+            .HasColumnType("nvarchar(max)");
+
+        // Enforce uniqueness on UniqueId (non-null rows only, so nullable GUIDs are still allowed)
+        builder.HasIndex(b => b.UniqueId)
+            .IsUnique()
+            .HasFilter("[UniqueId] IS NOT NULL");
+
         // Store enum as integer for performance; consider string if human-readable DB matters
         builder.Property(b => b.Type)
             .IsRequired();
