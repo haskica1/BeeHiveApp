@@ -2,7 +2,11 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
-import { useApiary, useApiaryWeather, useDeleteBeehive } from '../../core/services/queries'
+import {
+  useApiary, useApiaryWeather, useDeleteBeehive,
+  useTodosByApiary, useCreateTodo, useUpdateTodo, useDeleteTodo,
+  queryKeys,
+} from '../../core/services/queries'
 import {
   LoadingSpinner,
   ErrorMessage,
@@ -10,6 +14,7 @@ import {
   ConfirmDialog,
   PageHeader,
 } from '../../shared/components'
+import { TodoSection } from '../../shared/components/TodoSection'
 import type { Beehive, DailyWeather } from '../../core/models'
 
 // ── WMO weather code → emoji + label ─────────────────────────────────────────
@@ -95,6 +100,12 @@ export default function ApiaryDetailPage() {
     apiary?.hasLocation ?? false,
   )
   const deleteMutation = useDeleteBeehive(apiaryId)
+
+  const todoKey = queryKeys.todosByApiary(apiaryId)
+  const { data: todos = [], isLoading: todosLoading } = useTodosByApiary(apiaryId)
+  const createTodo = useCreateTodo(todoKey)
+  const updateTodo = useUpdateTodo(todoKey)
+  const deleteTodo = useDeleteTodo(todoKey)
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
 
@@ -227,6 +238,17 @@ export default function ApiaryDetailPage() {
           </div>
         )}
       </section>
+
+      {/* To-do list */}
+      <TodoSection
+        todos={todos}
+        isLoading={todosLoading}
+        apiaryId={apiaryId}
+        onCreate={p => createTodo.mutateAsync(p)}
+        onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
+        onDelete={id => deleteTodo.mutateAsync(id)}
+        isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
+      />
 
       {/* Beehive list */}
       <h2 className="font-display text-xl font-semibold text-gray-800 mb-4">Beehives</h2>

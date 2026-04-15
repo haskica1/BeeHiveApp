@@ -22,3 +22,10 @@ public enum HoneyLevel
     Medium = 2,
     High = 3
 }
+
+public enum TodoPriority
+{
+    Low    = 1,
+    Medium = 2,
+    High   = 3,
+}

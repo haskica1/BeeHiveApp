@@ -143,6 +143,51 @@ export interface CreateInspectionPayload {
 
 export interface UpdateInspectionPayload extends CreateInspectionPayload {}
 
+// ── Todo ──────────────────────────────────────────────────────────────────────
+
+export enum TodoPriority {
+  Low    = 1,
+  Medium = 2,
+  High   = 3,
+}
+
+export const TodoPriorityLabels: Record<TodoPriority, string> = {
+  [TodoPriority.Low]:    'Low',
+  [TodoPriority.Medium]: 'Medium',
+  [TodoPriority.High]:   'High',
+}
+
+export interface Todo {
+  id: number
+  title: string
+  notes?: string
+  dueDate?: string
+  priority: TodoPriority
+  priorityName: string
+  isCompleted: boolean
+  completedAt?: string
+  apiaryId?: number
+  beehiveId?: number
+  createdAt: string
+}
+
+export interface CreateTodoPayload {
+  title: string
+  notes?: string
+  dueDate?: string | null
+  priority: TodoPriority
+  apiaryId?: number
+  beehiveId?: number
+}
+
+export interface UpdateTodoPayload {
+  title: string
+  notes?: string
+  dueDate?: string | null
+  priority: TodoPriority
+  isCompleted: boolean
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

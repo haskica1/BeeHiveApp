@@ -1,6 +1,7 @@
 using BeeHive.Application.Features.Apiaries.DTOs;
 using BeeHive.Application.Features.Beehives.DTOs;
 using BeeHive.Application.Features.Inspections.DTOs;
+using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Enums;
 using FluentValidation;
 
@@ -144,5 +145,54 @@ public class UpdateInspectionValidator : AbstractValidator<UpdateInspectionDto>
 
         RuleFor(x => x.HoneyLevel).IsInEnum().WithMessage("Invalid honey level.");
         RuleFor(x => x.BeehiveId).GreaterThan(0).WithMessage("A valid beehive must be specified.");
+    }
+}
+
+// ── Todo Validators ──────────────────────────────────────────────────────────
+
+public class CreateTodoValidator : AbstractValidator<CreateTodoDto>
+{
+    public CreateTodoValidator()
+    {
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage("Title is required.")
+            .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
+
+        RuleFor(x => x.Notes)
+            .MaximumLength(1000).WithMessage("Notes must not exceed 1000 characters.")
+            .When(x => x.Notes is not null);
+
+        RuleFor(x => x.Priority)
+            .IsInEnum().WithMessage("Invalid priority value.");
+
+        RuleFor(x => x)
+            .Must(x => x.ApiaryId.HasValue ^ x.BeehiveId.HasValue)
+            .WithName("Target")
+            .WithMessage("A todo must belong to exactly one apiary or one beehive.");
+
+        RuleFor(x => x.ApiaryId)
+            .GreaterThan(0).WithMessage("A valid apiary must be specified.")
+            .When(x => x.ApiaryId.HasValue);
+
+        RuleFor(x => x.BeehiveId)
+            .GreaterThan(0).WithMessage("A valid beehive must be specified.")
+            .When(x => x.BeehiveId.HasValue);
+    }
+}
+
+public class UpdateTodoValidator : AbstractValidator<UpdateTodoDto>
+{
+    public UpdateTodoValidator()
+    {
+        RuleFor(x => x.Title)
+            .NotEmpty().WithMessage("Title is required.")
+            .MaximumLength(200).WithMessage("Title must not exceed 200 characters.");
+
+        RuleFor(x => x.Notes)
+            .MaximumLength(1000).WithMessage("Notes must not exceed 1000 characters.")
+            .When(x => x.Notes is not null);
+
+        RuleFor(x => x.Priority)
+            .IsInEnum().WithMessage("Invalid priority value.");
     }
 }

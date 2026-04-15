@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "QFjPylAZaCM=",
+  "dgSpecHash": "zSPAQ4aXySk=",
   "success": true,
   "projectFilePath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
   "expectedPackageFiles": [
@@ -81,5 +81,30 @@
     "C:\\Users\\asimh\\.nuget\\packages\\system.security.permissions\\9.0.0\\system.security.permissions.9.0.0.nupkg.sha512",
     "C:\\Users\\asimh\\.nuget\\packages\\system.windows.extensions\\9.0.0\\system.windows.extensions.9.0.0.nupkg.sha512"
   ],
-  "logs": []
+  "logs": [
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'System.Security.Cryptography.Xml' 9.0.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-37gx-xxp4-5rgx",
+      "projectPath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
+      "libraryId": "System.Security.Cryptography.Xml",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    },
+    {
+      "code": "NU1901",
+      "level": "Warning",
+      "message": "Package 'System.Security.Cryptography.Xml' 9.0.0 has a known low severity vulnerability, https://github.com/advisories/GHSA-w3x6-4m5h-cxqf",
+      "projectPath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
+      "warningLevel": 1,
+      "filePath": "C:\\Users\\asimh\\source\\BeeHiveApp\\backend\\BeeHive.Infrastructure\\BeeHive.Infrastructure.csproj",
+      "libraryId": "System.Security.Cryptography.Xml",
+      "targetGraphs": [
+        "net10.0"
+      ]
+    }
+  ]
 }

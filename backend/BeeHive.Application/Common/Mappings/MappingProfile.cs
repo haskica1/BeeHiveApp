@@ -2,6 +2,7 @@ using AutoMapper;
 using BeeHive.Application.Features.Apiaries.DTOs;
 using BeeHive.Application.Features.Beehives.DTOs;
 using BeeHive.Application.Features.Inspections.DTOs;
+using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Common.Mappings;
@@ -40,5 +41,13 @@ public class MappingProfile : Profile
 
         CreateMap<CreateInspectionDto, Inspection>();
         CreateMap<UpdateInspectionDto, Inspection>();
+
+        // ── Todo ─────────────────────────────────────────────────────────────
+        CreateMap<Todo, TodoDto>()
+            .ForMember(d => d.PriorityName, o => o.MapFrom(s => s.Priority.ToString()));
+
+        CreateMap<CreateTodoDto, Todo>();
+        CreateMap<UpdateTodoDto, Todo>()
+            .ForMember(d => d.CompletedAt, o => o.Ignore()); // managed in service
     }
 }

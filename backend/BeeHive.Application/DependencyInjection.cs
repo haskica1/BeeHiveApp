@@ -4,6 +4,7 @@ using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Inspections;
+using BeeHive.Application.Features.Todos;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<IApiaryService, ApiaryService>();
         services.AddScoped<IBeehiveService, BeehiveService>();
         services.AddScoped<IInspectionService, InspectionService>();
+        services.AddScoped<ITodoService, TodoService>();
         services.AddSingleton<IQrCodeService, QrCodeService>();
 
         return services;

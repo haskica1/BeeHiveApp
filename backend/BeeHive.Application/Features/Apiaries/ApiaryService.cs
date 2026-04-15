@@ -76,6 +76,13 @@ public class ApiaryService : IApiaryService
         var apiary = await _uow.Apiaries.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Apiary), id);
 
+        // Apiary → Todos has NO ACTION cascade (to avoid SQL Server multiple-cascade-path error).
+        // Delete apiary-level todos explicitly before removing the apiary.
+        // Beehive-level todos are handled by the existing Beehive → Todos cascade.
+        var apiaryTodos = await _uow.Todos.GetByApiaryIdAsync(id);
+        foreach (var todo in apiaryTodos)
+            await _uow.Todos.DeleteAsync(todo);
+
         await _uow.Apiaries.DeleteAsync(apiary);
         await _uow.SaveChangesAsync();
     }

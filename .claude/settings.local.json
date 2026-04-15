@@ -12,7 +12,12 @@
       "Bash(export PATH=\"/c/Users/asimh/AppData/Local/nvm/v25.2.1:$PATH\")",
       "Bash(node node_modules/typescript/bin/tsc --noEmit)",
       "Bash(npm install:*)",
-      "Bash(npm ls:*)"
+      "Bash(npm ls:*)",
+      "Bash(node_modules/.bin/tsc --noEmit)",
+      "Bash(cmd.exe /c \"cd C:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend && node_modules\\\\.bin\\\\tsc --noEmit 2>&1\")",
+      "Bash(cmd.exe /c \"C:\\\\nvm4w\\\\nodejs\\\\node.exe C:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\node_modules\\\\typescript\\\\bin\\\\tsc --noEmit --project C:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\tsconfig.json 2>&1\")",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(grep -A3 \"FK_Todos_Apiaries\\\\|FK_Todos_Beehives\" \"c:/Users/asimh/source/BeeHiveApp/backend/BeeHive.Infrastructure/Migrations/\"*AddTodos*.cs)"
     ]
   }
 }

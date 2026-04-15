@@ -3,7 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { jsPDF } from 'jspdf'
-import { useBeehive, useDeleteInspection } from '../../core/services/queries'
+import {
+  useBeehive, useDeleteInspection,
+  useTodosByBeehive, useCreateTodo, useUpdateTodo, useDeleteTodo,
+  queryKeys,
+} from '../../core/services/queries'
 import {
   LoadingSpinner,
   ErrorMessage,
@@ -12,6 +16,7 @@ import {
   PageHeader,
   HoneyLevelBadge,
 } from '../../shared/components'
+import { TodoSection } from '../../shared/components/TodoSection'
 import type { Inspection } from '../../core/models'
 
 // ── PDF download helper ───────────────────────────────────────────────────────
@@ -77,6 +82,12 @@ export default function BeehiveDetailPage() {
 
   const { data: beehive, isLoading, error } = useBeehive(beehiveId)
   const deleteMutation = useDeleteInspection(beehiveId)
+
+  const todoKey = queryKeys.todosByBeehive(beehiveId)
+  const { data: todos = [], isLoading: todosLoading } = useTodosByBeehive(beehiveId)
+  const createTodo = useCreateTodo(todoKey)
+  const updateTodo = useUpdateTodo(todoKey)
+  const deleteTodo = useDeleteTodo(todoKey)
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
@@ -158,6 +169,17 @@ export default function BeehiveDetailPage() {
           </p>
         )}
       </div>
+
+      {/* To-do list */}
+      <TodoSection
+        todos={todos}
+        isLoading={todosLoading}
+        beehiveId={beehiveId}
+        onCreate={p => createTodo.mutateAsync(p)}
+        onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
+        onDelete={id => deleteTodo.mutateAsync(id)}
+        isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
+      />
 
       {/* Inspections */}
       <h2 className="font-display text-xl font-semibold text-gray-800 mb-4">Inspection History</h2>

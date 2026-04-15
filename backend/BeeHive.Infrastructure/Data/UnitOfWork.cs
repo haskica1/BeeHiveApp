@@ -16,6 +16,7 @@ public class UnitOfWork : IUnitOfWork
     private IApiaryRepository? _apiaries;
     private IBeehiveRepository? _beehives;
     private IInspectionRepository? _inspections;
+    private ITodoRepository? _todos;
 
     public UnitOfWork(BeeHiveDbContext context)
     {
@@ -30,6 +31,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IInspectionRepository Inspections =>
         _inspections ??= new InspectionRepository(_context);
+
+    public ITodoRepository Todos =>
+        _todos ??= new TodoRepository(_context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         await _context.SaveChangesAsync(cancellationToken);

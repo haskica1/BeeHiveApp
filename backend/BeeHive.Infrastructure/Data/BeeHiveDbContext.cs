@@ -16,6 +16,7 @@ public class BeeHiveDbContext : DbContext
     public DbSet<Apiary> Apiaries => Set<Apiary>();
     public DbSet<Beehive> Beehives => Set<Beehive>();
     public DbSet<Inspection> Inspections => Set<Inspection>();
+    public DbSet<Todo> Todos => Set<Todo>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
