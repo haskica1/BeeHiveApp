@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiaryService } from '../services/apiaryService'
 import { beehiveService, inspectionService } from '../services/beehiveService'
 import { todoService } from '../services/todoService'
+import { dietService } from '../services/dietService'
 import type {
   CreateApiaryPayload,
   UpdateApiaryPayload,
@@ -11,6 +12,9 @@ import type {
   UpdateInspectionPayload,
   CreateTodoPayload,
   UpdateTodoPayload,
+  CreateDietPayload,
+  UpdateDietPayload,
+  CompleteEarlyPayload,
 } from '../models'
 
 // ── Query Keys ────────────────────────────────────────────────────────────────
@@ -25,6 +29,8 @@ export const queryKeys = {
   inspection:         (id: number) => ['inspections', id] as const,
   todosByApiary:      (apiaryId: number) => ['todos', 'apiary', apiaryId] as const,
   todosByBeehive:     (beehiveId: number) => ['todos', 'beehive', beehiveId] as const,
+  dietsByBeehive:     (beehiveId: number) => ['diets', 'beehive', beehiveId] as const,
+  diet:               (id: number) => ['diets', id] as const,
 }
 
 // ── Apiary Hooks ──────────────────────────────────────────────────────────────
@@ -187,5 +193,70 @@ export const useDeleteTodo = (invalidateKey: readonly unknown[]) => {
   return useMutation({
     mutationFn: (id: number) => todoService.delete(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: invalidateKey }),
+  })
+}
+
+// ── Diet Hooks ────────────────────────────────────────────────────────────────
+
+export const useDietsByBeehive = (beehiveId: number) =>
+  useQuery({
+    queryKey: queryKeys.dietsByBeehive(beehiveId),
+    queryFn:  () => dietService.getByBeehive(beehiveId),
+    enabled:  !!beehiveId,
+  })
+
+export const useDiet = (id: number) =>
+  useQuery({
+    queryKey: queryKeys.diet(id),
+    queryFn:  () => dietService.getById(id),
+    enabled:  !!id,
+  })
+
+export const useCreateDiet = (beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateDietPayload) => dietService.create(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) }),
+  })
+}
+
+export const useUpdateDiet = (id: number, beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: UpdateDietPayload) => dietService.update(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.diet(id) })
+      qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+    },
+  })
+}
+
+export const useDeleteDiet = (beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => dietService.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) }),
+  })
+}
+
+export const useCompleteEarlyDiet = (id: number, beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CompleteEarlyPayload) => dietService.completeEarly(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.diet(id) })
+      qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+    },
+  })
+}
+
+export const useCompleteFeedingEntry = (dietId: number, beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (entryId: number) => dietService.completeFeedingEntry(dietId, entryId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.diet(dietId) })
+      qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+    },
   })
 }

@@ -17,6 +17,7 @@ import {
   HoneyLevelBadge,
 } from '../../shared/components'
 import { TodoSection } from '../../shared/components/TodoSection'
+import DietSection from '../diets/DietSection'
 import type { Inspection } from '../../core/models'
 
 // ── PDF download helper ───────────────────────────────────────────────────────
@@ -169,6 +170,9 @@ export default function BeehiveDetailPage() {
           </p>
         )}
       </div>
+
+      {/* Feeding programmes */}
+      <DietSection beehiveId={beehiveId} />
 
       {/* To-do list */}
       <TodoSection

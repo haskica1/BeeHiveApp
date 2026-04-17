@@ -71,7 +71,65 @@ public class BeehiveConfiguration : IEntityTypeConfiguration<Beehive>
             .HasForeignKey(i => i.BeehiveId)
             .OnDelete(DeleteBehavior.Cascade);
 
+        // One beehive → many diets; cascade delete
+        builder.HasMany(b => b.Diets)
+            .WithOne(d => d.Beehive)
+            .HasForeignKey(d => d.BeehiveId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         builder.ToTable("Beehives");
+    }
+}
+
+public class DietConfiguration : IEntityTypeConfiguration<Diet>
+{
+    public void Configure(EntityTypeBuilder<Diet> builder)
+    {
+        builder.HasKey(d => d.Id);
+
+        builder.Property(d => d.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(d => d.CustomReason)
+            .HasMaxLength(500);
+
+        builder.Property(d => d.CustomFoodType)
+            .HasMaxLength(200);
+
+        builder.Property(d => d.EarlyCompletionComment)
+            .HasMaxLength(1000);
+
+        builder.Property(d => d.Reason).IsRequired();
+        builder.Property(d => d.FoodType).IsRequired();
+        builder.Property(d => d.Status).IsRequired();
+        builder.Property(d => d.StartDate).IsRequired();
+
+        // One diet → many feeding entries; cascade delete
+        builder.HasMany(d => d.FeedingEntries)
+            .WithOne(e => e.Diet)
+            .HasForeignKey(e => e.DietId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasIndex(d => d.BeehiveId);
+
+        builder.ToTable("Diets");
+    }
+}
+
+public class FeedingEntryConfiguration : IEntityTypeConfiguration<FeedingEntry>
+{
+    public void Configure(EntityTypeBuilder<FeedingEntry> builder)
+    {
+        builder.HasKey(e => e.Id);
+
+        builder.Property(e => e.ScheduledDate).IsRequired();
+        builder.Property(e => e.Status).IsRequired();
+
+        builder.HasIndex(e => e.DietId);
+        builder.HasIndex(e => e.ScheduledDate);
+
+        builder.ToTable("FeedingEntries");
     }
 }
 

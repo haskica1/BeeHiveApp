@@ -29,3 +29,39 @@ public enum TodoPriority
     Medium = 2,
     High   = 3,
 }
+
+public enum DietStatus
+{
+    NotStarted  = 1,
+    InProgress  = 2,
+    Completed   = 3,
+    StoppedEarly = 4,
+}
+
+public enum FeedingEntryStatus
+{
+    Pending   = 1,
+    Completed = 2,
+}
+
+public enum DietReason
+{
+    LackOfFood               = 1,
+    WinterFeeding            = 2,
+    SpringStimulation        = 3,
+    NewSwarmSupport          = 4,
+    PostHarvestRecovery      = 5,
+    DroughtConditions        = 6,
+    WeakColonySupport        = 7,
+    QueenIntroductionSupport = 8,
+    Custom                   = 9,
+}
+
+public enum FoodType
+{
+    SugarSyrup      = 1,
+    Fondant         = 2,
+    Pollen          = 3,
+    ProteinPatties  = 4,
+    Custom          = 5,
+}

@@ -17,6 +17,8 @@ public class UnitOfWork : IUnitOfWork
     private IBeehiveRepository? _beehives;
     private IInspectionRepository? _inspections;
     private ITodoRepository? _todos;
+    private IDietRepository? _diets;
+    private IFeedingEntryRepository? _feedingEntries;
 
     public UnitOfWork(BeeHiveDbContext context)
     {
@@ -34,6 +36,12 @@ public class UnitOfWork : IUnitOfWork
 
     public ITodoRepository Todos =>
         _todos ??= new TodoRepository(_context);
+
+    public IDietRepository Diets =>
+        _diets ??= new DietRepository(_context);
+
+    public IFeedingEntryRepository FeedingEntries =>
+        _feedingEntries ??= new FeedingEntryRepository(_context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         await _context.SaveChangesAsync(cancellationToken);

@@ -6,6 +6,8 @@ import ApiaryFormPage from './features/apiaries/ApiaryFormPage'
 import BeehiveDetailPage from './features/beehives/BeehiveDetailPage'
 import BeehiveFormPage from './features/beehives/BeehiveFormPage'
 import InspectionFormPage from './features/inspections/InspectionFormPage'
+import DietFormPage from './features/diets/DietFormPage'
+import DietDetailPage from './features/diets/DietDetailPage'
 
 export default function App() {
   return (
@@ -29,6 +31,11 @@ export default function App() {
           {/* Inspection routes */}
           <Route path="inspections/new"       element={<InspectionFormPage />} />
           <Route path="inspections/:id/edit"  element={<InspectionFormPage />} />
+
+          {/* Diet routes */}
+          <Route path="diets/new"             element={<DietFormPage />} />
+          <Route path="diets/:id"             element={<DietDetailPage />} />
+          <Route path="diets/:id/edit"        element={<DietFormPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

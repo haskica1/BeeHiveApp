@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BeeHive.Infrastructure.Migrations
 {
     [DbContext(typeof(BeeHiveDbContext))]
-    [Migration("20260415200335_AddTodos")]
-    partial class AddTodos
+    [Migration("20260416140137_FixModelConstraints")]
+    partial class FixModelConstraints
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -160,6 +160,100 @@ namespace BeeHive.Infrastructure.Migrations
                             Notes = "Insulated polystyrene hive — excellent for winter survival.",
                             Type = 1
                         });
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Diet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BeehiveId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CustomFoodType")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("CustomReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("DurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EarlyCompletionComment")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<int>("FoodType")
+                        .HasColumnType("int");
+
+                    b.Property<int>("FrequencyDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BeehiveId");
+
+                    b.ToTable("Diets", (string)null);
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.FeedingEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletionDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("DietId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("ScheduledDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DietId");
+
+                    b.HasIndex("ScheduledDate");
+
+                    b.ToTable("FeedingEntries", (string)null);
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.Inspection", b =>
@@ -316,6 +410,28 @@ namespace BeeHive.Infrastructure.Migrations
                     b.Navigation("Apiary");
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Diet", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Beehive", "Beehive")
+                        .WithMany("Diets")
+                        .HasForeignKey("BeehiveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Beehive");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.FeedingEntry", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Diet", "Diet")
+                        .WithMany("FeedingEntries")
+                        .HasForeignKey("DietId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Diet");
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Inspection", b =>
                 {
                     b.HasOne("BeeHive.Domain.Entities.Beehive", "Beehive")
@@ -351,7 +467,14 @@ namespace BeeHive.Infrastructure.Migrations
 
             modelBuilder.Entity("BeeHive.Domain.Entities.Beehive", b =>
                 {
+                    b.Navigation("Diets");
+
                     b.Navigation("Inspections");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Diet", b =>
+                {
+                    b.Navigation("FeedingEntries");
                 });
 #pragma warning restore 612, 618
         }

@@ -2,6 +2,19 @@ using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Common.Interfaces;
 
+/// <summary>Diet-specific data access operations.</summary>
+public interface IDietRepository : IRepository<Diet>
+{
+    Task<IEnumerable<Diet>> GetByBeehiveIdAsync(int beehiveId);
+    Task<Diet?> GetWithEntriesAsync(int id);
+}
+
+/// <summary>FeedingEntry-specific data access operations.</summary>
+public interface IFeedingEntryRepository : IRepository<FeedingEntry>
+{
+    Task<IEnumerable<FeedingEntry>> GetByDietIdAsync(int dietId);
+}
+
 /// <summary>Todo-specific data access operations.</summary>
 public interface ITodoRepository : IRepository<Todo>
 {

@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Domain.Entities;
+using BeeHive.Domain.Enums;
 using BeeHive.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -80,5 +81,39 @@ public class TodoRepository : Repository<Todo>, ITodoRepository
             .OrderBy(t => t.IsCompleted)
             .ThenBy(t => t.DueDate)
             .ThenBy(t => t.CreatedAt)
+            .ToListAsync();
+}
+
+// ── Diet Repository ───────────────────────────────────────────────────────────
+
+public class DietRepository : Repository<Diet>, IDietRepository
+{
+    public DietRepository(BeeHiveDbContext context) : base(context) { }
+
+    public async Task<IEnumerable<Diet>> GetByBeehiveIdAsync(int beehiveId) =>
+        await _context.Diets
+            .AsNoTracking()
+            .Include(d => d.FeedingEntries)
+            .Where(d => d.BeehiveId == beehiveId)
+            .OrderByDescending(d => d.StartDate)
+            .ToListAsync();
+
+    public async Task<Diet?> GetWithEntriesAsync(int id) =>
+        await _context.Diets
+            .Include(d => d.FeedingEntries)
+            .FirstOrDefaultAsync(d => d.Id == id);
+}
+
+// ── FeedingEntry Repository ───────────────────────────────────────────────────
+
+public class FeedingEntryRepository : Repository<FeedingEntry>, IFeedingEntryRepository
+{
+    public FeedingEntryRepository(BeeHiveDbContext context) : base(context) { }
+
+    public async Task<IEnumerable<FeedingEntry>> GetByDietIdAsync(int dietId) =>
+        await _context.FeedingEntries
+            .AsNoTracking()
+            .Where(e => e.DietId == dietId)
+            .OrderBy(e => e.ScheduledDate)
             .ToListAsync();
 }

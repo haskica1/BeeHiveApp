@@ -9,6 +9,8 @@ public interface IUnitOfWork : IDisposable
     IBeehiveRepository Beehives { get; }
     IInspectionRepository Inspections { get; }
     ITodoRepository Todos { get; }
+    IDietRepository Diets { get; }
+    IFeedingEntryRepository FeedingEntries { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

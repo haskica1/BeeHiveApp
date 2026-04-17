@@ -188,6 +188,121 @@ export interface UpdateTodoPayload {
   isCompleted: boolean
 }
 
+// ── Diet ──────────────────────────────────────────────────────────────────────
+
+export enum DietStatus {
+  NotStarted   = 1,
+  InProgress   = 2,
+  Completed    = 3,
+  StoppedEarly = 4,
+}
+
+export enum FeedingEntryStatus {
+  Pending   = 1,
+  Completed = 2,
+}
+
+export enum DietReason {
+  LackOfFood               = 1,
+  WinterFeeding            = 2,
+  SpringStimulation        = 3,
+  NewSwarmSupport          = 4,
+  PostHarvestRecovery      = 5,
+  DroughtConditions        = 6,
+  WeakColonySupport        = 7,
+  QueenIntroductionSupport = 8,
+  Custom                   = 9,
+}
+
+export const DietReasonLabels: Record<DietReason, string> = {
+  [DietReason.LackOfFood]:               'Lack of Food',
+  [DietReason.WinterFeeding]:            'Winter Feeding',
+  [DietReason.SpringStimulation]:        'Spring Stimulation',
+  [DietReason.NewSwarmSupport]:          'New Swarm Support',
+  [DietReason.PostHarvestRecovery]:      'Post-Harvest Recovery',
+  [DietReason.DroughtConditions]:        'Drought Conditions',
+  [DietReason.WeakColonySupport]:        'Weak Colony Support',
+  [DietReason.QueenIntroductionSupport]: 'Queen Introduction Support',
+  [DietReason.Custom]:                   'Custom',
+}
+
+export enum FoodType {
+  SugarSyrup     = 1,
+  Fondant        = 2,
+  Pollen         = 3,
+  ProteinPatties = 4,
+  Custom         = 5,
+}
+
+export const FoodTypeLabels: Record<FoodType, string> = {
+  [FoodType.SugarSyrup]:     'Sugar Syrup',
+  [FoodType.Fondant]:        'Fondant',
+  [FoodType.Pollen]:         'Pollen',
+  [FoodType.ProteinPatties]: 'Protein Patties',
+  [FoodType.Custom]:         'Custom',
+}
+
+export interface FeedingEntry {
+  id: number
+  scheduledDate: string
+  status: FeedingEntryStatus
+  statusName: string
+  completionDate?: string
+  dietId: number
+}
+
+export interface Diet {
+  id: number
+  name: string
+  startDate: string
+  reason: DietReason
+  reasonName: string
+  customReason?: string
+  durationDays: number
+  frequencyDays: number
+  foodType: FoodType
+  foodTypeName: string
+  customFoodType?: string
+  status: DietStatus
+  statusName: string
+  earlyCompletionComment?: string
+  beehiveId: number
+  totalEntries: number
+  completedEntries: number
+  createdAt: string
+}
+
+export interface DietDetail extends Diet {
+  feedingEntries: FeedingEntry[]
+}
+
+export interface CreateDietPayload {
+  name: string
+  startDate: string
+  reason: DietReason
+  customReason?: string
+  durationDays: number
+  frequencyDays: number
+  foodType: FoodType
+  customFoodType?: string
+  beehiveId: number
+}
+
+export interface UpdateDietPayload {
+  name: string
+  startDate: string
+  reason: DietReason
+  customReason?: string
+  durationDays: number
+  frequencyDays: number
+  foodType: FoodType
+  customFoodType?: string
+}
+
+export interface CompleteEarlyPayload {
+  comment: string
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

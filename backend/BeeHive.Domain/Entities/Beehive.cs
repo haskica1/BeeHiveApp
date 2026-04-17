@@ -26,4 +26,5 @@ public class Beehive : BaseEntity
     // Navigation properties
     public Apiary Apiary { get; set; } = null!;
     public ICollection<Inspection> Inspections { get; set; } = new List<Inspection>();
+    public ICollection<Diet> Diets { get; set; } = new List<Diet>();
 }

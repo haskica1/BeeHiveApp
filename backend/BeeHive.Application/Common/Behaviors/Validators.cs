@@ -1,5 +1,6 @@
 using BeeHive.Application.Features.Apiaries.DTOs;
 using BeeHive.Application.Features.Beehives.DTOs;
+using BeeHive.Application.Features.Diets.DTOs;
 using BeeHive.Application.Features.Inspections.DTOs;
 using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Enums;
@@ -194,5 +195,92 @@ public class UpdateTodoValidator : AbstractValidator<UpdateTodoDto>
 
         RuleFor(x => x.Priority)
             .IsInEnum().WithMessage("Invalid priority value.");
+    }
+}
+
+// ── Diet Validators ──────────────────────────────────────────────────────────
+
+public class CreateDietValidator : AbstractValidator<CreateDietDto>
+{
+    public CreateDietValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Diet name is required.")
+            .MaximumLength(200).WithMessage("Name must not exceed 200 characters.");
+
+        RuleFor(x => x.StartDate)
+            .NotEmpty().WithMessage("Start date is required.");
+
+        RuleFor(x => x.Reason)
+            .IsInEnum().WithMessage("Invalid diet reason.");
+
+        RuleFor(x => x.CustomReason)
+            .NotEmpty().WithMessage("Custom reason text is required when reason is Custom.")
+            .MaximumLength(500)
+            .When(x => x.Reason == DietReason.Custom);
+
+        RuleFor(x => x.DurationDays)
+            .GreaterThan(0).WithMessage("Duration must be at least 1 day.");
+
+        RuleFor(x => x.FrequencyDays)
+            .GreaterThan(0).WithMessage("Frequency must be at least 1 day.")
+            .LessThanOrEqualTo(x => x.DurationDays).WithMessage("Frequency cannot exceed duration.");
+
+        RuleFor(x => x.FoodType)
+            .IsInEnum().WithMessage("Invalid food type.");
+
+        RuleFor(x => x.CustomFoodType)
+            .NotEmpty().WithMessage("Custom food type text is required when food type is Custom.")
+            .MaximumLength(200)
+            .When(x => x.FoodType == FoodType.Custom);
+
+        RuleFor(x => x.BeehiveId)
+            .GreaterThan(0).WithMessage("A valid beehive must be specified.");
+    }
+}
+
+public class UpdateDietValidator : AbstractValidator<UpdateDietDto>
+{
+    public UpdateDietValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Diet name is required.")
+            .MaximumLength(200).WithMessage("Name must not exceed 200 characters.");
+
+        RuleFor(x => x.StartDate)
+            .NotEmpty().WithMessage("Start date is required.");
+
+        RuleFor(x => x.Reason)
+            .IsInEnum().WithMessage("Invalid diet reason.");
+
+        RuleFor(x => x.CustomReason)
+            .NotEmpty().WithMessage("Custom reason text is required when reason is Custom.")
+            .MaximumLength(500)
+            .When(x => x.Reason == DietReason.Custom);
+
+        RuleFor(x => x.DurationDays)
+            .GreaterThan(0).WithMessage("Duration must be at least 1 day.");
+
+        RuleFor(x => x.FrequencyDays)
+            .GreaterThan(0).WithMessage("Frequency must be at least 1 day.")
+            .LessThanOrEqualTo(x => x.DurationDays).WithMessage("Frequency cannot exceed duration.");
+
+        RuleFor(x => x.FoodType)
+            .IsInEnum().WithMessage("Invalid food type.");
+
+        RuleFor(x => x.CustomFoodType)
+            .NotEmpty().WithMessage("Custom food type text is required when food type is Custom.")
+            .MaximumLength(200)
+            .When(x => x.FoodType == FoodType.Custom);
+    }
+}
+
+public class CompleteEarlyValidator : AbstractValidator<CompleteEarlyDto>
+{
+    public CompleteEarlyValidator()
+    {
+        RuleFor(x => x.Comment)
+            .NotEmpty().WithMessage("A comment is required when stopping a diet early.")
+            .MaximumLength(1000).WithMessage("Comment must not exceed 1000 characters.");
     }
 }

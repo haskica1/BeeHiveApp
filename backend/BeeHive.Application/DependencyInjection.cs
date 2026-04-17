@@ -3,6 +3,7 @@ using BeeHive.Application.Common.Mappings;
 using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Beehives;
+using BeeHive.Application.Features.Diets;
 using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Todos;
 using FluentValidation;
@@ -29,6 +30,7 @@ public static class DependencyInjection
         services.AddScoped<IBeehiveService, BeehiveService>();
         services.AddScoped<IInspectionService, InspectionService>();
         services.AddScoped<ITodoService, TodoService>();
+        services.AddScoped<IDietService, DietService>();
         services.AddSingleton<IQrCodeService, QrCodeService>();
 
         return services;
