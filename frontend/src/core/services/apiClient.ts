@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { authService } from './authService'
 
 /**
  * Pre-configured Axios instance for BeeHive API calls.
@@ -13,10 +14,24 @@ const apiClient = axios.create({
   timeout: 10_000,
 })
 
-// Response interceptor — normalise errors into a consistent shape
+// Attach JWT token from localStorage on every request
+apiClient.interceptors.request.use((config) => {
+  const token = authService.getToken()
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+  return config
+})
+
+// Normalise errors; redirect to /login on 401
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    if (error.response?.status === 401) {
+      authService.logout()
+      window.location.href = '/login'
+    }
+
     const message =
       error.response?.data?.title ??
       error.response?.data?.message ??

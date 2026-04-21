@@ -1,7 +1,9 @@
+using System.Security.Claims;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Apiaries.DTOs;
 using BeeHive.Application.Features.Weather;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BeeHive.API.Controllers;
@@ -13,6 +15,7 @@ namespace BeeHive.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class ApiariesController : ControllerBase
 {
     private readonly IApiaryService _service;
@@ -32,12 +35,13 @@ public class ApiariesController : ControllerBase
         _updateValidator = updateValidator;
     }
 
-    /// <summary>Returns all apiaries with their beehive counts.</summary>
+    /// <summary>Returns all apiaries belonging to the current user's organization.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ApiaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        var apiaries = await _service.GetAllAsync();
+        var orgId = int.Parse(User.FindFirstValue("organizationId")!);
+        var apiaries = await _service.GetAllByOrganizationAsync(orgId);
         return Ok(apiaries);
     }
 
@@ -51,7 +55,7 @@ public class ApiariesController : ControllerBase
         return Ok(apiary);
     }
 
-    /// <summary>Creates a new apiary.</summary>
+    /// <summary>Creates a new apiary for the current user's organization.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(ApiaryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -61,7 +65,8 @@ public class ApiariesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var created = await _service.CreateAsync(dto);
+        var orgId = int.Parse(User.FindFirstValue("organizationId")!);
+        var created = await _service.CreateAsync(dto, orgId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 

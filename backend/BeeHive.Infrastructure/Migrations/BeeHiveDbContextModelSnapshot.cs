@@ -48,10 +48,15 @@ namespace BeeHive.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
 
                     b.ToTable("Apiaries", (string)null);
 
@@ -61,14 +66,16 @@ namespace BeeHive.Infrastructure.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Mountain apiary located near the forest edge, known for acacia and linden honey.",
-                            Name = "Gorska Pčelinja"
+                            Name = "Gorska Pčelinja",
+                            OrganizationId = 2
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "Valley farm apiary with diverse flora — clover, sunflower, and wildflower.",
-                            Name = "Dolinska Farma"
+                            Name = "Dolinska Farma",
+                            OrganizationId = 1
                         });
                 });
 
@@ -156,6 +163,17 @@ namespace BeeHive.Infrastructure.Migrations
                             Name = "Košnica B1",
                             Notes = "Insulated polystyrene hive — excellent for winter survival.",
                             Type = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            ApiaryId = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DateCreated = new DateTime(2023, 6, 5, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            Material = 1,
+                            Name = "Košnica B2",
+                            Notes = "Warré hive added for natural beekeeping trial.",
+                            Type = 3
                         });
                 });
 
@@ -342,6 +360,50 @@ namespace BeeHive.Infrastructure.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Organization", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Organizations", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "A family-run beekeeping operation in the lowlands, specialising in wildflower honey.",
+                            Name = "Golden Hive Co"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "High-altitude apiculture collective producing premium acacia and linden honey.",
+                            Name = "Mountain Bees"
+                        });
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Todo", b =>
                 {
                     b.Property<int>("Id")
@@ -394,6 +456,66 @@ namespace BeeHive.Infrastructure.Migrations
                     b.HasIndex("BeehiveId");
 
                     b.ToTable("Todos", (string)null);
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.User", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Users", (string)null);
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Apiary", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Organization", "Organization")
+                        .WithMany("Apiaries")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.Beehive", b =>
@@ -457,6 +579,17 @@ namespace BeeHive.Infrastructure.Migrations
                     b.Navigation("Beehive");
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.User", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Organization", "Organization")
+                        .WithMany("Users")
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Apiary", b =>
                 {
                     b.Navigation("Beehives");
@@ -472,6 +605,13 @@ namespace BeeHive.Infrastructure.Migrations
             modelBuilder.Entity("BeeHive.Domain.Entities.Diet", b =>
                 {
                     b.Navigation("FeedingEntries");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Organization", b =>
+                {
+                    b.Navigation("Apiaries");
+
+                    b.Navigation("Users");
                 });
 #pragma warning restore 612, 618
         }

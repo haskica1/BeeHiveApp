@@ -10,9 +10,9 @@ namespace BeeHive.Application.Features.Apiaries;
 
 public interface IApiaryService
 {
-    Task<IEnumerable<ApiaryDto>> GetAllAsync();
+    Task<IEnumerable<ApiaryDto>> GetAllByOrganizationAsync(int organizationId);
     Task<ApiaryDetailDto> GetByIdAsync(int id);
-    Task<ApiaryDto> CreateAsync(CreateApiaryDto dto);
+    Task<ApiaryDto> CreateAsync(CreateApiaryDto dto, int organizationId);
     Task<ApiaryDto> UpdateAsync(int id, UpdateApiaryDto dto);
     Task DeleteAsync(int id);
 }
@@ -31,9 +31,9 @@ public class ApiaryService : IApiaryService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<ApiaryDto>> GetAllAsync()
+    public async Task<IEnumerable<ApiaryDto>> GetAllByOrganizationAsync(int organizationId)
     {
-        var apiaries = await _uow.Apiaries.GetAllWithBeehivesAsync();
+        var apiaries = await _uow.Apiaries.GetAllByOrganizationAsync(organizationId);
         return _mapper.Map<IEnumerable<ApiaryDto>>(apiaries);
     }
 
@@ -47,9 +47,10 @@ public class ApiaryService : IApiaryService
     }
 
     /// <inheritdoc />
-    public async Task<ApiaryDto> CreateAsync(CreateApiaryDto dto)
+    public async Task<ApiaryDto> CreateAsync(CreateApiaryDto dto, int organizationId)
     {
         var apiary = _mapper.Map<Apiary>(dto);
+        apiary.OrganizationId = organizationId;
         await _uow.Apiaries.AddAsync(apiary);
         await _uow.SaveChangesAsync();
         return _mapper.Map<ApiaryDto>(apiary);

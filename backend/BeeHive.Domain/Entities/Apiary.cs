@@ -16,6 +16,9 @@ public class Apiary : BaseEntity
     /// <summary>WGS-84 longitude (-180 to 180). Null when no location has been set.</summary>
     public double? Longitude { get; set; }
 
+    public int OrganizationId { get; set; }
+    public Organization Organization { get; set; } = null!;
+
     // Navigation property
     public ICollection<Beehive> Beehives { get; set; } = new List<Beehive>();
 }

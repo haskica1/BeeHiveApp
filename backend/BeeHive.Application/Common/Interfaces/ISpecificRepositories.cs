@@ -2,6 +2,12 @@ using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Common.Interfaces;
 
+/// <summary>User-specific data access operations.</summary>
+public interface IUserRepository : IRepository<User>
+{
+    Task<User?> GetByEmailAsync(string email);
+}
+
 /// <summary>Diet-specific data access operations.</summary>
 public interface IDietRepository : IRepository<Diet>
 {
@@ -31,6 +37,9 @@ public interface IApiaryRepository : IRepository<Apiary>
 
     /// <summary>Returns all apiaries with beehive counts.</summary>
     Task<IEnumerable<Apiary>> GetAllWithBeehivesAsync();
+
+    /// <summary>Returns all apiaries belonging to a specific organization.</summary>
+    Task<IEnumerable<Apiary>> GetAllByOrganizationAsync(int organizationId);
 }
 
 /// <summary>Beehive-specific data access operations.</summary>

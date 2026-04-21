@@ -13,6 +13,7 @@ public class UnitOfWork : IUnitOfWork
     private readonly BeeHiveDbContext _context;
 
     // Lazy-initialised repositories — only created when first accessed
+    private IUserRepository? _users;
     private IApiaryRepository? _apiaries;
     private IBeehiveRepository? _beehives;
     private IInspectionRepository? _inspections;
@@ -24,6 +25,9 @@ public class UnitOfWork : IUnitOfWork
     {
         _context = context;
     }
+
+    public IUserRepository Users =>
+        _users ??= new UserRepository(_context);
 
     public IApiaryRepository Apiaries =>
         _apiaries ??= new ApiaryRepository(_context);

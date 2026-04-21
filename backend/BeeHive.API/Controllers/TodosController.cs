@@ -1,6 +1,7 @@
 using BeeHive.Application.Features.Todos;
 using BeeHive.Application.Features.Todos.DTOs;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BeeHive.API.Controllers;
@@ -8,6 +9,7 @@ namespace BeeHive.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class TodosController : ControllerBase
 {
     private readonly ITodoService _service;

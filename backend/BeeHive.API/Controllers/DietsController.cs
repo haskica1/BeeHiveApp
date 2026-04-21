@@ -1,6 +1,7 @@
 using BeeHive.Application.Features.Diets;
 using BeeHive.Application.Features.Diets.DTOs;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BeeHive.API.Controllers;
@@ -8,6 +9,7 @@ namespace BeeHive.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class DietsController : ControllerBase
 {
     private readonly IDietService _service;

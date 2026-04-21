@@ -1,10 +1,18 @@
 import { useState } from 'react'
-import { Link, NavLink, Outlet, useLocation } from 'react-router-dom'
-import { Home, Menu, X } from 'lucide-react'
+import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
+import { Home, LogOut, Menu, X } from 'lucide-react'
 import clsx from 'clsx'
+import { useAuth } from '../../core/context/AuthContext'
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { user, logout } = useAuth()
+  const navigate = useNavigate()
+
+  function handleLogout() {
+    logout()
+    navigate('/login', { replace: true })
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-honey-50">
@@ -24,6 +32,29 @@ export default function Layout() {
             <NavItem to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
           </nav>
 
+          {/* User info + logout (desktop) */}
+          <div className="hidden sm:flex items-center gap-3">
+            {user && (
+              <div className="text-right">
+                <p className="text-sm font-medium text-gray-800 leading-tight">
+                  {user.firstName} {user.lastName}
+                </p>
+                <p className="text-xs text-honey-600 leading-tight">{user.organizationName}</p>
+              </div>
+            )}
+            <div className="w-8 h-8 rounded-full bg-honey-100 flex items-center justify-center text-honey-700 font-semibold text-sm select-none">
+              {user ? user.firstName[0] : '?'}
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm text-gray-600 hover:bg-red-50 hover:text-red-600 transition-colors"
+              title="Sign out"
+            >
+              <LogOut className="w-4 h-4" />
+              <span className="hidden md:inline">Sign out</span>
+            </button>
+          </div>
+
           {/* Mobile menu button */}
           <button
             className="sm:hidden p-2 rounded-lg text-gray-600 hover:bg-honey-100 transition-colors"
@@ -42,6 +73,20 @@ export default function Layout() {
               label="🏡 Apiaries"
               onClick={() => setMobileOpen(false)}
             />
+            {user && (
+              <div className="mt-2 pt-2 border-t border-honey-50">
+                <p className="px-3 py-1 text-xs text-gray-500">
+                  {user.firstName} {user.lastName} · {user.organizationName}
+                </p>
+                <button
+                  onClick={() => { setMobileOpen(false); handleLogout() }}
+                  className="w-full text-left flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Sign out
+                </button>
+              </div>
+            )}
           </div>
         )}
       </header>

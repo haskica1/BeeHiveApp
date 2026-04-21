@@ -65,3 +65,8 @@ public enum FoodType
     ProteinPatties  = 4,
     Custom          = 5,
 }
+
+public enum UserRole
+{
+    Admin = 1,
+}

@@ -1,6 +1,7 @@
 using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Inspections.DTOs;
 using FluentValidation;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BeeHive.API.Controllers;
@@ -8,6 +9,7 @@ namespace BeeHive.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
+[Authorize]
 public class InspectionsController : ControllerBase
 {
     private readonly IInspectionService _service;

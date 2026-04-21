@@ -5,6 +5,64 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace BeeHive.Infrastructure.Data.Configurations;
 
+public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
+{
+    public void Configure(EntityTypeBuilder<Organization> builder)
+    {
+        builder.HasKey(o => o.Id);
+
+        builder.Property(o => o.Name)
+            .IsRequired()
+            .HasMaxLength(200);
+
+        builder.Property(o => o.Description)
+            .HasMaxLength(1000);
+
+        builder.HasMany(o => o.Users)
+            .WithOne(u => u.Organization)
+            .HasForeignKey(u => u.OrganizationId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasMany(o => o.Apiaries)
+            .WithOne(a => a.Organization)
+            .HasForeignKey(a => a.OrganizationId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.ToTable("Organizations");
+    }
+}
+
+public class UserConfiguration : IEntityTypeConfiguration<User>
+{
+    public void Configure(EntityTypeBuilder<User> builder)
+    {
+        builder.HasKey(u => u.Id);
+
+        builder.Property(u => u.FirstName)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(u => u.LastName)
+            .IsRequired()
+            .HasMaxLength(100);
+
+        builder.Property(u => u.Email)
+            .IsRequired()
+            .HasMaxLength(256);
+
+        builder.HasIndex(u => u.Email)
+            .IsUnique();
+
+        builder.Property(u => u.PasswordHash)
+            .IsRequired();
+
+        builder.Property(u => u.Role)
+            .IsRequired();
+
+        builder.ToTable("Users");
+    }
+}
+
 public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
 {
     public void Configure(EntityTypeBuilder<Apiary> builder)

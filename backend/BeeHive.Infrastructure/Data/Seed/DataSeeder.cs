@@ -14,6 +14,24 @@ public static class DataSeeder
     {
         var now = new DateTime(2024, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+        // ── Organizations ─────────────────────────────────────────────────────
+        modelBuilder.Entity<Organization>().HasData(
+            new Organization
+            {
+                Id = 1,
+                Name = "Golden Hive Co",
+                Description = "A family-run beekeeping operation in the lowlands, specialising in wildflower honey.",
+                CreatedAt = now
+            },
+            new Organization
+            {
+                Id = 2,
+                Name = "Mountain Bees",
+                Description = "High-altitude apiculture collective producing premium acacia and linden honey.",
+                CreatedAt = now
+            }
+        );
+
         // ── Apiaries ──────────────────────────────────────────────────────────
         modelBuilder.Entity<Apiary>().HasData(
             new Apiary
@@ -21,6 +39,7 @@ public static class DataSeeder
                 Id = 1,
                 Name = "Gorska Pčelinja",
                 Description = "Mountain apiary located near the forest edge, known for acacia and linden honey.",
+                OrganizationId = 2,
                 CreatedAt = now
             },
             new Apiary
@@ -28,6 +47,7 @@ public static class DataSeeder
                 Id = 2,
                 Name = "Dolinska Farma",
                 Description = "Valley farm apiary with diverse flora — clover, sunflower, and wildflower.",
+                OrganizationId = 1,
                 CreatedAt = now
             }
         );
@@ -64,6 +84,17 @@ public static class DataSeeder
                 Material = BeehiveMaterial.Polystyrene,
                 DateCreated = new DateTime(2023, 4, 10),
                 Notes = "Insulated polystyrene hive — excellent for winter survival.",
+                ApiaryId = 2,
+                CreatedAt = now
+            },
+            new Beehive
+            {
+                Id = 4,
+                Name = "Košnica B2",
+                Type = BeehiveType.Warré,
+                Material = BeehiveMaterial.Wood,
+                DateCreated = new DateTime(2023, 6, 5),
+                Notes = "Warré hive added for natural beekeeping trial.",
                 ApiaryId = 2,
                 CreatedAt = now
             }

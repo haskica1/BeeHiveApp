@@ -13,6 +13,8 @@ public class BeeHiveDbContext : DbContext
 {
     public BeeHiveDbContext(DbContextOptions<BeeHiveDbContext> options) : base(options) { }
 
+    public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<User> Users => Set<User>();
     public DbSet<Apiary> Apiaries => Set<Apiary>();
     public DbSet<Beehive> Beehives => Set<Beehive>();
     public DbSet<Inspection> Inspections => Set<Inspection>();

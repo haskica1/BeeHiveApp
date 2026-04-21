@@ -6,6 +6,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BeeHive.Infrastructure.Data.Repositories;
 
+// ── User Repository ───────────────────────────────────────────────────────────
+
+public class UserRepository : Repository<User>, IUserRepository
+{
+    public UserRepository(BeeHiveDbContext context) : base(context) { }
+
+    public async Task<User?> GetByEmailAsync(string email) =>
+        await _context.Users
+            .Include(u => u.Organization)
+            .FirstOrDefaultAsync(u => u.Email == email.ToLower());
+}
+
 // ── Apiary Repository ─────────────────────────────────────────────────────────
 
 public class ApiaryRepository : Repository<Apiary>, IApiaryRepository
@@ -21,6 +33,14 @@ public class ApiaryRepository : Repository<Apiary>, IApiaryRepository
         await _context.Apiaries
             .AsNoTracking()
             .Include(a => a.Beehives)
+            .OrderBy(a => a.Name)
+            .ToListAsync();
+
+    public async Task<IEnumerable<Apiary>> GetAllByOrganizationAsync(int organizationId) =>
+        await _context.Apiaries
+            .AsNoTracking()
+            .Include(a => a.Beehives)
+            .Where(a => a.OrganizationId == organizationId)
             .OrderBy(a => a.Name)
             .ToListAsync();
 }

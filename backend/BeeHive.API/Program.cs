@@ -1,14 +1,18 @@
+using System.Text;
 using BeeHive.API.Middleware;
 using BeeHive.Application;
 using BeeHive.Application.Features.Weather;
 using BeeHive.Infrastructure;
 using BeeHive.Infrastructure.Data;
+using BeeHive.Infrastructure.Data.Seed;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Services ─────────────────────────────────────────────────────────────────
+// ── Services ───────────────────────────��─────────────────────────────────────
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -21,7 +25,27 @@ builder.Services.AddSwaggerGen(c =>
         Description = "REST API for managing beekeeping operations — apiaries, beehives, and inspections."
     });
 
-    // Include XML comments for Swagger documentation
+    // JWT auth button in Swagger UI
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT token."
+    });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" }
+            },
+            Array.Empty<string>()
+        }
+    });
+
     var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
     if (File.Exists(xmlPath))
@@ -38,6 +62,28 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
     client.BaseAddress = new Uri("https://api.open-meteo.com/");
     client.Timeout = TimeSpan.FromSeconds(10);
 });
+
+// ── JWT Authentication ────────────────────────────────────────────────────────
+var jwtSecret = builder.Configuration["Jwt:Secret"]!;
+var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;
+var jwtAudience = builder.Configuration["Jwt:Audience"]!;
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtIssuer,
+            ValidAudience = jwtAudience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 // CORS — allow the Angular/React frontend running on localhost during development
 builder.Services.AddCors(options =>
@@ -56,7 +102,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ── Middleware Pipeline ───────────────────────────────────────────────────────
+// ── Middleware Pipeline ────────────────────────────────��──────────────────────
 
 // Global exception handler must be first in the pipeline
 app.UseGlobalExceptionHandling();
@@ -69,17 +115,16 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
 // ── Database Initialisation ───────────────────────────────────────────────────
-// Automatically apply pending migrations on startup (development convenience).
-// For production, use a dedicated migration step in your CI/CD pipeline instead.
-
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BeeHiveDbContext>();
     await db.Database.MigrateAsync();
+    await DatabaseInitializer.SeedUsersAsync(db);
 }
 
 app.Run();
