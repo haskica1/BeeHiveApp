@@ -2,6 +2,7 @@ import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './core/context/AuthContext'
 import Layout from './shared/components/Layout'
 import ProtectedRoute from './shared/components/ProtectedRoute'
+import AdminRoute from './shared/components/AdminRoute'
 import LoginPage from './features/auth/LoginPage'
 import ApiaryListPage from './features/apiaries/ApiaryListPage'
 import ApiaryDetailPage from './features/apiaries/ApiaryDetailPage'
@@ -11,6 +12,10 @@ import BeehiveFormPage from './features/beehives/BeehiveFormPage'
 import InspectionFormPage from './features/inspections/InspectionFormPage'
 import DietFormPage from './features/diets/DietFormPage'
 import DietDetailPage from './features/diets/DietDetailPage'
+import AdminDashboardPage from './features/admin/AdminDashboardPage'
+import OrganizationFormPage from './features/admin/OrganizationFormPage'
+import UserFormPage from './features/admin/UserFormPage'
+import SmartRedirect from './shared/components/SmartRedirect'
 
 export default function App() {
   return (
@@ -23,7 +28,7 @@ export default function App() {
           {/* Protected routes — redirect to /login if not authenticated */}
           <Route element={<ProtectedRoute />}>
             <Route path="/" element={<Layout />}>
-              <Route index element={<Navigate to="/apiaries" replace />} />
+              <Route index element={<SmartRedirect />} />
 
               {/* Apiary routes */}
               <Route path="apiaries"             element={<ApiaryListPage />} />
@@ -44,6 +49,15 @@ export default function App() {
               <Route path="diets/new"             element={<DietFormPage />} />
               <Route path="diets/:id"             element={<DietDetailPage />} />
               <Route path="diets/:id/edit"        element={<DietFormPage />} />
+
+              {/* Admin routes — SystemAdmin only */}
+              <Route element={<AdminRoute />}>
+                <Route path="admin"                            element={<AdminDashboardPage />} />
+                <Route path="admin/organizations/new"          element={<OrganizationFormPage />} />
+                <Route path="admin/organizations/:id/edit"     element={<OrganizationFormPage />} />
+                <Route path="admin/users/new"                  element={<UserFormPage />} />
+                <Route path="admin/users/:id/edit"             element={<UserFormPage />} />
+              </Route>
             </Route>
           </Route>
 

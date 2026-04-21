@@ -314,4 +314,3 @@ C:\Users\asimh\source\BeeHiveApp\backend\BeeHive.API\bin\Debug\net10.0\runtimes\
 C:\Users\asimh\source\BeeHiveApp\backend\BeeHive.API\bin\Debug\net10.0\QRCoder.dll
 C:\Users\asimh\source\BeeHiveApp\backend\BeeHive.API\bin\Debug\net10.0\BCrypt.Net-Next.dll
 C:\Users\asimh\source\BeeHiveApp\backend\BeeHive.API\bin\Debug\net10.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
-C:\Users\asimh\source\BeeHiveApp\backend\BeeHive.API\obj\Debug\net10.0\staticwebassets.upToDateCheck.txt

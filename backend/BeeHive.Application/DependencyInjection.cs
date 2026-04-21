@@ -1,6 +1,7 @@
 using BeeHive.Application.Common.Behaviors;
 using BeeHive.Application.Common.Mappings;
 using BeeHive.Application.Common.Services;
+using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Auth;
 using BeeHive.Application.Features.Beehives;
@@ -27,6 +28,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssemblyContaining<CreateApiaryValidator>();
 
         // Application services
+        services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IApiaryService, ApiaryService>();
         services.AddScoped<IBeehiveService, BeehiveService>();

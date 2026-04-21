@@ -1,3 +1,10 @@
+// ── User / Auth ───────────────────────────────────────────────────────────────
+
+export enum UserRole {
+  Admin       = 'Admin',
+  SystemAdmin = 'SystemAdmin',
+}
+
 // ── Enums ─────────────────────────────────────────────────────────────────────
 
 export enum BeehiveType {
@@ -301,6 +308,55 @@ export interface UpdateDietPayload {
 
 export interface CompleteEarlyPayload {
   comment: string
+}
+
+// ── Admin ─────────────────────────────────────────────────────────────────────
+
+export interface AdminOrganization {
+  id: number
+  name: string
+  description?: string
+  userCount: number
+  apiaryCount: number
+  createdAt: string
+}
+
+export interface CreateOrganizationPayload {
+  name: string
+  description?: string
+}
+
+export interface UpdateOrganizationPayload {
+  name: string
+  description?: string
+}
+
+export interface AdminUser {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+  organizationId?: number
+  organizationName?: string
+  createdAt: string
+}
+
+export interface CreateAdminUserPayload {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  role: string
+  organizationId?: number | null
+}
+
+export interface UpdateAdminUserPayload {
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+  organizationId?: number | null
 }
 
 // ── API Error shape ───────────────────────────────────────────────────────────

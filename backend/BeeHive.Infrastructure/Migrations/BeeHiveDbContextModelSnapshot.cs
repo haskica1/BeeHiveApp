@@ -484,7 +484,7 @@ namespace BeeHive.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<int>("OrganizationId")
+                    b.Property<int?>("OrganizationId")
                         .HasColumnType("int");
 
                     b.Property<string>("PasswordHash")
@@ -584,8 +584,7 @@ namespace BeeHive.Infrastructure.Migrations
                     b.HasOne("BeeHive.Domain.Entities.Organization", "Organization")
                         .WithMany("Users")
                         .HasForeignKey("OrganizationId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Organization");
                 });

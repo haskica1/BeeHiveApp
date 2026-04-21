@@ -11,6 +11,6 @@ public class User : BaseEntity
     public string PasswordHash { get; set; } = string.Empty;
     public UserRole Role { get; set; } = UserRole.Admin;
 
-    public int OrganizationId { get; set; }
-    public Organization Organization { get; set; } = null!;
+    public int? OrganizationId { get; set; }
+    public Organization? Organization { get; set; }
 }

@@ -5,6 +5,7 @@ namespace BeeHive.Application.Common.Interfaces;
 /// </summary>
 public interface IUnitOfWork : IDisposable
 {
+    IOrganizationRepository Organizations { get; }
     IUserRepository Users { get; }
     IApiaryRepository Apiaries { get; }
     IBeehiveRepository Beehives { get; }

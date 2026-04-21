@@ -68,5 +68,6 @@ public enum FoodType
 
 public enum UserRole
 {
-    Admin = 1,
+    Admin       = 1,
+    SystemAdmin = 2,
 }

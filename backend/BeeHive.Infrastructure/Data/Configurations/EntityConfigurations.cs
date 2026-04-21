@@ -21,6 +21,7 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
         builder.HasMany(o => o.Users)
             .WithOne(u => u.Organization)
             .HasForeignKey(u => u.OrganizationId)
+            .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(o => o.Apiaries)

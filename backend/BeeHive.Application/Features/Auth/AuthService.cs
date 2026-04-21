@@ -42,11 +42,11 @@ public class AuthService : IAuthService
             LastName: user.LastName,
             Role: user.Role.ToString(),
             OrganizationId: user.OrganizationId,
-            OrganizationName: user.Organization?.Name ?? string.Empty
+            OrganizationName: user.Organization?.Name
         );
     }
 
-    private string GenerateToken(int userId, string email, string role, int organizationId)
+    private string GenerateToken(int userId, string email, string role, int? organizationId)
     {
         var secret = _config["Jwt:Secret"]!;
         var issuer = _config["Jwt:Issuer"]!;
@@ -56,14 +56,18 @@ public class AuthService : IAuthService
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, email),
             new Claim(ClaimTypes.Role, role),
-            new Claim("organizationId", organizationId.ToString()),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        if (organizationId.HasValue)
+            claimsList.Add(new Claim("organizationId", organizationId.Value.ToString()));
+
+        var claims = claimsList.ToArray();
 
         var token = new JwtSecurityToken(
             issuer: issuer,

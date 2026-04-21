@@ -6,6 +6,27 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BeeHive.Infrastructure.Data.Repositories;
 
+// ── Organization Repository ───────────────────────────────────────────────────
+
+public class OrganizationRepository : Repository<Organization>, IOrganizationRepository
+{
+    public OrganizationRepository(BeeHiveDbContext context) : base(context) { }
+
+    public async Task<IEnumerable<Organization>> GetAllWithDetailsAsync() =>
+        await _context.Organizations
+            .AsNoTracking()
+            .Include(o => o.Users)
+            .Include(o => o.Apiaries)
+            .OrderBy(o => o.Name)
+            .ToListAsync();
+
+    public async Task<Organization?> GetWithDetailsAsync(int id) =>
+        await _context.Organizations
+            .Include(o => o.Users)
+            .Include(o => o.Apiaries)
+            .FirstOrDefaultAsync(o => o.Id == id);
+}
+
 // ── User Repository ───────────────────────────────────────────────────────────
 
 public class UserRepository : Repository<User>, IUserRepository
@@ -16,6 +37,19 @@ public class UserRepository : Repository<User>, IUserRepository
         await _context.Users
             .Include(u => u.Organization)
             .FirstOrDefaultAsync(u => u.Email == email.ToLower());
+
+    public async Task<IEnumerable<User>> GetAllWithOrganizationAsync() =>
+        await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Organization)
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .ToListAsync();
+
+    public async Task<User?> GetByIdWithOrganizationAsync(int id) =>
+        await _context.Users
+            .Include(u => u.Organization)
+            .FirstOrDefaultAsync(u => u.Id == id);
 }
 
 // ── Apiary Repository ─────────────────────────────────────────────────────────

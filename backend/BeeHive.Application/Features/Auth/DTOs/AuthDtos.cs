@@ -8,6 +8,6 @@ public record LoginResponseDto(
     string FirstName,
     string LastName,
     string Role,
-    int OrganizationId,
-    string OrganizationName
+    int? OrganizationId,
+    string? OrganizationName
 );

@@ -2,10 +2,19 @@ using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Common.Interfaces;
 
+/// <summary>Organization-specific data access operations.</summary>
+public interface IOrganizationRepository : IRepository<Organization>
+{
+    Task<IEnumerable<Organization>> GetAllWithDetailsAsync();
+    Task<Organization?> GetWithDetailsAsync(int id);
+}
+
 /// <summary>User-specific data access operations.</summary>
 public interface IUserRepository : IRepository<User>
 {
     Task<User?> GetByEmailAsync(string email);
+    Task<IEnumerable<User>> GetAllWithOrganizationAsync();
+    Task<User?> GetByIdWithOrganizationAsync(int id);
 }
 
 /// <summary>Diet-specific data access operations.</summary>

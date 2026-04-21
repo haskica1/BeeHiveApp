@@ -5,8 +5,8 @@ export interface AuthUser {
   firstName: string
   lastName: string
   role: string
-  organizationId: number
-  organizationName: string
+  organizationId?: number | null
+  organizationName?: string | null
 }
 
 export interface LoginResponse extends AuthUser {

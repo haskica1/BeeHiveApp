@@ -1,10 +1,10 @@
 import { createContext, useCallback, useContext, useState } from 'react'
-import { authService, type AuthUser } from '../services/authService'
+import { authService, type AuthUser, type LoginResponse } from '../services/authService'
 
 interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
-  login: (email: string, password: string) => Promise<void>
+  login: (email: string, password: string) => Promise<LoginResponse>
   logout: () => void
 }
 
@@ -13,7 +13,7 @@ const AuthContext = createContext<AuthContextValue | null>(null)
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(() => authService.getUser())
 
-  const login = useCallback(async (email: string, password: string) => {
+  const login = useCallback(async (email: string, password: string): Promise<LoginResponse> => {
     const response = await authService.login(email, password)
     setUser({
       email: response.email,
@@ -23,6 +23,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       organizationId: response.organizationId,
       organizationName: response.organizationName,
     })
+    return response
   }, [])
 
   const logout = useCallback(() => {

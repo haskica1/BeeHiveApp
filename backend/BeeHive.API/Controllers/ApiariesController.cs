@@ -40,7 +40,9 @@ public class ApiariesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ApiaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        var orgId = int.Parse(User.FindFirstValue("organizationId")!);
+        var orgIdClaim = User.FindFirstValue("organizationId");
+        if (orgIdClaim == null) return Ok(Array.Empty<ApiaryDto>());
+        var orgId = int.Parse(orgIdClaim);
         var apiaries = await _service.GetAllByOrganizationAsync(orgId);
         return Ok(apiaries);
     }
@@ -65,7 +67,9 @@ public class ApiariesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var orgId = int.Parse(User.FindFirstValue("organizationId")!);
+        var orgIdClaim = User.FindFirstValue("organizationId");
+        if (orgIdClaim == null) return Forbid();
+        var orgId = int.Parse(orgIdClaim);
         var created = await _service.CreateAsync(dto, orgId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }

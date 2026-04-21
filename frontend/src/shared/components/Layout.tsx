@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, LogOut, Menu, X } from 'lucide-react'
+import { Home, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 
@@ -8,6 +8,8 @@ export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+
+  const isSystemAdmin = user?.role === 'SystemAdmin'
 
   function handleLogout() {
     logout()
@@ -20,7 +22,10 @@ export default function Layout() {
       <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-honey-200 shadow-sm">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/apiaries" className="flex items-center gap-2.5 group">
+          <Link
+            to={isSystemAdmin ? '/admin' : '/apiaries'}
+            className="flex items-center gap-2.5 group"
+          >
             <span className="text-2xl">🐝</span>
             <span className="font-display text-xl font-bold text-honey-800 group-hover:text-honey-600 transition-colors">
               BeeHive
@@ -29,7 +34,11 @@ export default function Layout() {
 
           {/* Desktop nav */}
           <nav className="hidden sm:flex items-center gap-1">
-            <NavItem to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
+            {isSystemAdmin ? (
+              <NavItem to="/admin" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+            ) : (
+              <NavItem to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
+            )}
           </nav>
 
           {/* User info + logout (desktop) */}
@@ -39,10 +48,19 @@ export default function Layout() {
                 <p className="text-sm font-medium text-gray-800 leading-tight">
                   {user.firstName} {user.lastName}
                 </p>
-                <p className="text-xs text-honey-600 leading-tight">{user.organizationName}</p>
+                <p className="text-xs leading-tight">
+                  {isSystemAdmin ? (
+                    <span className="text-purple-600 font-medium">System Admin</span>
+                  ) : (
+                    <span className="text-honey-600">{user.organizationName}</span>
+                  )}
+                </p>
               </div>
             )}
-            <div className="w-8 h-8 rounded-full bg-honey-100 flex items-center justify-center text-honey-700 font-semibold text-sm select-none">
+            <div className={clsx(
+              'w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm select-none',
+              isSystemAdmin ? 'bg-purple-100 text-purple-700' : 'bg-honey-100 text-honey-700'
+            )}>
               {user ? user.firstName[0] : '?'}
             </div>
             <button
@@ -68,15 +86,24 @@ export default function Layout() {
         {/* Mobile dropdown nav */}
         {mobileOpen && (
           <div className="sm:hidden border-t border-honey-100 bg-white px-4 py-2 animate-fade-in">
-            <MobileNavItem
-              to="/apiaries"
-              label="🏡 Apiaries"
-              onClick={() => setMobileOpen(false)}
-            />
+            {isSystemAdmin ? (
+              <MobileNavItem
+                to="/admin"
+                label="🗂 Dashboard"
+                onClick={() => setMobileOpen(false)}
+              />
+            ) : (
+              <MobileNavItem
+                to="/apiaries"
+                label="🏡 Apiaries"
+                onClick={() => setMobileOpen(false)}
+              />
+            )}
             {user && (
               <div className="mt-2 pt-2 border-t border-honey-50">
                 <p className="px-3 py-1 text-xs text-gray-500">
-                  {user.firstName} {user.lastName} · {user.organizationName}
+                  {user.firstName} {user.lastName}
+                  {isSystemAdmin ? ' · System Admin' : ` · ${user.organizationName}`}
                 </p>
                 <button
                   onClick={() => { setMobileOpen(false); handleLogout() }}

@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BeeHive.Domain")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+32dfaa834eb7efc2377cf53016258e1f9a05b0e7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+7b4c96d7ca955d7422d72f4b49a1fe0a93aae225")]
 [assembly: System.Reflection.AssemblyProductAttribute("BeeHive.Domain")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BeeHive.Domain")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

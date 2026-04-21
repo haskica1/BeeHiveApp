@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '../../core/context/AuthContext'
+import type { LoginResponse } from '../../core/services/authService'
 
 interface LoginForm {
   email: string
@@ -24,8 +25,8 @@ export default function LoginPage() {
   async function onSubmit(data: LoginForm) {
     setServerError(null)
     try {
-      await login(data.email, data.password)
-      navigate('/apiaries', { replace: true })
+      const response = await login(data.email, data.password) as LoginResponse
+      navigate(response.role === 'SystemAdmin' ? '/admin' : '/apiaries', { replace: true })
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Login failed. Please try again.')
     }
@@ -200,18 +201,27 @@ export default function LoginPage() {
             {/* Test credentials hint */}
             <div className="mt-8 pt-6 border-t border-gray-100">
               <p className="text-xs text-gray-400 text-center mb-3">Test accounts</p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { org: 'Golden Hive Co', email: 'admin@goldenhive.com' },
-                  { org: 'Mountain Bees', email: 'admin@mountainbees.com' },
-                ].map((acc) => (
-                  <div key={acc.email} className="bg-honey-50 rounded-lg p-2.5 text-center">
-                    <p className="text-xs font-medium text-honey-700">{acc.org}</p>
-                    <p className="text-xs text-gray-500 mt-0.5 truncate">{acc.email}</p>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 gap-2">
+                <div className="bg-purple-50 rounded-lg p-2.5 text-center border border-purple-100">
+                  <p className="text-xs font-medium text-purple-700">System Admin</p>
+                  <p className="text-xs text-gray-500 mt-0.5">sysadmin@beehive.com</p>
+                  <p className="text-xs text-gray-400 font-mono mt-0.5">SysAdmin123!</p>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { org: 'Golden Hive Co', email: 'admin@goldenhive.com' },
+                    { org: 'Mountain Bees', email: 'admin@mountainbees.com' },
+                  ].map((acc) => (
+                    <div key={acc.email} className="bg-honey-50 rounded-lg p-2.5 text-center">
+                      <p className="text-xs font-medium text-honey-700">{acc.org}</p>
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">{acc.email}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-              <p className="text-xs text-gray-400 text-center mt-2">Password: <span className="font-mono">Admin123!</span></p>
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Org admin password: <span className="font-mono">Admin123!</span>
+              </p>
             </div>
           </div>
         </div>
