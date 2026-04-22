@@ -18,7 +18,8 @@
       "Bash(cmd.exe /c \"C:\\\\nvm4w\\\\nodejs\\\\node.exe C:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\node_modules\\\\typescript\\\\bin\\\\tsc --noEmit --project C:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\tsconfig.json 2>&1\")",
       "Bash(echo \"EXIT:$?\")",
       "Bash(grep -A3 \"FK_Todos_Apiaries\\\\|FK_Todos_Beehives\" \"c:/Users/asimh/source/BeeHiveApp/backend/BeeHive.Infrastructure/Migrations/\"*AddTodos*.cs)",
-      "Bash(git rm *)"
+      "Bash(git rm *)",
+      "Bash(xargs grep *)"
     ]
   }
 }
