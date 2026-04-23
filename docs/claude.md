@@ -36,11 +36,19 @@ When in doubt: check `decisions.md` → `architecture.md` → `common-patterns.m
 - Feature = implement only what was asked. No speculative additions.
 - Refactor = structural change only. No behavior changes.
 
+## Before Every Task
+
+1. Check `ignore.md` — confirm you are not touching frozen code.
+2. Check `context.md` — confirm the feature doesn't already exist.
+3. Follow the steps in `workflow.md`.
+
 ## Files to Read for Feature Work
 
 | Task | Read first |
 |---|---|
-| New backend feature | `architecture.md`, `common-patterns.md` |
+| Any task | `ignore.md`, `context.md` |
+| New backend feature | `architecture.md`, `common-patterns.md`, `workflow.md` |
 | New API endpoint | `api-contracts.md` |
 | New frontend page | `common-patterns.md`, `coding-guidelines.md` |
 | Specific feature change | `docs/features/<feature>.md` |
+| Unfamiliar domain term | `glossary.md` |
