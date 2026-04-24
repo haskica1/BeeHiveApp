@@ -107,13 +107,14 @@ var app = builder.Build();
 // Global exception handler must be first in the pipeline
 app.UseGlobalExceptionHandling();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BeeHive API v1"));
-}
+// Swagger available in all environments so the deployed API can be explored
+app.UseSwagger();
+app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BeeHive API v1"));
 
-app.UseHttpsRedirection();
+// HTTPS redirect only in local dev — Render (and most cloud hosts) terminate
+// TLS at the proxy level; the container itself only serves plain HTTP.
+if (app.Environment.IsDevelopment())
+    app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
 app.UseAuthentication();
 app.UseAuthorization();
