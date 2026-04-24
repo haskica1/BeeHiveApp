@@ -21,6 +21,9 @@ public class Todo : BaseEntity
 
     public DateTime? CompletedAt { get; set; }
 
+    public int? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     // Foreign keys — exactly one must be non-null
     public int? ApiaryId  { get; set; }
     public int? BeehiveId { get; set; }

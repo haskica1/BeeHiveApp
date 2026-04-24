@@ -6,8 +6,9 @@ import {
   useAdminUser,
   useCreateAdminUser,
   useUpdateAdminUser,
+  useAdminOrganizations,
+  useApiariesByOrganization,
 } from '../../core/services/adminQueries'
-import { useAdminOrganizations } from '../../core/services/adminQueries'
 
 interface UserForm {
   firstName: string
@@ -16,6 +17,7 @@ interface UserForm {
   password: string
   role: string
   organizationId: string
+  apiaryId: string
 }
 
 export default function UserFormPage() {
@@ -36,9 +38,16 @@ export default function UserFormPage() {
     watch,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<UserForm>({ defaultValues: { role: 'Admin' } })
+  } = useForm<UserForm>({ defaultValues: { role: 'OrgAdmin' } })
 
   const selectedRole = watch('role')
+  const selectedOrgId = watch('organizationId')
+  const orgIdNumber = selectedOrgId ? parseInt(selectedOrgId) : 0
+
+  const { data: apiaries = [] } = useApiariesByOrganization(orgIdNumber)
+
+  const needsOrg = selectedRole !== 'SystemAdmin'
+  const needsApiary = selectedRole === 'Admin'
 
   useEffect(() => {
     if (existing) {
@@ -49,12 +58,14 @@ export default function UserFormPage() {
         password: '',
         role: existing.role,
         organizationId: existing.organizationId?.toString() ?? '',
+        apiaryId: existing.apiaryId?.toString() ?? '',
       })
     }
   }, [existing, reset])
 
   async function onSubmit(data: UserForm) {
     const orgId = data.organizationId ? parseInt(data.organizationId) : null
+    const apiaryId = data.apiaryId ? parseInt(data.apiaryId) : null
 
     try {
       if (isEdit) {
@@ -64,6 +75,7 @@ export default function UserFormPage() {
           email: data.email,
           role: data.role,
           organizationId: orgId,
+          apiaryId: needsApiary ? apiaryId : null,
         })
       } else {
         await createUser.mutateAsync({
@@ -73,6 +85,7 @@ export default function UserFormPage() {
           password: data.password,
           role: data.role,
           organizationId: orgId,
+          apiaryId: needsApiary ? apiaryId : null,
         })
       }
       navigate('/admin')
@@ -185,12 +198,20 @@ export default function UserFormPage() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               {...register('role', { required: 'Role is required' })}
             >
+              <option value="OrgAdmin">Org Admin</option>
               <option value="Admin">Admin</option>
+              <option value="User">User</option>
               <option value="SystemAdmin">System Admin</option>
             </select>
+            <p className="mt-1 text-xs text-gray-400">
+              {selectedRole === 'OrgAdmin' && 'Can manage users in the org and all apiaries.'}
+              {selectedRole === 'Admin' && 'Scoped to one apiary — can manage all its hives.'}
+              {selectedRole === 'User' && 'Read-only access plus create inspections, hives, nutrition, and todos.'}
+              {selectedRole === 'SystemAdmin' && 'Full platform access — no org required.'}
+            </p>
           </div>
 
-          {selectedRole !== 'SystemAdmin' && (
+          {needsOrg && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 Organization <span className="text-red-500">*</span>
@@ -200,7 +221,7 @@ export default function UserFormPage() {
                   ${errors.organizationId ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
                 {...register('organizationId', {
                   validate: (v) =>
-                    selectedRole === 'SystemAdmin' || !!v || 'Organization is required for non-SystemAdmin users',
+                    !needsOrg || !!v || 'Organization is required for this role',
                 })}
               >
                 <option value="">Select organization…</option>
@@ -209,6 +230,29 @@ export default function UserFormPage() {
                 ))}
               </select>
               {errors.organizationId && <p className="mt-1.5 text-xs text-red-600">{errors.organizationId.message}</p>}
+            </div>
+          )}
+
+          {needsApiary && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Apiary <span className="text-red-500">*</span>
+              </label>
+              <select
+                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
+                  ${errors.apiaryId ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+                {...register('apiaryId', {
+                  validate: (v) =>
+                    !needsApiary || !!v || 'Apiary is required for Admin users',
+                })}
+                disabled={!orgIdNumber}
+              >
+                <option value="">{orgIdNumber ? 'Select apiary…' : 'Select an organization first'}</option>
+                {apiaries.map((a) => (
+                  <option key={a.id} value={a.id}>{a.name}</option>
+                ))}
+              </select>
+              {errors.apiaryId && <p className="mt-1.5 text-xs text-red-600">{errors.apiaryId.message}</p>}
             </div>
           )}
 

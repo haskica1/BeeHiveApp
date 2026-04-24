@@ -12,7 +12,7 @@ public interface IApiaryService
 {
     Task<IEnumerable<ApiaryDto>> GetAllByOrganizationAsync(int organizationId);
     Task<ApiaryDetailDto> GetByIdAsync(int id);
-    Task<ApiaryDto> CreateAsync(CreateApiaryDto dto, int organizationId);
+    Task<ApiaryDto> CreateAsync(CreateApiaryDto dto, int organizationId, int? createdById);
     Task<ApiaryDto> UpdateAsync(int id, UpdateApiaryDto dto);
     Task DeleteAsync(int id);
 }
@@ -47,13 +47,16 @@ public class ApiaryService : IApiaryService
     }
 
     /// <inheritdoc />
-    public async Task<ApiaryDto> CreateAsync(CreateApiaryDto dto, int organizationId)
+    public async Task<ApiaryDto> CreateAsync(CreateApiaryDto dto, int organizationId, int? createdById)
     {
         var apiary = _mapper.Map<Apiary>(dto);
         apiary.OrganizationId = organizationId;
+        apiary.CreatedById = createdById;
         await _uow.Apiaries.AddAsync(apiary);
         await _uow.SaveChangesAsync();
-        return _mapper.Map<ApiaryDto>(apiary);
+        // Reload to get CreatedBy nav property
+        var saved = await _uow.Apiaries.GetWithBeehivesAsync(apiary.Id) ?? apiary;
+        return _mapper.Map<ApiaryDto>(saved);
     }
 
     /// <inheritdoc />

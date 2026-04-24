@@ -213,13 +213,23 @@ export default function AdminDashboardPage() {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                         ${user.role === 'SystemAdmin'
                           ? 'bg-purple-100 text-purple-700'
+                          : user.role === 'OrgAdmin'
+                          ? 'bg-blue-100 text-blue-700'
+                          : user.role === 'User'
+                          ? 'bg-gray-100 text-gray-600'
                           : 'bg-honey-100 text-honey-700'
                         }`}>
-                        {user.role === 'SystemAdmin' ? 'System Admin' : 'Admin'}
+                        {user.role === 'SystemAdmin' ? 'System Admin'
+                          : user.role === 'OrgAdmin' ? 'Org Admin'
+                          : user.role === 'User' ? 'User'
+                          : 'Admin'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                       {user.organizationName ?? '—'}
+                      {user.apiaryName && (
+                        <span className="ml-1 text-xs text-honey-600">· {user.apiaryName}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Beehives.DTOs;
 using FluentValidation;
@@ -46,7 +47,7 @@ public class BeehivesController : ControllerBase
         return Ok(beehive);
     }
 
-    /// <summary>Creates a new beehive within an apiary.</summary>
+    /// <summary>Creates a new beehive within an apiary. Available to all authenticated roles.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -56,12 +57,14 @@ public class BeehivesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var created = await _service.CreateAsync(dto);
+        var userId = GetUserId();
+        var created = await _service.CreateAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates an existing beehive.</summary>
+    /// <summary>Updates an existing beehive. Not available to User role.</summary>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -75,13 +78,20 @@ public class BeehivesController : ControllerBase
         return Ok(updated);
     }
 
-    /// <summary>Deletes a beehive and all its inspections.</summary>
+    /// <summary>Deletes a beehive and all its inspections. Not available to User role.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);
         return NoContent();
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return claim != null ? int.Parse(claim) : null;
     }
 }

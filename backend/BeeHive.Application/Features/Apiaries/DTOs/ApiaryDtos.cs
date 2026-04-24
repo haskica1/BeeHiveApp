@@ -12,6 +12,7 @@ public class ApiaryDto
     public double? Longitude { get; set; }
     public bool HasLocation => Latitude.HasValue && Longitude.HasValue;
     public int BeehiveCount { get; set; }
+    public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

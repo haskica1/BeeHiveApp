@@ -2,6 +2,7 @@ import apiClient from './apiClient'
 import type {
   AdminOrganization,
   AdminUser,
+  AdminApiaryListItem,
   CreateOrganizationPayload,
   UpdateOrganizationPayload,
   CreateAdminUserPayload,
@@ -32,6 +33,11 @@ export const adminService = {
 
   async deleteOrganization(id: number): Promise<void> {
     await apiClient.delete(`/admin/organizations/${id}`)
+  },
+
+  async getApiariesByOrganization(orgId: number): Promise<AdminApiaryListItem[]> {
+    const { data } = await apiClient.get<AdminApiaryListItem[]>(`/admin/organizations/${orgId}/apiaries`)
+    return data
   },
 
   // ── Users ────────────────────────────────────────────────────────────────────

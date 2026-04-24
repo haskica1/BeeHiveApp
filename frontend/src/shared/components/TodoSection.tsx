@@ -3,6 +3,7 @@ import { Check, Loader2, Pencil, Plus, Trash2, ChevronDown, ChevronUp, Calendar 
 import { format, parseISO, isPast, isToday } from 'date-fns'
 import type { Todo, CreateTodoPayload, UpdateTodoPayload } from '../../core/models'
 import { TodoPriority } from '../../core/models'
+import { usePermissions } from '../../core/hooks/usePermissions'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -174,6 +175,7 @@ export function TodoSection({
   onDelete,
   isMutating,
 }: TodoSectionProps) {
+  const { canEditDelete } = usePermissions()
   const [showAddForm, setShowAddForm]   = useState(false)
   const [editingId, setEditingId]       = useState<number | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -264,6 +266,7 @@ export function TodoSection({
               todo={todo}
               isEditing={editingId === todo.id}
               isMutating={isMutating}
+              canEditDelete={canEditDelete}
               onToggle={() => handleToggle(todo)}
               onEdit={() => setEditingId(todo.id)}
               onCancelEdit={() => setEditingId(null)}
@@ -314,6 +317,7 @@ interface TodoItemProps {
   todo: Todo
   isEditing: boolean
   isMutating: boolean
+  canEditDelete: boolean
   onToggle: () => void
   onEdit: () => void
   onCancelEdit: () => void
@@ -325,6 +329,7 @@ function TodoItem({
   todo,
   isEditing,
   isMutating,
+  canEditDelete,
   onToggle,
   onEdit,
   onCancelEdit,
@@ -395,22 +400,24 @@ function TodoItem({
       </div>
 
       {/* Actions */}
-      <div className="flex gap-1 shrink-0">
-        <button
-          onClick={onEdit}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
-          title="Edit"
-        >
-          <Pencil className="w-3.5 h-3.5" />
-        </button>
-        <button
-          onClick={onDelete}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-          title="Delete"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
-      </div>
+      {canEditDelete && (
+        <div className="flex gap-1 shrink-0">
+          <button
+            onClick={onEdit}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+            title="Edit"
+          >
+            <Pencil className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onDelete}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            title="Delete"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      )}
     </div>
   )
 }

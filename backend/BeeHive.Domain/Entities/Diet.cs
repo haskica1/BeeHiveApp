@@ -32,6 +32,9 @@ public class Diet : BaseEntity
     /// <summary>Required comment when a diet is stopped early or completed before all entries.</summary>
     public string? EarlyCompletionComment { get; set; }
 
+    public int? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     // Foreign key
     public int BeehiveId { get; set; }
 

@@ -13,7 +13,7 @@ public interface IBeehiveService
 {
     Task<IEnumerable<BeehiveDto>> GetByApiaryIdAsync(int apiaryId);
     Task<BeehiveDetailDto> GetByIdAsync(int id);
-    Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto);
+    Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto, int? createdById);
     Task<BeehiveDto> UpdateAsync(int id, UpdateBeehiveDto dto);
     Task DeleteAsync(int id);
 }
@@ -51,13 +51,14 @@ public class BeehiveService : IBeehiveService
         return _mapper.Map<BeehiveDetailDto>(beehive);
     }
 
-    public async Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto)
+    public async Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto, int? createdById)
     {
         // Ensure the target apiary exists before creating the beehive
         if (!await _uow.Apiaries.ExistsAsync(dto.ApiaryId))
             throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
 
         var beehive = _mapper.Map<Beehive>(dto);
+        beehive.CreatedById = createdById;
 
         // Assign a permanent unique ID and generate the QR code once, on creation
         beehive.UniqueId      = Guid.NewGuid();
@@ -66,7 +67,9 @@ public class BeehiveService : IBeehiveService
         await _uow.Beehives.AddAsync(beehive);
         await _uow.SaveChangesAsync();
 
-        return _mapper.Map<BeehiveDto>(beehive);
+        // Reload to get CreatedBy nav property
+        var saved = await _uow.Beehives.GetWithInspectionsAsync(beehive.Id) ?? beehive;
+        return _mapper.Map<BeehiveDto>(saved);
     }
 
     public async Task<BeehiveDto> UpdateAsync(int id, UpdateBeehiveDto dto)

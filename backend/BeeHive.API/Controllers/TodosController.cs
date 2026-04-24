@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BeeHive.Application.Features.Todos;
 using BeeHive.Application.Features.Todos.DTOs;
 using FluentValidation;
@@ -56,7 +57,7 @@ public class TodosController : ControllerBase
         return Ok(todo);
     }
 
-    /// <summary>Creates a new to-do item for an apiary or beehive.</summary>
+    /// <summary>Creates a new to-do item. Available to all authenticated roles.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -66,11 +67,12 @@ public class TodosController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var created = await _service.CreateAsync(dto);
+        var userId = GetUserId();
+        var created = await _service.CreateAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates a to-do item (title, notes, due date, priority, completion status).</summary>
+    /// <summary>Updates a to-do item. Available to all authenticated roles.</summary>
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -85,13 +87,20 @@ public class TodosController : ControllerBase
         return Ok(updated);
     }
 
-    /// <summary>Deletes a to-do item.</summary>
+    /// <summary>Deletes a to-do item. Not available to User role.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);
         return NoContent();
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return claim != null ? int.Parse(claim) : null;
     }
 }

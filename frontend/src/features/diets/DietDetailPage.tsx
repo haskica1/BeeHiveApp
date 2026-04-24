@@ -16,6 +16,7 @@ import {
 } from '../../shared/components'
 import { DietStatus, FeedingEntryStatus } from '../../core/models'
 import type { FeedingEntry } from '../../core/models'
+import { usePermissions } from '../../core/hooks/usePermissions'
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
@@ -166,6 +167,7 @@ export default function DietDetailPage() {
   const navigate = useNavigate()
   const dietId = Number(id)
 
+  const { canEditDelete } = usePermissions()
   const { data: diet, isLoading, error } = useDiet(dietId)
   const deleteMutation   = useDeleteDiet(diet?.beehiveId ?? 0)
   const completeMutation = useCompleteEarlyDiet(dietId, diet?.beehiveId ?? 0)
@@ -180,8 +182,8 @@ export default function DietDetailPage() {
   if (!diet)     return null
 
   const isFinished = diet.status === DietStatus.Completed || diet.status === DietStatus.StoppedEarly
-  const canDelete  = diet.status === DietStatus.NotStarted
-  const canEdit    = !isFinished
+  const canDelete  = canEditDelete && diet.status === DietStatus.NotStarted
+  const canEdit    = canEditDelete && !isFinished
 
   const pendingEntries   = diet.feedingEntries.filter(e => e.status === FeedingEntryStatus.Pending)
   const completedEntries = diet.feedingEntries.filter(e => e.status === FeedingEntryStatus.Completed)
@@ -223,7 +225,7 @@ export default function DietDetailPage() {
                 <Trash2 className="w-4 h-4" /> Delete
               </button>
             )}
-            {!isFinished && (
+            {canEditDelete && !isFinished && (
               <button
                 onClick={() => setShowCompleteEarly(true)}
                 className="btn-secondary text-sm"
@@ -277,6 +279,11 @@ export default function DietDetailPage() {
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span><strong>Stopped early:</strong> {diet.earlyCompletionComment}</span>
           </div>
+        )}
+        {diet.createdByName && (
+          <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-500 flex items-center gap-1.5">
+            👤 Created by {diet.createdByName}
+          </p>
         )}
       </div>
 

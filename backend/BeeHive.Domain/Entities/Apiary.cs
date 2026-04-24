@@ -19,6 +19,8 @@ public class Apiary : BaseEntity
     public int OrganizationId { get; set; }
     public Organization Organization { get; set; } = null!;
 
-    // Navigation property
+    public int? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     public ICollection<Beehive> Beehives { get; set; } = new List<Beehive>();
 }

@@ -13,7 +13,7 @@ public interface ITodoService
     Task<IEnumerable<TodoDto>> GetByApiaryIdAsync(int apiaryId);
     Task<IEnumerable<TodoDto>> GetByBeehiveIdAsync(int beehiveId);
     Task<TodoDto> GetByIdAsync(int id);
-    Task<TodoDto> CreateAsync(CreateTodoDto dto);
+    Task<TodoDto> CreateAsync(CreateTodoDto dto, int? createdById);
     Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
     Task DeleteAsync(int id);
 }
@@ -57,7 +57,7 @@ public class TodoService : ITodoService
         return _mapper.Map<TodoDto>(todo);
     }
 
-    public async Task<TodoDto> CreateAsync(CreateTodoDto dto)
+    public async Task<TodoDto> CreateAsync(CreateTodoDto dto, int? createdById)
     {
         // Validate parent exists
         if (dto.ApiaryId.HasValue && !await _uow.Apiaries.ExistsAsync(dto.ApiaryId.Value))
@@ -67,6 +67,7 @@ public class TodoService : ITodoService
             throw new NotFoundException(nameof(Beehive), dto.BeehiveId.Value);
 
         var todo = _mapper.Map<Todo>(dto);
+        todo.CreatedById = createdById;
 
         await _uow.Todos.AddAsync(todo);
         await _uow.SaveChangesAsync();

@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Admin.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -46,7 +47,8 @@ public class AdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationDto dto)
     {
-        var created = await _service.CreateOrganizationAsync(dto);
+        var userId = GetUserId();
+        var created = await _service.CreateOrganizationAsync(dto, userId);
         return CreatedAtAction(nameof(GetOrganization), new { id = created.Id }, created);
     }
 
@@ -67,6 +69,15 @@ public class AdminController : ControllerBase
     {
         await _service.DeleteOrganizationAsync(id);
         return NoContent();
+    }
+
+    /// <summary>Returns apiaries for a given organization — used when assigning Admin users.</summary>
+    [HttpGet("organizations/{id:int}/apiaries")]
+    [ProducesResponseType(typeof(IEnumerable<AdminApiaryListItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetApiariesByOrganization(int id)
+    {
+        var apiaries = await _service.GetApiariesByOrganizationAsync(id);
+        return Ok(apiaries);
     }
 
     // ── Users ──────────────────────────────────────────────────────────────────
@@ -114,5 +125,11 @@ public class AdminController : ControllerBase
     {
         await _service.DeleteUserAsync(id);
         return NoContent();
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return claim != null ? int.Parse(claim) : null;
     }
 }

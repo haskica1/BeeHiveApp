@@ -15,6 +15,7 @@ public class TodoDto
     public DateTime? CompletedAt { get; set; }
     public int? ApiaryId { get; set; }
     public int? BeehiveId { get; set; }
+    public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

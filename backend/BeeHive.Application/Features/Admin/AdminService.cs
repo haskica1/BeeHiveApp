@@ -11,9 +11,12 @@ public interface IAdminService
     // Organizations
     Task<IEnumerable<AdminOrganizationDto>> GetAllOrganizationsAsync();
     Task<AdminOrganizationDto> GetOrganizationByIdAsync(int id);
-    Task<AdminOrganizationDto> CreateOrganizationAsync(CreateOrganizationDto dto);
+    Task<AdminOrganizationDto> CreateOrganizationAsync(CreateOrganizationDto dto, int? createdById);
     Task<AdminOrganizationDto> UpdateOrganizationAsync(int id, UpdateOrganizationDto dto);
     Task DeleteOrganizationAsync(int id);
+
+    // Apiaries (for org-scoped picker)
+    Task<IEnumerable<AdminApiaryListItemDto>> GetApiariesByOrganizationAsync(int organizationId);
 
     // Users
     Task<IEnumerable<AdminUserDto>> GetAllUsersAsync();
@@ -47,19 +50,21 @@ public class AdminService : IAdminService
         return MapOrganization(org);
     }
 
-    public async Task<AdminOrganizationDto> CreateOrganizationAsync(CreateOrganizationDto dto)
+    public async Task<AdminOrganizationDto> CreateOrganizationAsync(CreateOrganizationDto dto, int? createdById)
     {
         var org = new Organization
         {
             Name = dto.Name.Trim(),
             Description = dto.Description?.Trim(),
+            CreatedById = createdById,
             CreatedAt = DateTime.UtcNow
         };
 
         await _uow.Organizations.AddAsync(org);
         await _uow.SaveChangesAsync();
 
-        return MapOrganization(org);
+        var saved = await _uow.Organizations.GetWithDetailsAsync(org.Id) ?? org;
+        return MapOrganization(saved);
     }
 
     public async Task<AdminOrganizationDto> UpdateOrganizationAsync(int id, UpdateOrganizationDto dto)
@@ -89,6 +94,14 @@ public class AdminService : IAdminService
         await _uow.SaveChangesAsync();
     }
 
+    // ── Apiaries ───────────────────────────────────────────────────────────────
+
+    public async Task<IEnumerable<AdminApiaryListItemDto>> GetApiariesByOrganizationAsync(int organizationId)
+    {
+        var apiaries = await _uow.Apiaries.GetAllByOrganizationAsync(organizationId);
+        return apiaries.Select(a => new AdminApiaryListItemDto { Id = a.Id, Name = a.Name });
+    }
+
     // ── Users ──────────────────────────────────────────────────────────────────
 
     public async Task<IEnumerable<AdminUserDto>> GetAllUsersAsync()
@@ -113,14 +126,22 @@ public class AdminService : IAdminService
         if (!Enum.TryParse<UserRole>(dto.Role, out var role))
             throw new BusinessRuleException($"Invalid role '{dto.Role}'.");
 
-        if (role != UserRole.SystemAdmin && dto.OrganizationId == null)
-            throw new BusinessRuleException("Non-SystemAdmin users must belong to an organization.");
+        ValidateRoleOrgApiaryConsistency(role, dto.OrganizationId, dto.ApiaryId);
 
         if (dto.OrganizationId.HasValue)
         {
             var orgExists = await _uow.Organizations.ExistsAsync(dto.OrganizationId.Value);
             if (!orgExists)
                 throw new NotFoundException(nameof(Organization), dto.OrganizationId.Value);
+        }
+
+        if (dto.ApiaryId.HasValue)
+        {
+            var apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value);
+            if (apiary == null)
+                throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
+            if (dto.OrganizationId.HasValue && apiary.OrganizationId != dto.OrganizationId.Value)
+                throw new BusinessRuleException("The selected apiary does not belong to the selected organization.");
         }
 
         var user = new User
@@ -131,13 +152,13 @@ public class AdminService : IAdminService
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
             Role = role,
             OrganizationId = dto.OrganizationId,
+            ApiaryId = dto.ApiaryId,
             CreatedAt = DateTime.UtcNow
         };
 
         await _uow.Users.AddAsync(user);
         await _uow.SaveChangesAsync();
 
-        // reload with organization
         var created = await _uow.Users.GetByEmailAsync(user.Email);
         return MapUser(created!);
     }
@@ -150,14 +171,22 @@ public class AdminService : IAdminService
         if (!Enum.TryParse<UserRole>(dto.Role, out var role))
             throw new BusinessRuleException($"Invalid role '{dto.Role}'.");
 
-        if (role != UserRole.SystemAdmin && dto.OrganizationId == null)
-            throw new BusinessRuleException("Non-SystemAdmin users must belong to an organization.");
+        ValidateRoleOrgApiaryConsistency(role, dto.OrganizationId, dto.ApiaryId);
 
         if (dto.OrganizationId.HasValue)
         {
             var orgExists = await _uow.Organizations.ExistsAsync(dto.OrganizationId.Value);
             if (!orgExists)
                 throw new NotFoundException(nameof(Organization), dto.OrganizationId.Value);
+        }
+
+        if (dto.ApiaryId.HasValue)
+        {
+            var apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value);
+            if (apiary == null)
+                throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
+            if (dto.OrganizationId.HasValue && apiary.OrganizationId != dto.OrganizationId.Value)
+                throw new BusinessRuleException("The selected apiary does not belong to the selected organization.");
         }
 
         var newEmail = dto.Email.Trim().ToLower();
@@ -173,6 +202,7 @@ public class AdminService : IAdminService
         user.Email = newEmail;
         user.Role = role;
         user.OrganizationId = dto.OrganizationId;
+        user.ApiaryId = dto.ApiaryId;
 
         await _uow.Users.UpdateAsync(user);
         await _uow.SaveChangesAsync();
@@ -198,6 +228,27 @@ public class AdminService : IAdminService
         await _uow.SaveChangesAsync();
     }
 
+    // ── Validation ─────────────────────────────────────────────────────────────
+
+    private static void ValidateRoleOrgApiaryConsistency(UserRole role, int? organizationId, int? apiaryId)
+    {
+        if (role == UserRole.SystemAdmin)
+        {
+            if (organizationId != null)
+                throw new BusinessRuleException("SystemAdmin users cannot belong to an organization.");
+            return;
+        }
+
+        if (organizationId == null)
+            throw new BusinessRuleException("Non-SystemAdmin users must belong to an organization.");
+
+        if (role == UserRole.Admin && apiaryId == null)
+            throw new BusinessRuleException("Admin users must be assigned to a specific apiary.");
+
+        if (role != UserRole.Admin && apiaryId != null)
+            throw new BusinessRuleException("Only Admin users can be assigned to a specific apiary.");
+    }
+
     // ── Mappers ────────────────────────────────────────────────────────────────
 
     private static AdminOrganizationDto MapOrganization(Organization o) => new()
@@ -207,6 +258,7 @@ public class AdminService : IAdminService
         Description = o.Description,
         UserCount = o.Users.Count,
         ApiaryCount = o.Apiaries.Count,
+        CreatedByName = o.CreatedBy != null ? $"{o.CreatedBy.FirstName} {o.CreatedBy.LastName}" : null,
         CreatedAt = o.CreatedAt
     };
 
@@ -219,6 +271,8 @@ public class AdminService : IAdminService
         Role = u.Role.ToString(),
         OrganizationId = u.OrganizationId,
         OrganizationName = u.Organization?.Name,
+        ApiaryId = u.ApiaryId,
+        ApiaryName = u.Apiary?.Name,
         CreatedAt = u.CreatedAt
     };
 }

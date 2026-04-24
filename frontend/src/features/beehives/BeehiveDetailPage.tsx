@@ -19,6 +19,7 @@ import {
 import { TodoSection } from '../../shared/components/TodoSection'
 import DietSection from '../diets/DietSection'
 import type { Inspection } from '../../core/models'
+import { usePermissions } from '../../core/hooks/usePermissions'
 
 // ── PDF download helper ───────────────────────────────────────────────────────
 
@@ -81,6 +82,7 @@ export default function BeehiveDetailPage() {
   const navigate = useNavigate()
   const beehiveId = Number(id)
 
+  const { canEditDelete } = usePermissions()
   const { data: beehive, isLoading, error } = useBeehive(beehiveId)
   const deleteMutation = useDeleteInspection(beehiveId)
 
@@ -128,9 +130,11 @@ export default function BeehiveDetailPage() {
                 <QrCode className="w-4 h-4" /> QR Code
               </button>
             )}
-            <Link to={`/beehives/${beehiveId}/edit`} className="btn-secondary text-sm">
-              <Pencil className="w-4 h-4" /> Edit
-            </Link>
+            {canEditDelete && (
+              <Link to={`/beehives/${beehiveId}/edit`} className="btn-secondary text-sm">
+                <Pencil className="w-4 h-4" /> Edit
+              </Link>
+            )}
             <Link
               to={`/inspections/new?beehiveId=${beehiveId}`}
               className="btn-primary text-sm"
@@ -167,6 +171,11 @@ export default function BeehiveDetailPage() {
           <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-400 font-mono flex items-center gap-1.5">
             <QrCode className="w-3.5 h-3.5 shrink-0 text-honey-400" />
             {beehive.uniqueId}
+          </p>
+        )}
+        {beehive.createdByName && (
+          <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-500 flex items-center gap-1.5">
+            👤 Created by {beehive.createdByName}
           </p>
         )}
       </div>
@@ -218,20 +227,22 @@ export default function BeehiveDetailPage() {
                     )}
                   </div>
                 </div>
-                <div className="flex gap-1 shrink-0">
-                  <Link
-                    to={`/inspections/${inspection.id}/edit?beehiveId=${beehiveId}`}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
-                  >
-                    <Pencil className="w-3.5 h-3.5" />
-                  </Link>
-                  <button
-                    onClick={() => setDeleteTarget({ id: inspection.id })}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+                {canEditDelete && (
+                  <div className="flex gap-1 shrink-0">
+                    <Link
+                      to={`/inspections/${inspection.id}/edit?beehiveId=${beehiveId}`}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Link>
+                    <button
+                      onClick={() => setDeleteTarget({ id: inspection.id })}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Details */}

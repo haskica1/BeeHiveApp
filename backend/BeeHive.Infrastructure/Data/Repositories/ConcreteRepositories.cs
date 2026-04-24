@@ -17,6 +17,7 @@ public class OrganizationRepository : Repository<Organization>, IOrganizationRep
             .AsNoTracking()
             .Include(o => o.Users)
             .Include(o => o.Apiaries)
+            .Include(o => o.CreatedBy)
             .OrderBy(o => o.Name)
             .ToListAsync();
 
@@ -24,6 +25,7 @@ public class OrganizationRepository : Repository<Organization>, IOrganizationRep
         await _context.Organizations
             .Include(o => o.Users)
             .Include(o => o.Apiaries)
+            .Include(o => o.CreatedBy)
             .FirstOrDefaultAsync(o => o.Id == id);
 }
 
@@ -36,12 +38,14 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<User?> GetByEmailAsync(string email) =>
         await _context.Users
             .Include(u => u.Organization)
+            .Include(u => u.Apiary)
             .FirstOrDefaultAsync(u => u.Email == email.ToLower());
 
     public async Task<IEnumerable<User>> GetAllWithOrganizationAsync() =>
         await _context.Users
             .AsNoTracking()
             .Include(u => u.Organization)
+            .Include(u => u.Apiary)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .ToListAsync();
@@ -49,6 +53,7 @@ public class UserRepository : Repository<User>, IUserRepository
     public async Task<User?> GetByIdWithOrganizationAsync(int id) =>
         await _context.Users
             .Include(u => u.Organization)
+            .Include(u => u.Apiary)
             .FirstOrDefaultAsync(u => u.Id == id);
 }
 
@@ -61,12 +66,14 @@ public class ApiaryRepository : Repository<Apiary>, IApiaryRepository
     public async Task<Apiary?> GetWithBeehivesAsync(int id) =>
         await _context.Apiaries
             .Include(a => a.Beehives)
+            .Include(a => a.CreatedBy)
             .FirstOrDefaultAsync(a => a.Id == id);
 
     public async Task<IEnumerable<Apiary>> GetAllWithBeehivesAsync() =>
         await _context.Apiaries
             .AsNoTracking()
             .Include(a => a.Beehives)
+            .Include(a => a.CreatedBy)
             .OrderBy(a => a.Name)
             .ToListAsync();
 
@@ -74,6 +81,7 @@ public class ApiaryRepository : Repository<Apiary>, IApiaryRepository
         await _context.Apiaries
             .AsNoTracking()
             .Include(a => a.Beehives)
+            .Include(a => a.CreatedBy)
             .Where(a => a.OrganizationId == organizationId)
             .OrderBy(a => a.Name)
             .ToListAsync();
@@ -88,12 +96,14 @@ public class BeehiveRepository : Repository<Beehive>, IBeehiveRepository
     public async Task<Beehive?> GetWithInspectionsAsync(int id) =>
         await _context.Beehives
             .Include(b => b.Inspections.OrderByDescending(i => i.Date))
+            .Include(b => b.CreatedBy)
             .FirstOrDefaultAsync(b => b.Id == id);
 
     public async Task<IEnumerable<Beehive>> GetByApiaryIdAsync(int apiaryId) =>
         await _context.Beehives
             .AsNoTracking()
             .Include(b => b.Inspections)
+            .Include(b => b.CreatedBy)
             .Where(b => b.ApiaryId == apiaryId)
             .OrderBy(b => b.Name)
             .ToListAsync();
@@ -122,6 +132,7 @@ public class TodoRepository : Repository<Todo>, ITodoRepository
     public async Task<IEnumerable<Todo>> GetByApiaryIdAsync(int apiaryId) =>
         await _context.Todos
             .AsNoTracking()
+            .Include(t => t.CreatedBy)
             .Where(t => t.ApiaryId == apiaryId)
             .OrderBy(t => t.IsCompleted)
             .ThenBy(t => t.DueDate)
@@ -131,6 +142,7 @@ public class TodoRepository : Repository<Todo>, ITodoRepository
     public async Task<IEnumerable<Todo>> GetByBeehiveIdAsync(int beehiveId) =>
         await _context.Todos
             .AsNoTracking()
+            .Include(t => t.CreatedBy)
             .Where(t => t.BeehiveId == beehiveId)
             .OrderBy(t => t.IsCompleted)
             .ThenBy(t => t.DueDate)
@@ -148,6 +160,7 @@ public class DietRepository : Repository<Diet>, IDietRepository
         await _context.Diets
             .AsNoTracking()
             .Include(d => d.FeedingEntries)
+            .Include(d => d.CreatedBy)
             .Where(d => d.BeehiveId == beehiveId)
             .OrderByDescending(d => d.StartDate)
             .ToListAsync();
@@ -155,6 +168,7 @@ public class DietRepository : Repository<Diet>, IDietRepository
     public async Task<Diet?> GetWithEntriesAsync(int id) =>
         await _context.Diets
             .Include(d => d.FeedingEntries)
+            .Include(d => d.CreatedBy)
             .FirstOrDefaultAsync(d => d.Id == id);
 }
 

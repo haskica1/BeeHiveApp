@@ -33,7 +33,7 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new BusinessRuleException("Invalid email or password.");
 
-        var token = GenerateToken(user.Id, user.Email, user.Role.ToString(), user.OrganizationId);
+        var token = GenerateToken(user.Id, user.Email, user.Role.ToString(), user.OrganizationId, user.ApiaryId);
 
         return new LoginResponseDto(
             Token: token,
@@ -46,7 +46,7 @@ public class AuthService : IAuthService
         );
     }
 
-    private string GenerateToken(int userId, string email, string role, int? organizationId)
+    private string GenerateToken(int userId, string email, string role, int? organizationId, int? apiaryId)
     {
         var secret = _config["Jwt:Secret"]!;
         var issuer = _config["Jwt:Issuer"]!;
@@ -66,6 +66,9 @@ public class AuthService : IAuthService
 
         if (organizationId.HasValue)
             claimsList.Add(new Claim("organizationId", organizationId.Value.ToString()));
+
+        if (apiaryId.HasValue)
+            claimsList.Add(new Claim("apiaryId", apiaryId.Value.ToString()));
 
         var claims = claimsList.ToArray();
 

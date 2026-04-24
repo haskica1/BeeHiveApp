@@ -13,7 +13,7 @@ public interface IDietService
 {
     Task<IEnumerable<DietDto>> GetByBeehiveIdAsync(int beehiveId);
     Task<DietDetailDto> GetByIdAsync(int id);
-    Task<DietDetailDto> CreateAsync(CreateDietDto dto);
+    Task<DietDetailDto> CreateAsync(CreateDietDto dto, int? createdById);
     Task<DietDetailDto> UpdateAsync(int id, UpdateDietDto dto);
     Task DeleteAsync(int id);
     Task<DietDetailDto> CompleteEarlyAsync(int id, CompleteEarlyDto dto);
@@ -55,7 +55,7 @@ public class DietService : IDietService
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public async Task<DietDetailDto> CreateAsync(CreateDietDto dto)
+    public async Task<DietDetailDto> CreateAsync(CreateDietDto dto, int? createdById)
     {
         if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId))
             throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
@@ -72,6 +72,7 @@ public class DietService : IDietService
             CustomFoodType = dto.CustomFoodType,
             BeehiveId    = dto.BeehiveId,
             Status       = CalculateInitialStatus(dto.StartDate),
+            CreatedById  = createdById,
         };
 
         diet.FeedingEntries = GenerateEntries(diet.StartDate, dto.DurationDays, dto.FrequencyDays);
@@ -292,6 +293,7 @@ public class DietService : IDietService
         BeehiveId              = d.BeehiveId,
         TotalEntries           = d.FeedingEntries.Count,
         CompletedEntries       = d.FeedingEntries.Count(e => e.Status == FeedingEntryStatus.Completed),
+        CreatedByName          = d.CreatedBy != null ? $"{d.CreatedBy.FirstName} {d.CreatedBy.LastName}" : null,
         CreatedAt              = d.CreatedAt,
     };
 
@@ -314,6 +316,7 @@ public class DietService : IDietService
         BeehiveId              = d.BeehiveId,
         TotalEntries           = d.FeedingEntries.Count,
         CompletedEntries       = d.FeedingEntries.Count(e => e.Status == FeedingEntryStatus.Completed),
+        CreatedByName          = d.CreatedBy != null ? $"{d.CreatedBy.FirstName} {d.CreatedBy.LastName}" : null,
         CreatedAt              = d.CreatedAt,
         FeedingEntries         = d.FeedingEntries
             .OrderBy(e => e.ScheduledDate)

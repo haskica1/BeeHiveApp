@@ -23,6 +23,7 @@ public class DietDto
     public int BeehiveId { get; set; }
     public int TotalEntries { get; set; }
     public int CompletedEntries { get; set; }
+    public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 

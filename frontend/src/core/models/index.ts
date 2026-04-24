@@ -3,6 +3,8 @@
 export enum UserRole {
   Admin       = 'Admin',
   SystemAdmin = 'SystemAdmin',
+  OrgAdmin    = 'OrgAdmin',
+  User        = 'User',
 }
 
 // ── Enums ─────────────────────────────────────────────────────────────────────
@@ -57,6 +59,7 @@ export interface Apiary {
   longitude?: number
   hasLocation: boolean
   beehiveCount: number
+  createdByName?: string
   createdAt: string
 }
 
@@ -105,6 +108,7 @@ export interface Beehive {
   notes?: string
   apiaryId: number
   inspectionCount: number
+  createdByName?: string
   createdAt: string
   uniqueId?: string
   qrCodeBase64?: string
@@ -175,6 +179,7 @@ export interface Todo {
   completedAt?: string
   apiaryId?: number
   beehiveId?: number
+  createdByName?: string
   createdAt: string
 }
 
@@ -276,6 +281,7 @@ export interface Diet {
   beehiveId: number
   totalEntries: number
   completedEntries: number
+  createdByName?: string
   createdAt: string
 }
 
@@ -318,6 +324,7 @@ export interface AdminOrganization {
   description?: string
   userCount: number
   apiaryCount: number
+  createdByName?: string
   createdAt: string
 }
 
@@ -339,7 +346,14 @@ export interface AdminUser {
   role: string
   organizationId?: number
   organizationName?: string
+  apiaryId?: number
+  apiaryName?: string
   createdAt: string
+}
+
+export interface AdminApiaryListItem {
+  id: number
+  name: string
 }
 
 export interface CreateAdminUserPayload {
@@ -349,6 +363,7 @@ export interface CreateAdminUserPayload {
   password: string
   role: string
   organizationId?: number | null
+  apiaryId?: number | null
 }
 
 export interface UpdateAdminUserPayload {
@@ -357,6 +372,7 @@ export interface UpdateAdminUserPayload {
   email: string
   role: string
   organizationId?: number | null
+  apiaryId?: number | null
 }
 
 // ── API Error shape ───────────────────────────────────────────────────────────

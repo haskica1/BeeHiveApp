@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using BeeHive.Application.Features.Diets;
 using BeeHive.Application.Features.Diets.DTOs;
 using FluentValidation;
@@ -49,7 +50,7 @@ public class DietsController : ControllerBase
         return Ok(diet);
     }
 
-    /// <summary>Creates a new diet and auto-generates feeding entries.</summary>
+    /// <summary>Creates a new diet and auto-generates feeding entries. Available to all authenticated roles.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -60,15 +61,16 @@ public class DietsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var created = await _service.CreateAsync(dto);
+        var userId = GetUserId();
+        var created = await _service.CreateAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     /// <summary>
-    /// Updates a diet (only allowed when not completed/stopped).
-    /// Recalculates feeding entries while preserving completed ones.
+    /// Updates a diet (only allowed when not completed/stopped). Not available to User role.
     /// </summary>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -83,8 +85,9 @@ public class DietsController : ControllerBase
         return Ok(updated);
     }
 
-    /// <summary>Deletes a diet (only allowed before it has started).</summary>
+    /// <summary>Deletes a diet (only allowed before it has started). Not available to User role.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -95,10 +98,10 @@ public class DietsController : ControllerBase
     }
 
     /// <summary>
-    /// Stops a diet early and records a mandatory explanation comment.
-    /// Sets diet status to StoppedEarly.
+    /// Stops a diet early. Not available to User role.
     /// </summary>
     [HttpPost("{id:int}/complete-early")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -114,8 +117,7 @@ public class DietsController : ControllerBase
     }
 
     /// <summary>
-    /// Marks a specific feeding entry as completed.
-    /// Automatically marks the diet as Completed when all entries are done.
+    /// Marks a specific feeding entry as completed. Available to all authenticated roles.
     /// </summary>
     [HttpPost("{dietId:int}/feeding-entries/{entryId:int}/complete")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status200OK)]
@@ -126,5 +128,11 @@ public class DietsController : ControllerBase
         await _service.CompleteFeedingEntryAsync(dietId, entryId);
         var updated = await _service.GetByIdAsync(dietId);
         return Ok(updated);
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return claim != null ? int.Parse(claim) : null;
     }
 }

@@ -7,6 +7,9 @@ public class Organization : BaseEntity
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
 
+    public int? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     public ICollection<User> Users { get; set; } = new List<User>();
     public ICollection<Apiary> Apiaries { get; set; } = new List<Apiary>();
 }

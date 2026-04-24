@@ -13,11 +13,13 @@ import {
   ConfirmDialog,
   PageHeader,
 } from '../../shared/components'
+import { usePermissions } from '../../core/hooks/usePermissions'
 
 export default function ApiaryListPage() {
   const navigate = useNavigate()
   const { data: apiaries, isLoading, error } = useApiaries()
   const deleteMutation = useDeleteApiary()
+  const { canManageApiaries } = usePermissions()
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
 
@@ -36,9 +38,11 @@ export default function ApiaryListPage() {
         title="My Apiaries"
         subtitle={`${apiaries?.length ?? 0} apiar${apiaries?.length === 1 ? 'y' : 'ies'} registered`}
         actions={
-          <Link to="/apiaries/new" className="btn-primary text-sm">
-            <Plus className="w-4 h-4" /> New Apiary
-          </Link>
+          canManageApiaries ? (
+            <Link to="/apiaries/new" className="btn-primary text-sm">
+              <Plus className="w-4 h-4" /> New Apiary
+            </Link>
+          ) : undefined
         }
       />
 
@@ -47,9 +51,11 @@ export default function ApiaryListPage() {
           title="No apiaries yet"
           description="Create your first apiary to start managing your beehives."
           action={
-            <Link to="/apiaries/new" className="btn-primary text-sm">
-              <Plus className="w-4 h-4" /> Create Apiary
-            </Link>
+            canManageApiaries ? (
+              <Link to="/apiaries/new" className="btn-primary text-sm">
+                <Plus className="w-4 h-4" /> Create Apiary
+              </Link>
+            ) : undefined
           }
         />
       ) : (
@@ -90,25 +96,27 @@ export default function ApiaryListPage() {
                 </span>
 
                 {/* Action buttons — stop propagation so card click doesn't fire */}
-                <div
-                  className="flex gap-1"
-                  onClick={e => e.stopPropagation()}
-                >
-                  <Link
-                    to={`/apiaries/${apiary.id}/edit`}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
-                    title="Edit"
+                {canManageApiaries && (
+                  <div
+                    className="flex gap-1"
+                    onClick={e => e.stopPropagation()}
                   >
-                    <Pencil className="w-4 h-4" />
-                  </Link>
-                  <button
-                    onClick={() => setDeleteTarget({ id: apiary.id, name: apiary.name })}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                    title="Delete"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                    <Link
+                      to={`/apiaries/${apiary.id}/edit`}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                      title="Edit"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Link>
+                    <button
+                      onClick={() => setDeleteTarget({ id: apiary.id, name: apiary.name })}
+                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      title="Delete"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           ))}

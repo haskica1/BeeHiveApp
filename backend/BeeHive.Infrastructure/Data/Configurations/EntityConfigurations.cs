@@ -18,6 +18,12 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
         builder.Property(o => o.Description)
             .HasMaxLength(1000);
 
+        builder.HasOne(o => o.CreatedBy)
+            .WithMany()
+            .HasForeignKey(o => o.CreatedById)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         builder.HasMany(o => o.Users)
             .WithOne(u => u.Organization)
             .HasForeignKey(u => u.OrganizationId)
@@ -60,6 +66,13 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.Role)
             .IsRequired();
 
+        // Admin-level users are scoped to a single apiary
+        builder.HasOne(u => u.Apiary)
+            .WithMany()
+            .HasForeignKey(u => u.ApiaryId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         builder.ToTable("Users");
     }
 }
@@ -82,6 +95,12 @@ public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
 
         builder.Property(a => a.Longitude)
             .HasColumnType("float");
+
+        builder.HasOne(a => a.CreatedBy)
+            .WithMany()
+            .HasForeignKey(a => a.CreatedById)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         // One apiary → many beehives; cascade delete removes beehives when apiary is deleted
         builder.HasMany(a => a.Beehives)
@@ -124,6 +143,12 @@ public class BeehiveConfiguration : IEntityTypeConfiguration<Beehive>
         builder.Property(b => b.Material)
             .IsRequired();
 
+        builder.HasOne(b => b.CreatedBy)
+            .WithMany()
+            .HasForeignKey(b => b.CreatedById)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         // One beehive → many inspections; cascade delete
         builder.HasMany(b => b.Inspections)
             .WithOne(i => i.Beehive)
@@ -163,6 +188,12 @@ public class DietConfiguration : IEntityTypeConfiguration<Diet>
         builder.Property(d => d.FoodType).IsRequired();
         builder.Property(d => d.Status).IsRequired();
         builder.Property(d => d.StartDate).IsRequired();
+
+        builder.HasOne(d => d.CreatedBy)
+            .WithMany()
+            .HasForeignKey(d => d.CreatedById)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         // One diet → many feeding entries; cascade delete
         builder.HasMany(d => d.FeedingEntries)
@@ -238,6 +269,12 @@ public class TodoConfiguration : IEntityTypeConfiguration<Todo>
         builder.Property(t => t.IsCompleted)
             .IsRequired()
             .HasDefaultValue(false);
+
+        builder.HasOne(t => t.CreatedBy)
+            .WithMany()
+            .HasForeignKey(t => t.CreatedById)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
 
         // Optional FK to Apiary — NoAction to avoid multiple cascade paths from Apiary.
         // Apiary-level todos are deleted explicitly in ApiaryService.DeleteAsync.

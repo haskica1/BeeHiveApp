@@ -10,6 +10,9 @@ export default function Layout() {
   const navigate = useNavigate()
 
   const isSystemAdmin = user?.role === 'SystemAdmin'
+  const isOrgAdmin = user?.role === 'OrgAdmin'
+  const isAdmin = user?.role === 'Admin'
+  const isUser = user?.role === 'User'
 
   function handleLogout() {
     logout()
@@ -51,6 +54,12 @@ export default function Layout() {
                 <p className="text-xs leading-tight">
                   {isSystemAdmin ? (
                     <span className="text-purple-600 font-medium">System Admin</span>
+                  ) : isOrgAdmin ? (
+                    <span className="text-blue-600 font-medium">Org Admin · {user.organizationName}</span>
+                  ) : isAdmin ? (
+                    <span className="text-honey-600 font-medium">Admin · {user.organizationName}</span>
+                  ) : isUser ? (
+                    <span className="text-gray-500">{user.organizationName}</span>
                   ) : (
                     <span className="text-honey-600">{user.organizationName}</span>
                   )}
@@ -59,7 +68,9 @@ export default function Layout() {
             )}
             <div className={clsx(
               'w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm select-none',
-              isSystemAdmin ? 'bg-purple-100 text-purple-700' : 'bg-honey-100 text-honey-700'
+              isSystemAdmin ? 'bg-purple-100 text-purple-700'
+              : isOrgAdmin ? 'bg-blue-100 text-blue-700'
+              : 'bg-honey-100 text-honey-700'
             )}>
               {user ? user.firstName[0] : '?'}
             </div>
@@ -103,7 +114,9 @@ export default function Layout() {
               <div className="mt-2 pt-2 border-t border-honey-50">
                 <p className="px-3 py-1 text-xs text-gray-500">
                   {user.firstName} {user.lastName}
-                  {isSystemAdmin ? ' · System Admin' : ` · ${user.organizationName}`}
+                  {isSystemAdmin ? ' · System Admin'
+                  : isOrgAdmin ? ` · Org Admin · ${user.organizationName}`
+                  : ` · ${user.organizationName}`}
                 </p>
                 <button
                   onClick={() => { setMobileOpen(false); handleLogout() }}

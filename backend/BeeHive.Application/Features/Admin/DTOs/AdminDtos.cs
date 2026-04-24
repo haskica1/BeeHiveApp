@@ -9,6 +9,7 @@ public class AdminOrganizationDto
     public string? Description { get; set; }
     public int UserCount { get; set; }
     public int ApiaryCount { get; set; }
+    public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -35,6 +36,8 @@ public class AdminUserDto
     public string Role { get; set; } = string.Empty;
     public int? OrganizationId { get; set; }
     public string? OrganizationName { get; set; }
+    public int? ApiaryId { get; set; }
+    public string? ApiaryName { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -46,6 +49,7 @@ public class CreateAdminUserDto
     public string Password { get; set; } = string.Empty;
     public string Role { get; set; } = "Admin";
     public int? OrganizationId { get; set; }
+    public int? ApiaryId { get; set; }
 }
 
 public class UpdateAdminUserDto
@@ -55,4 +59,13 @@ public class UpdateAdminUserDto
     public string Email { get; set; } = string.Empty;
     public string Role { get; set; } = "Admin";
     public int? OrganizationId { get; set; }
+    public int? ApiaryId { get; set; }
+}
+
+// ── Apiary list DTO (for org-scoped apiary picker in admin UI) ────────────────
+
+public class AdminApiaryListItemDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
 }

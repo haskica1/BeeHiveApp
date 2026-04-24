@@ -20,6 +20,9 @@ public class Beehive : BaseEntity
     /// <summary>PNG QR code image stored as a Base64 string. Generated once on creation.</summary>
     public string? QrCodeBase64 { get; set; }
 
+    public int? CreatedById { get; set; }
+    public User? CreatedBy { get; set; }
+
     // Foreign key
     public int ApiaryId { get; set; }
 

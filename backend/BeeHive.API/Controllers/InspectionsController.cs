@@ -60,8 +60,9 @@ public class InspectionsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates an existing inspection record.</summary>
+    /// <summary>Updates an existing inspection record. Not available to User role.</summary>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(InspectionDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -75,8 +76,9 @@ public class InspectionsController : ControllerBase
         return Ok(updated);
     }
 
-    /// <summary>Deletes an inspection record.</summary>
+    /// <summary>Deletes an inspection record. Not available to User role.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

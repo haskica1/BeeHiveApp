@@ -35,7 +35,8 @@ public class ApiariesController : ControllerBase
         _updateValidator = updateValidator;
     }
 
-    /// <summary>Returns all apiaries belonging to the current user's organization.</summary>
+    /// <summary>Returns all apiaries belonging to the current user's organization.
+    /// Admin users only see their assigned apiary.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<ApiaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
@@ -43,7 +44,19 @@ public class ApiariesController : ControllerBase
         var orgIdClaim = User.FindFirstValue("organizationId");
         if (orgIdClaim == null) return Ok(Array.Empty<ApiaryDto>());
         var orgId = int.Parse(orgIdClaim);
+
         var apiaries = await _service.GetAllByOrganizationAsync(orgId);
+
+        // Admin users are scoped to a single apiary
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        if (role == "Admin")
+        {
+            var apiaryIdClaim = User.FindFirstValue("apiaryId");
+            if (apiaryIdClaim == null) return Ok(Array.Empty<ApiaryDto>());
+            var apiaryId = int.Parse(apiaryIdClaim);
+            return Ok(apiaries.Where(a => a.Id == apiaryId));
+        }
+
         return Ok(apiaries);
     }
 
@@ -57,8 +70,9 @@ public class ApiariesController : ControllerBase
         return Ok(apiary);
     }
 
-    /// <summary>Creates a new apiary for the current user's organization.</summary>
+    /// <summary>Creates a new apiary for the current user's organization. Not available to User role.</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(ApiaryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateApiaryDto dto)
@@ -70,12 +84,15 @@ public class ApiariesController : ControllerBase
         var orgIdClaim = User.FindFirstValue("organizationId");
         if (orgIdClaim == null) return Forbid();
         var orgId = int.Parse(orgIdClaim);
-        var created = await _service.CreateAsync(dto, orgId);
+        var userId = GetUserId();
+
+        var created = await _service.CreateAsync(dto, orgId, userId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates an existing apiary.</summary>
+    /// <summary>Updates an existing apiary. Not available to User role.</summary>
     [HttpPut("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(ApiaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -89,8 +106,9 @@ public class ApiariesController : ControllerBase
         return Ok(updated);
     }
 
-    /// <summary>Deletes an apiary and all its child beehives/inspections.</summary>
+    /// <summary>Deletes an apiary and all its child beehives/inspections. Not available to User role.</summary>
     [HttpDelete("{id:int}")]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
@@ -113,5 +131,11 @@ public class ApiariesController : ControllerBase
 
         var forecast = await _weather.GetForecastAsync(apiary.Latitude!.Value, apiary.Longitude!.Value);
         return Ok(forecast);
+    }
+
+    private int? GetUserId()
+    {
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return claim != null ? int.Parse(claim) : null;
     }
 }

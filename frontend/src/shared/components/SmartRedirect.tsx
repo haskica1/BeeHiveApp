@@ -5,3 +5,4 @@ export default function SmartRedirect() {
   const { user } = useAuth()
   return <Navigate to={user?.role === 'SystemAdmin' ? '/admin' : '/apiaries'} replace />
 }
+

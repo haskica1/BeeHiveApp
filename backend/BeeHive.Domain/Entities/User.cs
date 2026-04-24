@@ -13,4 +13,8 @@ public class User : BaseEntity
 
     public int? OrganizationId { get; set; }
     public Organization? Organization { get; set; }
+
+    // Apiary assignment — only used for Admin role (apiary-scoped access)
+    public int? ApiaryId { get; set; }
+    public Apiary? Apiary { get; set; }
 }

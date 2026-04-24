@@ -16,6 +16,7 @@ import {
 } from '../../shared/components'
 import { TodoSection } from '../../shared/components/TodoSection'
 import type { Beehive, DailyWeather } from '../../core/models'
+import { usePermissions } from '../../core/hooks/usePermissions'
 
 // ── WMO weather code → emoji + label ─────────────────────────────────────────
 
@@ -94,6 +95,7 @@ export default function ApiaryDetailPage() {
   const navigate = useNavigate()
   const apiaryId = Number(id)
 
+  const { canManageApiaries, canEditDelete } = usePermissions()
   const { data: apiary, isLoading, error } = useApiary(apiaryId)
   const { data: weather, isLoading: weatherLoading } = useApiaryWeather(
     apiaryId,
@@ -136,9 +138,11 @@ export default function ApiaryDetailPage() {
         }
         actions={
           <>
-            <Link to={`/apiaries/${apiaryId}/edit`} className="btn-secondary text-sm">
-              <Pencil className="w-4 h-4" /> Edit
-            </Link>
+            {canManageApiaries && (
+              <Link to={`/apiaries/${apiaryId}/edit`} className="btn-secondary text-sm">
+                <Pencil className="w-4 h-4" /> Edit
+              </Link>
+            )}
             <Link
               to={`/beehives/new?apiaryId=${apiaryId}`}
               className="btn-primary text-sm"
@@ -162,6 +166,9 @@ export default function ApiaryDetailPage() {
           label="Since"
           value={format(new Date(apiary.createdAt), 'MMM yyyy')}
         />
+        {apiary.createdByName && (
+          <StatCard icon="👤" label="Created by" value={apiary.createdByName} />
+        )}
       </div>
 
       {/* Weather forecast */}
@@ -278,23 +285,25 @@ export default function ApiaryDetailPage() {
                     <h3 className="font-semibold text-gray-800 truncate group-hover:text-honey-700 transition-colors">
                       {beehive.name}
                     </h3>
-                    <div
-                      className="flex gap-1 shrink-0"
-                      onClick={e => e.stopPropagation()}
-                    >
-                      <Link
-                        to={`/beehives/${beehive.id}/edit`}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                    {canEditDelete && (
+                      <div
+                        className="flex gap-1 shrink-0"
+                        onClick={e => e.stopPropagation()}
                       >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Link>
-                      <button
-                        onClick={() => setDeleteTarget({ id: beehive.id, name: beehive.name })}
-                        className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                        <Link
+                          to={`/beehives/${beehive.id}/edit`}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </Link>
+                        <button
+                          onClick={() => setDeleteTarget({ id: beehive.id, name: beehive.name })}
+                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   <div className="flex flex-wrap gap-1.5 mt-1.5">
