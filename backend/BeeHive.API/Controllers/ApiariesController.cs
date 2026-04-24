@@ -47,14 +47,18 @@ public class ApiariesController : ControllerBase
 
         var apiaries = await _service.GetAllByOrganizationAsync(orgId);
 
-        // Admin users are scoped to a single apiary
+        // Admin users are scoped to a single apiary (filtered by JWT claim).
+        // If the claim is absent (misconfigured account) fall back to all org apiaries
+        // so the user is never completely locked out.
         var role = User.FindFirstValue(ClaimTypes.Role);
         if (role == "Admin")
         {
             var apiaryIdClaim = User.FindFirstValue("apiaryId");
-            if (apiaryIdClaim == null) return Ok(Array.Empty<ApiaryDto>());
-            var apiaryId = int.Parse(apiaryIdClaim);
-            return Ok(apiaries.Where(a => a.Id == apiaryId));
+            if (apiaryIdClaim != null)
+            {
+                var apiaryId = int.Parse(apiaryIdClaim);
+                return Ok(apiaries.Where(a => a.Id == apiaryId));
+            }
         }
 
         return Ok(apiaries);

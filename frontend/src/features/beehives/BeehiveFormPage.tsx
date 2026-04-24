@@ -99,6 +99,9 @@ export default function BeehiveFormPage() {
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5">
+          {/* Hidden field — keeps apiaryId in form state so handleSubmit always includes it */}
+          <input type="hidden" {...register('apiaryId', { valueAsNumber: true })} />
+
           {/* Name */}
           <div>
             <label className="form-label" htmlFor="name">

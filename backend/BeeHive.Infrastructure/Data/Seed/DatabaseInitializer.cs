@@ -12,6 +12,28 @@ public static class DatabaseInitializer
 {
     public static async Task SeedUsersAsync(BeeHiveDbContext context)
     {
+        // Fix any Admin users that were seeded without an ApiaryId (e.g. from an older
+        // version of this seeder). Assign the first apiary in their organisation.
+        var adminsWithoutApiary = await context.Users
+            .Where(u => u.Role == UserRole.Admin && u.ApiaryId == null && u.OrganizationId != null)
+            .ToListAsync();
+
+        bool anyFixed = false;
+        foreach (var admin in adminsWithoutApiary)
+        {
+            var apiary = await context.Apiaries
+                .Where(a => a.OrganizationId == admin.OrganizationId)
+                .OrderBy(a => a.Id)
+                .FirstOrDefaultAsync();
+
+            if (apiary == null) continue;
+            admin.ApiaryId = apiary.Id;
+            anyFixed = true;
+        }
+
+        if (anyFixed)
+            await context.SaveChangesAsync();
+
         var orgs = await context.Organizations.ToListAsync();
         var goldenHive  = orgs.FirstOrDefault(o => o.Id == 1);
         var mountainBees = orgs.FirstOrDefault(o => o.Id == 2);
