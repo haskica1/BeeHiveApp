@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import { Check, Loader2, Pencil, Plus, Trash2, ChevronDown, ChevronUp, Calendar } from 'lucide-react'
+import { Check, Loader2, Pencil, Plus, Trash2, ChevronDown, ChevronUp, Calendar, User } from 'lucide-react'
 import { format, parseISO, isPast, isToday } from 'date-fns'
-import type { Todo, CreateTodoPayload, UpdateTodoPayload } from '../../core/models'
+import type { Todo, CreateTodoPayload, UpdateTodoPayload, AssignableUser } from '../../core/models'
 import { TodoPriority } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
@@ -30,19 +30,21 @@ function dueDateStyle(dateStr?: string, completed?: boolean): string {
 // ── Inline add / edit form ────────────────────────────────────────────────────
 
 interface TodoFormProps {
-  initial?: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted?: boolean }
-  onSave: (data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean }) => Promise<void>
+  initial?: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted?: boolean; assignedToId?: number | null }
+  assignableUsers?: AssignableUser[]
+  onSave: (data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean; assignedToId: number | null }) => Promise<void>
   onCancel: () => void
   isSaving: boolean
   showCompleted?: boolean
 }
 
-function TodoForm({ initial, onSave, onCancel, isSaving, showCompleted }: TodoFormProps) {
+function TodoForm({ initial, assignableUsers, onSave, onCancel, isSaving, showCompleted }: TodoFormProps) {
   const [title, setTitle]             = useState(initial?.title ?? '')
   const [notes, setNotes]             = useState(initial?.notes ?? '')
   const [dueDate, setDueDate]         = useState(initial?.dueDate ?? '')
   const [priority, setPriority]       = useState<TodoPriority>(initial?.priority ?? TodoPriority.Medium)
   const [isCompleted, setIsCompleted] = useState(initial?.isCompleted ?? false)
+  const [assignedToId, setAssignedToId] = useState<number | null>(initial?.assignedToId ?? null)
   const [titleError, setTitleError]   = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +54,7 @@ function TodoForm({ initial, onSave, onCancel, isSaving, showCompleted }: TodoFo
       return
     }
     setTitleError('')
-    await onSave({ title: title.trim(), notes: notes.trim(), dueDate, priority, isCompleted })
+    await onSave({ title: title.trim(), notes: notes.trim(), dueDate, priority, isCompleted, assignedToId })
   }
 
   return (
@@ -118,6 +120,24 @@ function TodoForm({ initial, onSave, onCancel, isSaving, showCompleted }: TodoFo
           />
         </div>
 
+        {/* Assignee */}
+        {assignableUsers && assignableUsers.length > 0 && (
+          <div>
+            <label className="form-label" htmlFor="todo-assignee">Assign To</label>
+            <select
+              id="todo-assignee"
+              value={assignedToId ?? ''}
+              onChange={e => setAssignedToId(e.target.value ? Number(e.target.value) : null)}
+              className="form-input"
+            >
+              <option value="">— Unassigned —</option>
+              {assignableUsers.map(u => (
+                <option key={u.id} value={u.id}>{u.fullName}</option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Completed toggle (edit mode only) */}
         {showCompleted && (
           <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -157,9 +177,10 @@ interface TodoSectionProps {
   isLoading: boolean
   apiaryId?: number
   beehiveId?: number
-  onCreate: (payload: CreateTodoPayload) => Promise<void>
-  onUpdate: (id: number, payload: UpdateTodoPayload) => Promise<void>
-  onDelete: (id: number) => Promise<void>
+  assignableUsers?: AssignableUser[]
+  onCreate: (payload: CreateTodoPayload) => Promise<unknown>
+  onUpdate: (id: number, payload: UpdateTodoPayload) => Promise<unknown>
+  onDelete: (id: number) => Promise<unknown>
   isMutating: boolean
 }
 
@@ -170,6 +191,7 @@ export function TodoSection({
   isLoading,
   apiaryId,
   beehiveId,
+  assignableUsers,
   onCreate,
   onUpdate,
   onDelete,
@@ -183,36 +205,39 @@ export function TodoSection({
   const open   = todos.filter(t => !t.isCompleted)
   const done   = todos.filter(t => t.isCompleted)
 
-  const handleAdd = async (data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean }) => {
+  const handleAdd = async (data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean; assignedToId: number | null }) => {
     await onCreate({
-      title:     data.title,
-      notes:     data.notes || undefined,
-      dueDate:   data.dueDate || null,
-      priority:  data.priority,
+      title:        data.title,
+      notes:        data.notes || undefined,
+      dueDate:      data.dueDate || null,
+      priority:     data.priority,
+      assignedToId: data.assignedToId,
       apiaryId,
       beehiveId,
     })
     setShowAddForm(false)
   }
 
-  const handleUpdate = async (id: number, todo: Todo, data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean }) => {
+  const handleUpdate = async (id: number, _todo: Todo, data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean; assignedToId: number | null }) => {
     await onUpdate(id, {
-      title:       data.title,
-      notes:       data.notes || undefined,
-      dueDate:     data.dueDate || null,
-      priority:    data.priority,
-      isCompleted: data.isCompleted,
+      title:        data.title,
+      notes:        data.notes || undefined,
+      dueDate:      data.dueDate || null,
+      priority:     data.priority,
+      isCompleted:  data.isCompleted,
+      assignedToId: data.assignedToId,
     })
     setEditingId(null)
   }
 
   const handleToggle = async (todo: Todo) => {
     await onUpdate(todo.id, {
-      title:       todo.title,
-      notes:       todo.notes,
-      dueDate:     todo.dueDate ?? null,
-      priority:    todo.priority,
-      isCompleted: !todo.isCompleted,
+      title:        todo.title,
+      notes:        todo.notes,
+      dueDate:      todo.dueDate ?? null,
+      priority:     todo.priority,
+      isCompleted:  !todo.isCompleted,
+      assignedToId: todo.assignedToId ?? null,
     })
   }
 
@@ -237,6 +262,7 @@ export function TodoSection({
       {showAddForm && (
         <div className="mb-3">
           <TodoForm
+            assignableUsers={assignableUsers}
             onSave={handleAdd}
             onCancel={() => setShowAddForm(false)}
             isSaving={isMutating}
@@ -267,6 +293,7 @@ export function TodoSection({
               isEditing={editingId === todo.id}
               isMutating={isMutating}
               canEditDelete={canEditDelete}
+              assignableUsers={assignableUsers}
               onToggle={() => handleToggle(todo)}
               onEdit={() => setEditingId(todo.id)}
               onCancelEdit={() => setEditingId(null)}
@@ -296,6 +323,8 @@ export function TodoSection({
                   todo={todo}
                   isEditing={editingId === todo.id}
                   isMutating={isMutating}
+                  canEditDelete={canEditDelete}
+                  assignableUsers={assignableUsers}
                   onToggle={() => handleToggle(todo)}
                   onEdit={() => setEditingId(todo.id)}
                   onCancelEdit={() => setEditingId(null)}
@@ -317,11 +346,12 @@ interface TodoItemProps {
   todo: Todo
   isEditing: boolean
   isMutating: boolean
-  canEditDelete: boolean
+  canEditDelete?: boolean
+  assignableUsers?: AssignableUser[]
   onToggle: () => void
   onEdit: () => void
   onCancelEdit: () => void
-  onSaveEdit: (data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean }) => Promise<void>
+  onSaveEdit: (data: { title: string; notes: string; dueDate: string; priority: TodoPriority; isCompleted: boolean; assignedToId: number | null }) => Promise<void>
   onDelete: () => void
 }
 
@@ -330,6 +360,7 @@ function TodoItem({
   isEditing,
   isMutating,
   canEditDelete,
+  assignableUsers,
   onToggle,
   onEdit,
   onCancelEdit,
@@ -340,12 +371,14 @@ function TodoItem({
     return (
       <TodoForm
         initial={{
-          title:       todo.title,
-          notes:       todo.notes ?? '',
-          dueDate:     todo.dueDate ? todo.dueDate.slice(0, 10) : '',
-          priority:    todo.priority,
-          isCompleted: todo.isCompleted,
+          title:        todo.title,
+          notes:        todo.notes ?? '',
+          dueDate:      todo.dueDate ? todo.dueDate.slice(0, 10) : '',
+          priority:     todo.priority,
+          isCompleted:  todo.isCompleted,
+          assignedToId: todo.assignedToId ?? null,
         }}
+        assignableUsers={assignableUsers}
         showCompleted
         onSave={onSaveEdit}
         onCancel={onCancelEdit}
@@ -388,6 +421,13 @@ function TodoItem({
             <span className={`flex items-center gap-0.5 text-xs ${dueDateStyle(todo.dueDate, todo.isCompleted)}`}>
               <Calendar className="w-3 h-3" />
               {format(parseISO(todo.dueDate), 'dd MMM yyyy')}
+            </span>
+          )}
+
+          {todo.assignedToName && (
+            <span className="flex items-center gap-0.5 text-xs text-gray-500">
+              <User className="w-3 h-3" />
+              {todo.assignedToName}
             </span>
           )}
 

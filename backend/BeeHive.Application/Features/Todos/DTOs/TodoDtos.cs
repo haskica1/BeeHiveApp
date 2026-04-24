@@ -16,6 +16,8 @@ public class TodoDto
     public int? ApiaryId { get; set; }
     public int? BeehiveId { get; set; }
     public string? CreatedByName { get; set; }
+    public int? AssignedToId { get; set; }
+    public string? AssignedToName { get; set; }
     public DateTime CreatedAt { get; set; }
 }
 
@@ -25,6 +27,7 @@ public class CreateTodoDto
     public string? Notes { get; set; }
     public DateTime? DueDate { get; set; }
     public TodoPriority Priority { get; set; } = TodoPriority.Medium;
+    public int? AssignedToId { get; set; }
 
     /// <summary>Set when creating a todo for an apiary.</summary>
     public int? ApiaryId { get; set; }
@@ -40,4 +43,5 @@ public class UpdateTodoDto
     public DateTime? DueDate { get; set; }
     public TodoPriority Priority { get; set; }
     public bool IsCompleted { get; set; }
+    public int? AssignedToId { get; set; }
 }

@@ -98,6 +98,22 @@ public class TodosController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>Returns users that can be assigned a todo, filtered by the caller's role.</summary>
+    [HttpGet("assignable-users")]
+    [ProducesResponseType(typeof(IEnumerable<AssignableUserDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAssignableUsers()
+    {
+        var role       = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        var userId     = GetUserId();
+        var orgIdClaim = User.FindFirstValue("organizationId");
+        var orgId      = orgIdClaim != null ? int.Parse(orgIdClaim) : (int?)null;
+        var apiaryIdClaim = User.FindFirstValue("apiaryId");
+        var apiaryId   = apiaryIdClaim != null ? int.Parse(apiaryIdClaim) : (int?)null;
+
+        var users = await _service.GetAssignableUsersAsync(role, userId, orgId, apiaryId);
+        return Ok(users);
+    }
+
     private int? GetUserId()
     {
         var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);

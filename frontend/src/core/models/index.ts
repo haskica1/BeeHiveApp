@@ -168,6 +168,11 @@ export const TodoPriorityLabels: Record<TodoPriority, string> = {
   [TodoPriority.High]:   'High',
 }
 
+export interface AssignableUser {
+  id: number
+  fullName: string
+}
+
 export interface Todo {
   id: number
   title: string
@@ -180,6 +185,8 @@ export interface Todo {
   apiaryId?: number
   beehiveId?: number
   createdByName?: string
+  assignedToId?: number
+  assignedToName?: string
   createdAt: string
 }
 
@@ -188,6 +195,7 @@ export interface CreateTodoPayload {
   notes?: string
   dueDate?: string | null
   priority: TodoPriority
+  assignedToId?: number | null
   apiaryId?: number
   beehiveId?: number
 }
@@ -198,6 +206,7 @@ export interface UpdateTodoPayload {
   dueDate?: string | null
   priority: TodoPriority
   isCompleted: boolean
+  assignedToId?: number | null
 }
 
 // ── Diet ──────────────────────────────────────────────────────────────────────

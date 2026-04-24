@@ -276,6 +276,14 @@ public class TodoConfiguration : IEntityTypeConfiguration<Todo>
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
+        // NoAction to avoid multiple cascade paths from Users (CreatedById already uses SetNull).
+        // AssignedToId must be cleared in the service before a user can be deleted.
+        builder.HasOne(t => t.AssignedTo)
+            .WithMany()
+            .HasForeignKey(t => t.AssignedToId)
+            .OnDelete(DeleteBehavior.NoAction)
+            .IsRequired(false);
+
         // Optional FK to Apiary — NoAction to avoid multiple cascade paths from Apiary.
         // Apiary-level todos are deleted explicitly in ApiaryService.DeleteAsync.
         builder.HasOne(t => t.Apiary)

@@ -1,5 +1,5 @@
 import apiClient from './apiClient'
-import type { Todo, CreateTodoPayload, UpdateTodoPayload } from '../models'
+import type { Todo, CreateTodoPayload, UpdateTodoPayload, AssignableUser } from '../models'
 
 export const todoService = {
   getByApiary: async (apiaryId: number): Promise<Todo[]> => {
@@ -24,5 +24,10 @@ export const todoService = {
 
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/todos/${id}`)
+  },
+
+  getAssignableUsers: async (): Promise<AssignableUser[]> => {
+    const res = await apiClient.get<AssignableUser[]>('/todos/assignable-users')
+    return res.data
   },
 }

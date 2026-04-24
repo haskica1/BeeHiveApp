@@ -133,6 +133,7 @@ public class TodoRepository : Repository<Todo>, ITodoRepository
         await _context.Todos
             .AsNoTracking()
             .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
             .Where(t => t.ApiaryId == apiaryId)
             .OrderBy(t => t.IsCompleted)
             .ThenBy(t => t.DueDate)
@@ -143,11 +144,18 @@ public class TodoRepository : Repository<Todo>, ITodoRepository
         await _context.Todos
             .AsNoTracking()
             .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
             .Where(t => t.BeehiveId == beehiveId)
             .OrderBy(t => t.IsCompleted)
             .ThenBy(t => t.DueDate)
             .ThenBy(t => t.CreatedAt)
             .ToListAsync();
+
+    public async Task<Todo?> GetByIdWithUsersAsync(int id) =>
+        await _context.Todos
+            .Include(t => t.CreatedBy)
+            .Include(t => t.AssignedTo)
+            .FirstOrDefaultAsync(t => t.Id == id);
 }
 
 // ── Diet Repository ───────────────────────────────────────────────────────────

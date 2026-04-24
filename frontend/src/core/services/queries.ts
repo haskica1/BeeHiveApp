@@ -29,6 +29,7 @@ export const queryKeys = {
   inspection:         (id: number) => ['inspections', id] as const,
   todosByApiary:      (apiaryId: number) => ['todos', 'apiary', apiaryId] as const,
   todosByBeehive:     (beehiveId: number) => ['todos', 'beehive', beehiveId] as const,
+  assignableUsers:    ['todos', 'assignable-users'] as const,
   dietsByBeehive:     (beehiveId: number) => ['diets', 'beehive', beehiveId] as const,
   diet:               (id: number) => ['diets', id] as const,
 }
@@ -156,6 +157,13 @@ export const useDeleteInspection = (beehiveId: number) => {
 }
 
 // ── Todo Hooks ────────────────────────────────────────────────────────────────
+
+export const useAssignableUsers = () =>
+  useQuery({
+    queryKey: queryKeys.assignableUsers,
+    queryFn: todoService.getAssignableUsers,
+    staleTime: 1000 * 60 * 5,
+  })
 
 export const useTodosByApiary = (apiaryId: number) =>
   useQuery({

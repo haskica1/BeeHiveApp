@@ -3,8 +3,13 @@ using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Entities;
+using BeeHive.Domain.Enums;
 
 namespace BeeHive.Application.Features.Todos;
+
+// ── Assignable user DTO ───────────────────────────────────────────────────────
+
+public record AssignableUserDto(int Id, string FullName);
 
 // ── Interface ─────────────────────────────────────────────────────────────────
 
@@ -16,6 +21,7 @@ public interface ITodoService
     Task<TodoDto> CreateAsync(CreateTodoDto dto, int? createdById);
     Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
     Task DeleteAsync(int id);
+    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersAsync(string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId);
 }
 
 // ── Implementation ────────────────────────────────────────────────────────────
@@ -59,7 +65,6 @@ public class TodoService : ITodoService
 
     public async Task<TodoDto> CreateAsync(CreateTodoDto dto, int? createdById)
     {
-        // Validate parent exists
         if (dto.ApiaryId.HasValue && !await _uow.Apiaries.ExistsAsync(dto.ApiaryId.Value))
             throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
 
@@ -72,7 +77,9 @@ public class TodoService : ITodoService
         await _uow.Todos.AddAsync(todo);
         await _uow.SaveChangesAsync();
 
-        return _mapper.Map<TodoDto>(todo);
+        // Reload with navigation properties for the response
+        var created = await _uow.Todos.GetByIdWithUsersAsync(todo.Id);
+        return _mapper.Map<TodoDto>(created!);
     }
 
     public async Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto)
@@ -82,7 +89,6 @@ public class TodoService : ITodoService
 
         _mapper.Map(dto, todo);
 
-        // Set or clear CompletedAt based on IsCompleted
         if (todo.IsCompleted && todo.CompletedAt is null)
             todo.CompletedAt = DateTime.UtcNow;
         else if (!todo.IsCompleted)
@@ -93,7 +99,41 @@ public class TodoService : ITodoService
         await _uow.Todos.UpdateAsync(todo);
         await _uow.SaveChangesAsync();
 
-        return _mapper.Map<TodoDto>(todo);
+        var updated = await _uow.Todos.GetByIdWithUsersAsync(id);
+        return _mapper.Map<TodoDto>(updated!);
+    }
+
+    public async Task<IEnumerable<AssignableUserDto>> GetAssignableUsersAsync(
+        string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId)
+    {
+        IEnumerable<User> users;
+
+        if (callerRole == nameof(UserRole.SystemAdmin) || callerRole == nameof(UserRole.OrgAdmin))
+        {
+            // Org-level: all users in the same organization
+            users = callerOrgId.HasValue
+                ? await _uow.Users.FindAsync(u => u.OrganizationId == callerOrgId)
+                : Enumerable.Empty<User>();
+        }
+        else if (callerRole == nameof(UserRole.Admin))
+        {
+            // Apiary-level: all users assigned to the same apiary
+            users = callerApiaryId.HasValue
+                ? await _uow.Users.FindAsync(u => u.ApiaryId == callerApiaryId)
+                : Enumerable.Empty<User>();
+        }
+        else
+        {
+            // Regular user: only themselves
+            users = callerUserId.HasValue
+                ? await _uow.Users.FindAsync(u => u.Id == callerUserId)
+                : Enumerable.Empty<User>();
+        }
+
+        return users
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .Select(u => new AssignableUserDto(u.Id, $"{u.FirstName} {u.LastName}"));
     }
 
     public async Task DeleteAsync(int id)

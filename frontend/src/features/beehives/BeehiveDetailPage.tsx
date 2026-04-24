@@ -6,6 +6,7 @@ import { jsPDF } from 'jspdf'
 import {
   useBeehive, useDeleteInspection,
   useTodosByBeehive, useCreateTodo, useUpdateTodo, useDeleteTodo,
+  useAssignableUsers,
   queryKeys,
 } from '../../core/services/queries'
 import {
@@ -88,6 +89,7 @@ export default function BeehiveDetailPage() {
 
   const todoKey = queryKeys.todosByBeehive(beehiveId)
   const { data: todos = [], isLoading: todosLoading } = useTodosByBeehive(beehiveId)
+  const { data: assignableUsers = [] } = useAssignableUsers()
   const createTodo = useCreateTodo(todoKey)
   const updateTodo = useUpdateTodo(todoKey)
   const deleteTodo = useDeleteTodo(todoKey)
@@ -188,6 +190,7 @@ export default function BeehiveDetailPage() {
         todos={todos}
         isLoading={todosLoading}
         beehiveId={beehiveId}
+        assignableUsers={assignableUsers}
         onCreate={p => createTodo.mutateAsync(p)}
         onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
         onDelete={id => deleteTodo.mutateAsync(id)}
