@@ -190,6 +190,7 @@ export default function DietDetailPage() {
 
   async function handleDelete() {
     await deleteMutation.mutateAsync(dietId)
+    if(diet == null) return;
     navigate(`/beehives/${diet.beehiveId}`)
   }
 
