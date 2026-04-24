@@ -13,47 +13,196 @@ public static class DatabaseInitializer
     public static async Task SeedUsersAsync(BeeHiveDbContext context)
     {
         var orgs = await context.Organizations.ToListAsync();
-        var goldenHive = orgs.FirstOrDefault(o => o.Id == 1);
+        var goldenHive  = orgs.FirstOrDefault(o => o.Id == 1);
         var mountainBees = orgs.FirstOrDefault(o => o.Id == 2);
 
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword("Admin123!");
         var usersToAdd = new List<User>();
 
-        if (!await context.Users.AnyAsync(u => u.Email == "sysadmin@beehive.com"))
-            usersToAdd.Add(new User
-            {
-                FirstName = "System",
-                LastName = "Admin",
-                Email = "sysadmin@beehive.com",
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword("SysAdmin123!"),
-                Role = UserRole.SystemAdmin,
-                OrganizationId = null,
-                CreatedAt = DateTime.UtcNow
-            });
+        // ── SystemAdmin ───────────────────────────────────────────────────────
+        // Two system-wide admins with no org affiliation.
 
-        if (goldenHive != null && !await context.Users.AnyAsync(u => u.Email == "admin@goldenhive.com"))
-            usersToAdd.Add(new User
+        AddIfMissing(context, usersToAdd, new User
+        {
+            FirstName    = "System",
+            LastName     = "Admin",
+            Email        = "sysadmin@beehive.com",
+            PasswordHash = Hash("SysAdmin123!"),
+            Role         = UserRole.SystemAdmin,
+            CreatedAt    = DateTime.UtcNow
+        });
+
+        AddIfMissing(context, usersToAdd, new User
+        {
+            FirstName    = "Emma",
+            LastName     = "Systems",
+            Email        = "sysadmin2@beehive.com",
+            PasswordHash = Hash("SysAdmin123!"),
+            Role         = UserRole.SystemAdmin,
+            CreatedAt    = DateTime.UtcNow
+        });
+
+        // ── Admin ─────────────────────────────────────────────────────────────
+        // Apiary-scoped admins — one per apiary per org.
+
+        if (goldenHive != null)
+        {
+            AddIfMissing(context, usersToAdd, new User
             {
-                FirstName = "Alice",
-                LastName = "Goldsworth",
-                Email = "admin@goldenhive.com",
-                PasswordHash = passwordHash,
-                Role = UserRole.Admin,
+                FirstName      = "Alice",
+                LastName       = "Goldsworth",
+                Email          = "admin@goldenhive.com",
+                PasswordHash   = Hash("Admin123!"),
+                Role           = UserRole.Admin,
                 OrganizationId = goldenHive.Id,
-                CreatedAt = DateTime.UtcNow
+                ApiaryId       = 2, // Dolinska Farma — belongs to Golden Hive Co
+                CreatedAt      = DateTime.UtcNow
             });
 
-        if (mountainBees != null && !await context.Users.AnyAsync(u => u.Email == "admin@mountainbees.com"))
-            usersToAdd.Add(new User
+            AddIfMissing(context, usersToAdd, new User
             {
-                FirstName = "Marco",
-                LastName = "Bianchi",
-                Email = "admin@mountainbees.com",
-                PasswordHash = passwordHash,
-                Role = UserRole.Admin,
-                OrganizationId = mountainBees.Id,
-                CreatedAt = DateTime.UtcNow
+                FirstName      = "James",
+                LastName       = "Holt",
+                Email          = "admin2@goldenhive.com",
+                PasswordHash   = Hash("Admin123!"),
+                Role           = UserRole.Admin,
+                OrganizationId = goldenHive.Id,
+                ApiaryId       = 2,
+                CreatedAt      = DateTime.UtcNow
             });
+        }
+
+        if (mountainBees != null)
+        {
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Marco",
+                LastName       = "Bianchi",
+                Email          = "admin@mountainbees.com",
+                PasswordHash   = Hash("Admin123!"),
+                Role           = UserRole.Admin,
+                OrganizationId = mountainBees.Id,
+                ApiaryId       = 1, // Gorska Pčelinja — belongs to Mountain Bees
+                CreatedAt      = DateTime.UtcNow
+            });
+
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Nina",
+                LastName       = "Horvat",
+                Email          = "admin2@mountainbees.com",
+                PasswordHash   = Hash("Admin123!"),
+                Role           = UserRole.Admin,
+                OrganizationId = mountainBees.Id,
+                ApiaryId       = 1,
+                CreatedAt      = DateTime.UtcNow
+            });
+        }
+
+        // ── OrgAdmin ──────────────────────────────────────────────────────────
+        // Org-level admins — manage the entire organisation.
+
+        if (goldenHive != null)
+        {
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Bob",
+                LastName       = "Keeper",
+                Email          = "orgadmin@goldenhive.com",
+                PasswordHash   = Hash("OrgAdmin123!"),
+                Role           = UserRole.OrgAdmin,
+                OrganizationId = goldenHive.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Diana",
+                LastName       = "Fields",
+                Email          = "orgadmin2@goldenhive.com",
+                PasswordHash   = Hash("OrgAdmin123!"),
+                Role           = UserRole.OrgAdmin,
+                OrganizationId = goldenHive.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+        }
+
+        if (mountainBees != null)
+        {
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Sofia",
+                LastName       = "Petrović",
+                Email          = "orgadmin@mountainbees.com",
+                PasswordHash   = Hash("OrgAdmin123!"),
+                Role           = UserRole.OrgAdmin,
+                OrganizationId = mountainBees.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Luka",
+                LastName       = "Novak",
+                Email          = "orgadmin2@mountainbees.com",
+                PasswordHash   = Hash("OrgAdmin123!"),
+                Role           = UserRole.OrgAdmin,
+                OrganizationId = mountainBees.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+        }
+
+        // ── User ──────────────────────────────────────────────────────────────
+        // Regular beekeepers — two per organisation.
+
+        if (goldenHive != null)
+        {
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Tom",
+                LastName       = "Meadows",
+                Email          = "user1@goldenhive.com",
+                PasswordHash   = Hash("User123!"),
+                Role           = UserRole.User,
+                OrganizationId = goldenHive.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Laura",
+                LastName       = "Bloom",
+                Email          = "user2@goldenhive.com",
+                PasswordHash   = Hash("User123!"),
+                Role           = UserRole.User,
+                OrganizationId = goldenHive.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+        }
+
+        if (mountainBees != null)
+        {
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Ivan",
+                LastName       = "Petrov",
+                Email          = "user1@mountainbees.com",
+                PasswordHash   = Hash("User123!"),
+                Role           = UserRole.User,
+                OrganizationId = mountainBees.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+
+            AddIfMissing(context, usersToAdd, new User
+            {
+                FirstName      = "Ana",
+                LastName       = "Kovač",
+                Email          = "user2@mountainbees.com",
+                PasswordHash   = Hash("User123!"),
+                Role           = UserRole.User,
+                OrganizationId = mountainBees.Id,
+                CreatedAt      = DateTime.UtcNow
+            });
+        }
 
         if (usersToAdd.Count > 0)
         {
@@ -61,4 +210,14 @@ public static class DatabaseInitializer
             await context.SaveChangesAsync();
         }
     }
+
+    private static void AddIfMissing(BeeHiveDbContext context, List<User> batch, User user)
+    {
+        if (!context.Users.Any(u => u.Email == user.Email) &&
+            batch.All(u => u.Email != user.Email))
+            batch.Add(user);
+    }
+
+    private static string Hash(string password) =>
+        BCrypt.Net.BCrypt.HashPassword(password);
 }

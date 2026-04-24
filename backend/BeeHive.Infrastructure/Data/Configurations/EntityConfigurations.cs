@@ -91,10 +91,10 @@ public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
             .HasMaxLength(1000);
 
         builder.Property(a => a.Latitude)
-            .HasColumnType("float");
+            .HasColumnType("double precision");
 
         builder.Property(a => a.Longitude)
-            .HasColumnType("float");
+            .HasColumnType("double precision");
 
         builder.HasOne(a => a.CreatedBy)
             .WithMany()
@@ -126,15 +126,12 @@ public class BeehiveConfiguration : IEntityTypeConfiguration<Beehive>
             .HasMaxLength(2000);
 
         builder.Property(b => b.UniqueId)
-            .HasColumnType("uniqueidentifier");
-
-        builder.Property(b => b.QrCodeBase64)
-            .HasColumnType("nvarchar(max)");
+            .HasColumnType("uuid");
 
         // Enforce uniqueness on UniqueId (non-null rows only, so nullable GUIDs are still allowed)
         builder.HasIndex(b => b.UniqueId)
             .IsUnique()
-            .HasFilter("[UniqueId] IS NOT NULL");
+            .HasFilter("\"UniqueId\" IS NOT NULL");
 
         // Store enum as integer for performance; consider string if human-readable DB matters
         builder.Property(b => b.Type)

@@ -60,7 +60,7 @@ public static class DataSeeder
                 Name = "Košnica A1",
                 Type = BeehiveType.Langstroth,
                 Material = BeehiveMaterial.Wood,
-                DateCreated = new DateTime(2022, 3, 15),
+                DateCreated = new DateTime(2022, 3, 15, 0, 0, 0, DateTimeKind.Utc),
                 Notes = "Strong colony, productive queen introduced spring 2023.",
                 ApiaryId = 1,
                 CreatedAt = now
@@ -71,7 +71,7 @@ public static class DataSeeder
                 Name = "Košnica A2",
                 Type = BeehiveType.DadantBlatt,
                 Material = BeehiveMaterial.Wood,
-                DateCreated = new DateTime(2022, 5, 20),
+                DateCreated = new DateTime(2022, 5, 20, 0, 0, 0, DateTimeKind.Utc),
                 Notes = "Newer colony, monitoring for development.",
                 ApiaryId = 1,
                 CreatedAt = now
@@ -82,7 +82,7 @@ public static class DataSeeder
                 Name = "Košnica B1",
                 Type = BeehiveType.Langstroth,
                 Material = BeehiveMaterial.Polystyrene,
-                DateCreated = new DateTime(2023, 4, 10),
+                DateCreated = new DateTime(2023, 4, 10, 0, 0, 0, DateTimeKind.Utc),
                 Notes = "Insulated polystyrene hive — excellent for winter survival.",
                 ApiaryId = 2,
                 CreatedAt = now
@@ -93,7 +93,7 @@ public static class DataSeeder
                 Name = "Košnica B2",
                 Type = BeehiveType.Warré,
                 Material = BeehiveMaterial.Wood,
-                DateCreated = new DateTime(2023, 6, 5),
+                DateCreated = new DateTime(2023, 6, 5, 0, 0, 0, DateTimeKind.Utc),
                 Notes = "Warré hive added for natural beekeeping trial.",
                 ApiaryId = 2,
                 CreatedAt = now
@@ -105,7 +105,7 @@ public static class DataSeeder
             new Inspection
             {
                 Id = 1,
-                Date = new DateTime(2024, 5, 10),
+                Date = new DateTime(2024, 5, 10, 0, 0, 0, DateTimeKind.Utc),
                 Temperature = 22.5,
                 HoneyLevel = HoneyLevel.High,
                 BroodStatus = "Healthy brood pattern. Queen spotted. Eggs and larvae present.",
@@ -116,7 +116,7 @@ public static class DataSeeder
             new Inspection
             {
                 Id = 2,
-                Date = new DateTime(2024, 6, 15),
+                Date = new DateTime(2024, 6, 15, 0, 0, 0, DateTimeKind.Utc),
                 Temperature = 28.0,
                 HoneyLevel = HoneyLevel.Medium,
                 BroodStatus = "Good brood. Some drone cells observed.",
@@ -127,7 +127,7 @@ public static class DataSeeder
             new Inspection
             {
                 Id = 3,
-                Date = new DateTime(2024, 5, 12),
+                Date = new DateTime(2024, 5, 12, 0, 0, 0, DateTimeKind.Utc),
                 Temperature = 21.0,
                 HoneyLevel = HoneyLevel.Low,
                 BroodStatus = "Sparse brood. Queen activity low.",
@@ -138,7 +138,7 @@ public static class DataSeeder
             new Inspection
             {
                 Id = 4,
-                Date = new DateTime(2024, 6, 1),
+                Date = new DateTime(2024, 6, 1, 0, 0, 0, DateTimeKind.Utc),
                 Temperature = 25.5,
                 HoneyLevel = HoneyLevel.Medium,
                 BroodStatus = "Improving brood pattern. Queen productive.",

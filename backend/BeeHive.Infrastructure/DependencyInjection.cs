@@ -16,9 +16,9 @@ public static class DependencyInjection
         IConfiguration configuration)
     {
         services.AddDbContext<BeeHiveDbContext>(options =>
-            options.UseSqlServer(
+            options.UseNpgsql(
                 configuration.GetConnectionString("DefaultConnection"),
-                sql => sql.MigrationsAssembly(typeof(BeeHiveDbContext).Assembly.FullName)
+                npgsql => npgsql.MigrationsAssembly(typeof(BeeHiveDbContext).Assembly.FullName)
             ));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();

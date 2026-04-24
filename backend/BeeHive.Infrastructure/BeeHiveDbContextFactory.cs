@@ -26,7 +26,7 @@ public class BeeHiveDbContextFactory : IDesignTimeDbContextFactory<BeeHiveDbCont
             ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
         var optionsBuilder = new DbContextOptionsBuilder<BeeHiveDbContext>();
-        optionsBuilder.UseSqlServer(connectionString);
+        optionsBuilder.UseNpgsql(connectionString);
 
         return new BeeHiveDbContext(optionsBuilder.Options);
     }
