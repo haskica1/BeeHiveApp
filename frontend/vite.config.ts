@@ -22,10 +22,12 @@ export default defineConfig({
         ]
       },
       workbox: {
-        // Cache API responses for offline use (network-first strategy)
+        // Cache API responses for offline use (network-first strategy).
+        // Pattern matches both the Vite dev proxy (/api/...) and the
+        // full production URL (https://beehiveapp-y076.onrender.com/api/...).
         runtimeCaching: [
           {
-            urlPattern: /^https?:\/\/localhost:\d+\/api\/.*/i,
+            urlPattern: /\/api\//i,
             handler: 'NetworkFirst',
             options: {
               cacheName: 'beehive-api-cache',

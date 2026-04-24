@@ -85,16 +85,17 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 
-// CORS — allow the Angular/React frontend running on localhost during development
+// CORS — origins are configured via AllowedOrigins in appsettings.json.
+// On Render, override with the env var:  AllowedOrigins=https://your-app.vercel.app
+var allowedOrigins = (builder.Configuration["AllowedOrigins"] ?? "http://localhost:5173")
+    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:4200",  // Angular default
-                "http://localhost:5173"   // Vite/React default
-            )
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
