@@ -41,7 +41,7 @@ export default defineConfig({
     proxy: {
       // Proxy API calls to the .NET backend during development
       '/api': {
-        target: 'https://localhost:62647',
+        target: 'https://beehiveapp-y076.onrender.com',
         changeOrigin: true,
         secure: false
       }
