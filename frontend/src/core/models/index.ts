@@ -357,12 +357,19 @@ export interface AdminUser {
   organizationName?: string
   apiaryId?: number
   apiaryName?: string
+  assignedBeehiveIds: number[]
   createdAt: string
 }
 
 export interface AdminApiaryListItem {
   id: number
   name: string
+}
+
+export interface AdminBeehiveListItem {
+  id: number
+  name: string
+  apiaryName: string
 }
 
 export interface CreateAdminUserPayload {
@@ -373,6 +380,7 @@ export interface CreateAdminUserPayload {
   role: string
   organizationId?: number | null
   apiaryId?: number | null
+  assignedBeehiveIds: number[]
 }
 
 export interface UpdateAdminUserPayload {
@@ -382,6 +390,7 @@ export interface UpdateAdminUserPayload {
   role: string
   organizationId?: number | null
   apiaryId?: number | null
+  assignedBeehiveIds: number[]
 }
 
 // ── API Error shape ───────────────────────────────────────────────────────────

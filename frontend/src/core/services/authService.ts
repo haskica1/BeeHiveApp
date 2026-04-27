@@ -7,6 +7,7 @@ export interface AuthUser {
   role: string
   organizationId?: number | null
   organizationName?: string | null
+  assignedBeehiveIds: number[]
 }
 
 export interface LoginResponse extends AuthUser {
@@ -27,6 +28,7 @@ export const authService = {
       role: data.role,
       organizationId: data.organizationId,
       organizationName: data.organizationName,
+      assignedBeehiveIds: data.assignedBeehiveIds ?? [],
     }))
     return data
   },

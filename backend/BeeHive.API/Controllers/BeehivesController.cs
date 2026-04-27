@@ -47,8 +47,9 @@ public class BeehivesController : ControllerBase
         return Ok(beehive);
     }
 
-    /// <summary>Creates a new beehive within an apiary. Available to all authenticated roles.</summary>
+    /// <summary>Creates a new beehive within an apiary. Admin, OrgAdmin, and SystemAdmin only.</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateBeehiveDto dto)

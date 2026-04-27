@@ -17,4 +17,7 @@ public class User : BaseEntity
     // Apiary assignment — only used for Admin role (apiary-scoped access)
     public int? ApiaryId { get; set; }
     public Apiary? Apiary { get; set; }
+
+    // Beehive assignments — only used for User role (hive-scoped access)
+    public ICollection<UserBeehive> AssignedBeehives { get; set; } = new List<UserBeehive>();
 }

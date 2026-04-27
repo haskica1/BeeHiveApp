@@ -83,7 +83,7 @@ export default function BeehiveDetailPage() {
   const navigate = useNavigate()
   const beehiveId = Number(id)
 
-  const { canEditDelete } = usePermissions()
+  const { canEditDelete, canManageHiveTodos, isAssignedToHive } = usePermissions()
   const { data: beehive, isLoading, error } = useBeehive(beehiveId)
   const deleteMutation = useDeleteInspection(beehiveId)
 
@@ -191,6 +191,8 @@ export default function BeehiveDetailPage() {
         isLoading={todosLoading}
         beehiveId={beehiveId}
         assignableUsers={assignableUsers}
+        canCreate={canManageHiveTodos || isAssignedToHive(beehiveId)}
+        canManage={canManageHiveTodos || isAssignedToHive(beehiveId)}
         onCreate={p => createTodo.mutateAsync(p)}
         onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
         onDelete={id => deleteTodo.mutateAsync(id)}

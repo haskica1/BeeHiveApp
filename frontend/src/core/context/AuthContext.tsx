@@ -22,6 +22,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       role: response.role,
       organizationId: response.organizationId,
       organizationName: response.organizationName,
+      assignedBeehiveIds: response.assignedBeehiveIds ?? [],
     })
     return response
   }, [])

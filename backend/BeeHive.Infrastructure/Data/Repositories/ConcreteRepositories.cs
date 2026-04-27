@@ -55,6 +55,29 @@ public class UserRepository : Repository<User>, IUserRepository
             .Include(u => u.Organization)
             .Include(u => u.Apiary)
             .FirstOrDefaultAsync(u => u.Id == id);
+
+    public async Task<User?> GetByIdWithAssignedBeehivesAsync(int id) =>
+        await _context.Users
+            .Include(u => u.Organization)
+            .Include(u => u.Apiary)
+            .Include(u => u.AssignedBeehives).ThenInclude(ub => ub.Beehive)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+    public async Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
+        await _context.UserBeehives
+            .AnyAsync(ub => ub.UserId == userId && ub.BeehiveId == beehiveId);
+
+    public async Task SetBeehiveAssignmentsAsync(int userId, IEnumerable<int> beehiveIds)
+    {
+        var existing = await _context.UserBeehives
+            .Where(ub => ub.UserId == userId)
+            .ToListAsync();
+
+        _context.UserBeehives.RemoveRange(existing);
+
+        foreach (var beehiveId in beehiveIds)
+            await _context.UserBeehives.AddAsync(new UserBeehive { UserId = userId, BeehiveId = beehiveId });
+    }
 }
 
 // ── Apiary Repository ─────────────────────────────────────────────────────────
@@ -106,6 +129,15 @@ public class BeehiveRepository : Repository<Beehive>, IBeehiveRepository
             .Include(b => b.CreatedBy)
             .Where(b => b.ApiaryId == apiaryId)
             .OrderBy(b => b.Name)
+            .ToListAsync();
+
+    public async Task<IEnumerable<Beehive>> GetByOrganizationAsync(int organizationId) =>
+        await _context.Beehives
+            .AsNoTracking()
+            .Include(b => b.Apiary)
+            .Where(b => b.Apiary.OrganizationId == organizationId)
+            .OrderBy(b => b.Apiary.Name)
+            .ThenBy(b => b.Name)
             .ToListAsync();
 }
 

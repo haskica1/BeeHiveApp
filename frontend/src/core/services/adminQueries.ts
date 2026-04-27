@@ -11,6 +11,7 @@ export const adminQueryKeys = {
   organizations: ['admin', 'organizations'] as const,
   organization: (id: number) => ['admin', 'organizations', id] as const,
   apiariesByOrg: (orgId: number) => ['admin', 'organizations', orgId, 'apiaries'] as const,
+  beehivesByOrg: (orgId: number) => ['admin', 'organizations', orgId, 'beehives'] as const,
   users: ['admin', 'users'] as const,
   user: (id: number) => ['admin', 'users', id] as const,
 }
@@ -50,6 +51,13 @@ export const useApiariesByOrganization = (orgId: number) =>
   useQuery({
     queryKey: adminQueryKeys.apiariesByOrg(orgId),
     queryFn: () => adminService.getApiariesByOrganization(orgId),
+    enabled: orgId > 0,
+  })
+
+export const useBeehivesByOrganization = (orgId: number) =>
+  useQuery({
+    queryKey: adminQueryKeys.beehivesByOrg(orgId),
+    queryFn: () => adminService.getBeehivesByOrganization(orgId),
     enabled: orgId > 0,
   })
 

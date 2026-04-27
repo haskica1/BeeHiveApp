@@ -30,4 +30,5 @@ public class Beehive : BaseEntity
     public Apiary Apiary { get; set; } = null!;
     public ICollection<Inspection> Inspections { get; set; } = new List<Inspection>();
     public ICollection<Diet> Diets { get; set; } = new List<Diet>();
+    public ICollection<UserBeehive> AssignedUsers { get; set; } = new List<UserBeehive>();
 }

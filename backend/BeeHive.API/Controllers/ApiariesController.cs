@@ -74,9 +74,9 @@ public class ApiariesController : ControllerBase
         return Ok(apiary);
     }
 
-    /// <summary>Creates a new apiary for the current user's organization. Not available to User role.</summary>
+    /// <summary>Creates a new apiary. OrgAdmin and SystemAdmin only.</summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+    [Authorize(Roles = "OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(ApiaryDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Create([FromBody] CreateApiaryDto dto)
@@ -94,9 +94,9 @@ public class ApiariesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates an existing apiary. Not available to User role.</summary>
+    /// <summary>Updates an existing apiary. OrgAdmin and SystemAdmin only.</summary>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+    [Authorize(Roles = "OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(ApiaryDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -110,9 +110,9 @@ public class ApiariesController : ControllerBase
         return Ok(updated);
     }
 
-    /// <summary>Deletes an apiary and all its child beehives/inspections. Not available to User role.</summary>
+    /// <summary>Deletes an apiary and all its child beehives/inspections. OrgAdmin and SystemAdmin only.</summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+    [Authorize(Roles = "OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)

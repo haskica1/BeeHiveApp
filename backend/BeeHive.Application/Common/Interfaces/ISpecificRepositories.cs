@@ -15,6 +15,9 @@ public interface IUserRepository : IRepository<User>
     Task<User?> GetByEmailAsync(string email);
     Task<IEnumerable<User>> GetAllWithOrganizationAsync();
     Task<User?> GetByIdWithOrganizationAsync(int id);
+    Task<User?> GetByIdWithAssignedBeehivesAsync(int id);
+    Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
+    Task SetBeehiveAssignmentsAsync(int userId, IEnumerable<int> beehiveIds);
 }
 
 /// <summary>Diet-specific data access operations.</summary>
@@ -60,6 +63,9 @@ public interface IBeehiveRepository : IRepository<Beehive>
 
     /// <summary>Returns all beehives belonging to a specific apiary.</summary>
     Task<IEnumerable<Beehive>> GetByApiaryIdAsync(int apiaryId);
+
+    /// <summary>Returns all beehives belonging to a specific organization (across all its apiaries).</summary>
+    Task<IEnumerable<Beehive>> GetByOrganizationAsync(int organizationId);
 }
 
 /// <summary>Inspection-specific data access operations.</summary>

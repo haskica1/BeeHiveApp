@@ -80,6 +80,15 @@ public class AdminController : ControllerBase
         return Ok(apiaries);
     }
 
+    /// <summary>Returns all beehives for a given organization — used when assigning User role beekeepers.</summary>
+    [HttpGet("organizations/{id:int}/beehives")]
+    [ProducesResponseType(typeof(IEnumerable<AdminBeehiveListItemDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBeehivesByOrganization(int id)
+    {
+        var beehives = await _service.GetBeehivesByOrganizationAsync(id);
+        return Ok(beehives);
+    }
+
     // ── Users ──────────────────────────────────────────────────────────────────
 
     [HttpGet("users")]

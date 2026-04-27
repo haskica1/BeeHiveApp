@@ -178,6 +178,10 @@ interface TodoSectionProps {
   apiaryId?: number
   beehiveId?: number
   assignableUsers?: AssignableUser[]
+  /** Whether the current user can create new todos in this context */
+  canCreate?: boolean
+  /** Whether the current user can edit and delete todos in this context */
+  canManage?: boolean
   onCreate: (payload: CreateTodoPayload) => Promise<unknown>
   onUpdate: (id: number, payload: UpdateTodoPayload) => Promise<unknown>
   onDelete: (id: number) => Promise<unknown>
@@ -192,12 +196,17 @@ export function TodoSection({
   apiaryId,
   beehiveId,
   assignableUsers,
+  canCreate,
+  canManage,
   onCreate,
   onUpdate,
   onDelete,
   isMutating,
 }: TodoSectionProps) {
+  // Fall back to the hook's canEditDelete only if props are not explicitly provided
   const { canEditDelete } = usePermissions()
+  const effectiveCanCreate = canCreate ?? canEditDelete
+  const effectiveCanManage = canManage ?? canEditDelete
   const [showAddForm, setShowAddForm]   = useState(false)
   const [editingId, setEditingId]       = useState<number | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -251,7 +260,7 @@ export function TodoSection({
             <span className="badge bg-honey-100 text-honey-700 text-xs">{open.length}</span>
           )}
         </h2>
-        {!showAddForm && (
+        {effectiveCanCreate && !showAddForm && (
           <button onClick={() => setShowAddForm(true)} className="btn-primary text-sm">
             <Plus className="w-4 h-4" /> Add Task
           </button>
@@ -292,7 +301,7 @@ export function TodoSection({
               todo={todo}
               isEditing={editingId === todo.id}
               isMutating={isMutating}
-              canEditDelete={canEditDelete}
+              canEditDelete={effectiveCanManage}
               assignableUsers={assignableUsers}
               onToggle={() => handleToggle(todo)}
               onEdit={() => setEditingId(todo.id)}
@@ -323,7 +332,7 @@ export function TodoSection({
                   todo={todo}
                   isEditing={editingId === todo.id}
                   isMutating={isMutating}
-                  canEditDelete={canEditDelete}
+                  canEditDelete={effectiveCanManage}
                   assignableUsers={assignableUsers}
                   onToggle={() => handleToggle(todo)}
                   onEdit={() => setEditingId(todo.id)}

@@ -38,6 +38,7 @@ public class AdminUserDto
     public string? OrganizationName { get; set; }
     public int? ApiaryId { get; set; }
     public string? ApiaryName { get; set; }
+    public List<int> AssignedBeehiveIds { get; set; } = [];
     public DateTime CreatedAt { get; set; }
 }
 
@@ -50,6 +51,7 @@ public class CreateAdminUserDto
     public string Role { get; set; } = "Admin";
     public int? OrganizationId { get; set; }
     public int? ApiaryId { get; set; }
+    public List<int> AssignedBeehiveIds { get; set; } = [];
 }
 
 public class UpdateAdminUserDto
@@ -60,6 +62,7 @@ public class UpdateAdminUserDto
     public string Role { get; set; } = "Admin";
     public int? OrganizationId { get; set; }
     public int? ApiaryId { get; set; }
+    public List<int> AssignedBeehiveIds { get; set; } = [];
 }
 
 // ── Apiary list DTO (for org-scoped apiary picker in admin UI) ────────────────
@@ -68,4 +71,13 @@ public class AdminApiaryListItemDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+}
+
+// ── Beehive list DTO (for org-scoped beehive picker in admin UI) ──────────────
+
+public class AdminBeehiveListItemDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string ApiaryName { get; set; } = string.Empty;
 }

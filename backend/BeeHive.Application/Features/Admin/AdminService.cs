@@ -18,6 +18,9 @@ public interface IAdminService
     // Apiaries (for org-scoped picker)
     Task<IEnumerable<AdminApiaryListItemDto>> GetApiariesByOrganizationAsync(int organizationId);
 
+    // Beehives (for org-scoped beehive picker when assigning User role)
+    Task<IEnumerable<AdminBeehiveListItemDto>> GetBeehivesByOrganizationAsync(int organizationId);
+
     // Users
     Task<IEnumerable<AdminUserDto>> GetAllUsersAsync();
     Task<AdminUserDto> GetUserByIdAsync(int id);
@@ -102,17 +105,36 @@ public class AdminService : IAdminService
         return apiaries.Select(a => new AdminApiaryListItemDto { Id = a.Id, Name = a.Name });
     }
 
+    public async Task<IEnumerable<AdminBeehiveListItemDto>> GetBeehivesByOrganizationAsync(int organizationId)
+    {
+        var beehives = await _uow.Beehives.GetByOrganizationAsync(organizationId);
+        return beehives.Select(b => new AdminBeehiveListItemDto
+        {
+            Id = b.Id,
+            Name = b.Name,
+            ApiaryName = b.Apiary?.Name ?? string.Empty,
+        });
+    }
+
     // ── Users ──────────────────────────────────────────────────────────────────
 
     public async Task<IEnumerable<AdminUserDto>> GetAllUsersAsync()
     {
         var users = await _uow.Users.GetAllWithOrganizationAsync();
-        return users.Select(MapUser);
+        var dtos = new List<AdminUserDto>();
+        foreach (var u in users)
+        {
+            var withBeehives = u.Role == UserRole.User
+                ? await _uow.Users.GetByIdWithAssignedBeehivesAsync(u.Id)
+                : u;
+            dtos.Add(MapUser(withBeehives ?? u));
+        }
+        return dtos;
     }
 
     public async Task<AdminUserDto> GetUserByIdAsync(int id)
     {
-        var user = await _uow.Users.GetByIdWithOrganizationAsync(id)
+        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(id)
             ?? throw new NotFoundException(nameof(User), id);
         return MapUser(user);
     }
@@ -159,7 +181,13 @@ public class AdminService : IAdminService
         await _uow.Users.AddAsync(user);
         await _uow.SaveChangesAsync();
 
-        var created = await _uow.Users.GetByEmailAsync(user.Email);
+        if (role == UserRole.User && dto.AssignedBeehiveIds.Count > 0)
+        {
+            await _uow.Users.SetBeehiveAssignmentsAsync(user.Id, dto.AssignedBeehiveIds);
+            await _uow.SaveChangesAsync();
+        }
+
+        var created = await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id);
         return MapUser(created!);
     }
 
@@ -205,9 +233,15 @@ public class AdminService : IAdminService
         user.ApiaryId = dto.ApiaryId;
 
         await _uow.Users.UpdateAsync(user);
+
+        // Always sync beehive assignments: clear when not User role, set when User role
+        await _uow.Users.SetBeehiveAssignmentsAsync(
+            id,
+            role == UserRole.User ? dto.AssignedBeehiveIds : []);
+
         await _uow.SaveChangesAsync();
 
-        var updated = await _uow.Users.GetByIdWithOrganizationAsync(id);
+        var updated = await _uow.Users.GetByIdWithAssignedBeehivesAsync(id);
         return MapUser(updated!);
     }
 
@@ -273,6 +307,7 @@ public class AdminService : IAdminService
         OrganizationName = u.Organization?.Name,
         ApiaryId = u.ApiaryId,
         ApiaryName = u.Apiary?.Name,
+        AssignedBeehiveIds = u.AssignedBeehives.Select(ub => ub.BeehiveId).ToList(),
         CreatedAt = u.CreatedAt
     };
 }

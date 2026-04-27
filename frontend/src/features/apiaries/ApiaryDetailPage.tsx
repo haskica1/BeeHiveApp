@@ -96,7 +96,7 @@ export default function ApiaryDetailPage() {
   const navigate = useNavigate()
   const apiaryId = Number(id)
 
-  const { canManageApiaries, canEditDelete } = usePermissions()
+  const { canManageApiaries, canManageHives, canManageApiaryTodos, canEditDelete } = usePermissions()
   const { data: apiary, isLoading, error } = useApiary(apiaryId)
   const { data: weather, isLoading: weatherLoading } = useApiaryWeather(
     apiaryId,
@@ -145,12 +145,14 @@ export default function ApiaryDetailPage() {
                 <Pencil className="w-4 h-4" /> Edit
               </Link>
             )}
-            <Link
-              to={`/beehives/new?apiaryId=${apiaryId}`}
-              className="btn-primary text-sm"
-            >
-              <Plus className="w-4 h-4" /> Add Beehive
-            </Link>
+            {canManageHives && (
+              <Link
+                to={`/beehives/new?apiaryId=${apiaryId}`}
+                className="btn-primary text-sm"
+              >
+                <Plus className="w-4 h-4" /> Add Beehive
+              </Link>
+            )}
           </>
         }
       />
@@ -254,6 +256,8 @@ export default function ApiaryDetailPage() {
         isLoading={todosLoading}
         apiaryId={apiaryId}
         assignableUsers={assignableUsers}
+        canCreate={canManageApiaryTodos}
+        canManage={canManageApiaryTodos}
         onCreate={p => createTodo.mutateAsync(p)}
         onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
         onDelete={id => deleteTodo.mutateAsync(id)}
@@ -268,9 +272,11 @@ export default function ApiaryDetailPage() {
           title="No beehives yet"
           description="Add your first beehive to this apiary."
           action={
-            <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
-              <Plus className="w-4 h-4" /> Add Beehive
-            </Link>
+            canManageHives ? (
+              <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
+                <Plus className="w-4 h-4" /> Add Beehive
+              </Link>
+            ) : undefined
           }
         />
       ) : (

@@ -3,6 +3,7 @@ import type {
   AdminOrganization,
   AdminUser,
   AdminApiaryListItem,
+  AdminBeehiveListItem,
   CreateOrganizationPayload,
   UpdateOrganizationPayload,
   CreateAdminUserPayload,
@@ -37,6 +38,11 @@ export const adminService = {
 
   async getApiariesByOrganization(orgId: number): Promise<AdminApiaryListItem[]> {
     const { data } = await apiClient.get<AdminApiaryListItem[]>(`/admin/organizations/${orgId}/apiaries`)
+    return data
+  },
+
+  async getBeehivesByOrganization(orgId: number): Promise<AdminBeehiveListItem[]> {
+    const { data } = await apiClient.get<AdminBeehiveListItem[]>(`/admin/organizations/${orgId}/beehives`)
     return data
   },
 

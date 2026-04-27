@@ -4,10 +4,40 @@ export function usePermissions() {
   const { user } = useAuth()
   const role = user?.role
 
+  const isSystemAdmin = role === 'SystemAdmin'
+  const isOrgAdmin    = role === 'OrgAdmin'
+  const isAdmin       = role === 'Admin'
+  const isUser        = role === 'User'
+
   return {
-    /** SystemAdmin or OrgAdmin — can create/edit/delete apiaries */
-    canManageApiaries: role === 'SystemAdmin' || role === 'OrgAdmin',
-    /** SystemAdmin, OrgAdmin, or Admin — can edit/delete beehives, inspections, diets, todos */
-    canEditDelete: role === 'SystemAdmin' || role === 'OrgAdmin' || role === 'Admin',
+    // SystemAdmin only
+    canManageOrganizations: isSystemAdmin,
+    canManageUsers: isSystemAdmin,
+
+    // OrgAdmin + SystemAdmin
+    canManageApiaries: isSystemAdmin || isOrgAdmin,
+    canManageApiary: isSystemAdmin || isOrgAdmin,
+    canManageApiaryTodos: isSystemAdmin || isOrgAdmin,
+
+    // Admin + OrgAdmin + SystemAdmin
+    canManageHives: isSystemAdmin || isOrgAdmin || isAdmin,
+    canManageDiets: isSystemAdmin || isOrgAdmin || isAdmin,
+    canManageInspections: isSystemAdmin || isOrgAdmin || isAdmin,
+    canManageHiveTodos: isSystemAdmin || isOrgAdmin || isAdmin,
+
+    // All authenticated users can create inspections (Reviews)
+    canCreateInspections: true,
+
+    // Kept for backward compatibility in components that already use this name
+    canEditDelete: isSystemAdmin || isOrgAdmin || isAdmin,
+
+    isSystemAdmin,
+    isOrgAdmin,
+    isAdmin,
+    isUser,
+
+    /** Returns true if the current User-role user is assigned to the given hive. */
+    isAssignedToHive: (beehiveId: number): boolean =>
+      isUser ? (user?.assignedBeehiveIds ?? []).includes(beehiveId) : false,
   }
 }

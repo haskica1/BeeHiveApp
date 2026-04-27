@@ -50,8 +50,9 @@ public class DietsController : ControllerBase
         return Ok(diet);
     }
 
-    /// <summary>Creates a new diet and auto-generates feeding entries. Available to all authenticated roles.</summary>
+    /// <summary>Creates a new diet and auto-generates feeding entries. Admin, OrgAdmin, and SystemAdmin only.</summary>
     [HttpPost]
+    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

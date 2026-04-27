@@ -22,6 +22,7 @@ public interface ITodoService
     Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
     Task DeleteAsync(int id);
     Task<IEnumerable<AssignableUserDto>> GetAssignableUsersAsync(string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId);
+    Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
 }
 
 // ── Implementation ────────────────────────────────────────────────────────────
@@ -144,4 +145,7 @@ public class TodoService : ITodoService
         await _uow.Todos.DeleteAsync(todo);
         await _uow.SaveChangesAsync();
     }
+
+    public Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
+        _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId);
 }

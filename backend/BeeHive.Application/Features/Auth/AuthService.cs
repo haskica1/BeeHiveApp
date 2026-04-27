@@ -35,6 +35,12 @@ public class AuthService : IAuthService
 
         var token = GenerateToken(user.Id, user.Email, user.Role.ToString(), user.OrganizationId, user.ApiaryId);
 
+        IReadOnlyList<int> assignedBeehiveIds = user.Role == Domain.Enums.UserRole.User
+            ? (await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id))
+                ?.AssignedBeehives.Select(ub => ub.BeehiveId).ToList()
+              ?? []
+            : [];
+
         return new LoginResponseDto(
             Token: token,
             Email: user.Email,
@@ -42,7 +48,8 @@ public class AuthService : IAuthService
             LastName: user.LastName,
             Role: user.Role.ToString(),
             OrganizationId: user.OrganizationId,
-            OrganizationName: user.Organization?.Name
+            OrganizationName: user.Organization?.Name,
+            AssignedBeehiveIds: assignedBeehiveIds
         );
     }
 

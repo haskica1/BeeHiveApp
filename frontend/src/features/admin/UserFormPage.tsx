@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { ArrowLeft, Loader2 } from 'lucide-react'
@@ -8,6 +8,7 @@ import {
   useUpdateAdminUser,
   useAdminOrganizations,
   useApiariesByOrganization,
+  useBeehivesByOrganization,
 } from '../../core/services/adminQueries'
 
 interface UserForm {
@@ -31,6 +32,8 @@ export default function UserFormPage() {
   const createUser = useCreateAdminUser()
   const updateUser = useUpdateAdminUser(userId)
 
+  const [selectedBeehiveIds, setSelectedBeehiveIds] = useState<number[]>([])
+
   const {
     register,
     handleSubmit,
@@ -45,9 +48,11 @@ export default function UserFormPage() {
   const orgIdNumber = selectedOrgId ? parseInt(selectedOrgId) : 0
 
   const { data: apiaries = [] } = useApiariesByOrganization(orgIdNumber)
+  const { data: beehives = [] } = useBeehivesByOrganization(orgIdNumber)
 
-  const needsOrg = selectedRole !== 'SystemAdmin'
+  const needsOrg    = selectedRole !== 'SystemAdmin'
   const needsApiary = selectedRole === 'Admin'
+  const needsHives  = selectedRole === 'User'
 
   useEffect(() => {
     if (existing) {
@@ -60,11 +65,20 @@ export default function UserFormPage() {
         organizationId: existing.organizationId?.toString() ?? '',
         apiaryId: existing.apiaryId?.toString() ?? '',
       })
+      setSelectedBeehiveIds(existing.assignedBeehiveIds ?? [])
     }
   }, [existing, reset])
 
+  function toggleBeehive(beehiveId: number) {
+    setSelectedBeehiveIds(prev =>
+      prev.includes(beehiveId)
+        ? prev.filter(id => id !== beehiveId)
+        : [...prev, beehiveId]
+    )
+  }
+
   async function onSubmit(data: UserForm) {
-    const orgId = data.organizationId ? parseInt(data.organizationId) : null
+    const orgId    = data.organizationId ? parseInt(data.organizationId) : null
     const apiaryId = data.apiaryId ? parseInt(data.apiaryId) : null
 
     try {
@@ -76,6 +90,7 @@ export default function UserFormPage() {
           role: data.role,
           organizationId: orgId,
           apiaryId: needsApiary ? apiaryId : null,
+          assignedBeehiveIds: needsHives ? selectedBeehiveIds : [],
         })
       } else {
         await createUser.mutateAsync({
@@ -86,6 +101,7 @@ export default function UserFormPage() {
           role: data.role,
           organizationId: orgId,
           apiaryId: needsApiary ? apiaryId : null,
+          assignedBeehiveIds: needsHives ? selectedBeehiveIds : [],
         })
       }
       navigate('/admin')
@@ -102,6 +118,13 @@ export default function UserFormPage() {
       </div>
     )
   }
+
+  const inputCls = (hasError: boolean) =>
+    `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white ${
+      hasError
+        ? 'border-red-400 focus:ring-2 focus:ring-red-200'
+        : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
+    }`
 
   return (
     <div className="max-w-xl mx-auto">
@@ -133,8 +156,7 @@ export default function UserFormPage() {
               <input
                 type="text"
                 placeholder="First name"
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
-                  ${errors.firstName ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+                className={inputCls(!!errors.firstName)}
                 {...register('firstName', { required: 'Required' })}
               />
               {errors.firstName && <p className="mt-1 text-xs text-red-600">{errors.firstName.message}</p>}
@@ -146,8 +168,7 @@ export default function UserFormPage() {
               <input
                 type="text"
                 placeholder="Last name"
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
-                  ${errors.lastName ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+                className={inputCls(!!errors.lastName)}
                 {...register('lastName', { required: 'Required' })}
               />
               {errors.lastName && <p className="mt-1 text-xs text-red-600">{errors.lastName.message}</p>}
@@ -161,8 +182,7 @@ export default function UserFormPage() {
             <input
               type="email"
               placeholder="user@example.com"
-              className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
-                ${errors.email ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+              className={inputCls(!!errors.email)}
               {...register('email', {
                 required: 'Email is required',
                 pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' },
@@ -179,8 +199,7 @@ export default function UserFormPage() {
               <input
                 type="password"
                 placeholder="••••••••"
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
-                  ${errors.password ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+                className={inputCls(!!errors.password)}
                 {...register('password', {
                   required: isEdit ? false : 'Password is required',
                   minLength: { value: 6, message: 'Minimum 6 characters' },
@@ -204,9 +223,9 @@ export default function UserFormPage() {
               <option value="SystemAdmin">System Admin</option>
             </select>
             <p className="mt-1 text-xs text-gray-400">
-              {selectedRole === 'OrgAdmin' && 'Can manage users in the org and all apiaries.'}
-              {selectedRole === 'Admin' && 'Scoped to one apiary — can manage all its hives.'}
-              {selectedRole === 'User' && 'Read-only access plus create inspections, hives, nutrition, and todos.'}
+              {selectedRole === 'OrgAdmin' && 'Can manage all apiaries, hives, diets, inspections, and todos within the org.'}
+              {selectedRole === 'Admin' && 'Scoped to one apiary — can manage hives, diets, inspections, and hive todos.'}
+              {selectedRole === 'User' && 'Can create inspections, manage todos on assigned hives, and view diets.'}
               {selectedRole === 'SystemAdmin' && 'Full platform access — no org required.'}
             </p>
           </div>
@@ -217,11 +236,9 @@ export default function UserFormPage() {
                 Organization <span className="text-red-500">*</span>
               </label>
               <select
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
-                  ${errors.organizationId ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+                className={inputCls(!!errors.organizationId)}
                 {...register('organizationId', {
-                  validate: (v) =>
-                    !needsOrg || !!v || 'Organization is required for this role',
+                  validate: (v) => !needsOrg || !!v || 'Organization is required for this role',
                 })}
               >
                 <option value="">Select organization…</option>
@@ -239,11 +256,9 @@ export default function UserFormPage() {
                 Apiary <span className="text-red-500">*</span>
               </label>
               <select
-                className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white
-                  ${errors.apiaryId ? 'border-red-400 focus:ring-2 focus:ring-red-200' : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'}`}
+                className={inputCls(!!errors.apiaryId)}
                 {...register('apiaryId', {
-                  validate: (v) =>
-                    !needsApiary || !!v || 'Apiary is required for Admin users',
+                  validate: (v) => !needsApiary || !!v || 'Apiary is required for Admin users',
                 })}
                 disabled={!orgIdNumber}
               >
@@ -253,6 +268,42 @@ export default function UserFormPage() {
                 ))}
               </select>
               {errors.apiaryId && <p className="mt-1.5 text-xs text-red-600">{errors.apiaryId.message}</p>}
+            </div>
+          )}
+
+          {needsHives && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Assigned Hives
+              </label>
+              {!orgIdNumber ? (
+                <p className="text-xs text-gray-400 py-2">Select an organization first to see available hives.</p>
+              ) : beehives.length === 0 ? (
+                <p className="text-xs text-gray-400 py-2">No hives found in this organization.</p>
+              ) : (
+                <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                  {beehives.map((b) => (
+                    <label
+                      key={b.id}
+                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedBeehiveIds.includes(b.id)}
+                        onChange={() => toggleBeehive(b.id)}
+                        className="w-4 h-4 accent-honey-500"
+                      />
+                      <span className="text-sm text-gray-800">{b.name}</span>
+                      <span className="text-xs text-gray-400 ml-auto">{b.apiaryName}</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <p className="mt-1 text-xs text-gray-400">
+                {selectedBeehiveIds.length > 0
+                  ? `${selectedBeehiveIds.length} hive${selectedBeehiveIds.length !== 1 ? 's' : ''} selected`
+                  : 'No hives assigned — user can still view but not manage todos.'}
+              </p>
             </div>
           )}
 

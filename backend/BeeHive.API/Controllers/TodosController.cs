@@ -57,25 +57,59 @@ public class TodosController : ControllerBase
         return Ok(todo);
     }
 
-    /// <summary>Creates a new to-do item. Available to all authenticated roles.</summary>
+    /// <summary>
+    /// Creates a new to-do item.
+    /// Apiary todos: OrgAdmin and SystemAdmin only.
+    /// Hive todos: Admin, OrgAdmin, SystemAdmin, or User assigned to that hive.
+    /// </summary>
     [HttpPost]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] CreateTodoDto dto)
     {
         var validation = await _createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
+        var role   = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
         var userId = GetUserId();
+
+        if (dto.ApiaryId.HasValue)
+        {
+            if (role != "OrgAdmin" && role != "SystemAdmin")
+                return Forbid();
+        }
+        else if (dto.BeehiveId.HasValue)
+        {
+            if (role == "User")
+            {
+                if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, dto.BeehiveId.Value))
+                    return Forbid();
+            }
+            else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
+            {
+                return Forbid();
+            }
+        }
+        else
+        {
+            return BadRequest(new { message = "Either ApiaryId or BeehiveId must be provided." });
+        }
+
         var created = await _service.CreateAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates a to-do item. Available to all authenticated roles.</summary>
+    /// <summary>
+    /// Updates a to-do item.
+    /// Apiary todos: OrgAdmin and SystemAdmin only.
+    /// Hive todos: Admin, OrgAdmin, SystemAdmin, or User assigned to that hive.
+    /// </summary>
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateTodoDto dto)
     {
@@ -83,17 +117,67 @@ public class TodosController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
+        var role   = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        var userId = GetUserId();
+
+        var existing = await _service.GetByIdAsync(id);
+
+        if (existing.ApiaryId.HasValue)
+        {
+            if (role != "OrgAdmin" && role != "SystemAdmin")
+                return Forbid();
+        }
+        else if (existing.BeehiveId.HasValue)
+        {
+            if (role == "User")
+            {
+                if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, existing.BeehiveId.Value))
+                    return Forbid();
+            }
+            else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
+            {
+                return Forbid();
+            }
+        }
+
         var updated = await _service.UpdateAsync(id, dto);
         return Ok(updated);
     }
 
-    /// <summary>Deletes a to-do item. Not available to User role.</summary>
+    /// <summary>
+    /// Deletes a to-do item.
+    /// Apiary todos: OrgAdmin and SystemAdmin only.
+    /// Hive todos: Admin, OrgAdmin, SystemAdmin, or User assigned to that hive.
+    /// </summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
+        var role   = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        var userId = GetUserId();
+
+        var existing = await _service.GetByIdAsync(id);
+
+        if (existing.ApiaryId.HasValue)
+        {
+            if (role != "OrgAdmin" && role != "SystemAdmin")
+                return Forbid();
+        }
+        else if (existing.BeehiveId.HasValue)
+        {
+            if (role == "User")
+            {
+                if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, existing.BeehiveId.Value))
+                    return Forbid();
+            }
+            else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
+            {
+                return Forbid();
+            }
+        }
+
         await _service.DeleteAsync(id);
         return NoContent();
     }
@@ -103,12 +187,12 @@ public class TodosController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<AssignableUserDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAssignableUsers()
     {
-        var role       = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId     = GetUserId();
-        var orgIdClaim = User.FindFirstValue("organizationId");
-        var orgId      = orgIdClaim != null ? int.Parse(orgIdClaim) : (int?)null;
+        var role          = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        var userId        = GetUserId();
+        var orgIdClaim    = User.FindFirstValue("organizationId");
+        var orgId         = orgIdClaim != null ? int.Parse(orgIdClaim) : (int?)null;
         var apiaryIdClaim = User.FindFirstValue("apiaryId");
-        var apiaryId   = apiaryIdClaim != null ? int.Parse(apiaryIdClaim) : (int?)null;
+        var apiaryId      = apiaryIdClaim != null ? int.Parse(apiaryIdClaim) : (int?)null;
 
         var users = await _service.GetAssignableUsersAsync(role, userId, orgId, apiaryId);
         return Ok(users);

@@ -112,6 +112,26 @@ public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
     }
 }
 
+public class UserBeehiveConfiguration : IEntityTypeConfiguration<UserBeehive>
+{
+    public void Configure(EntityTypeBuilder<UserBeehive> builder)
+    {
+        builder.HasKey(ub => new { ub.UserId, ub.BeehiveId });
+
+        builder.HasOne(ub => ub.User)
+            .WithMany(u => u.AssignedBeehives)
+            .HasForeignKey(ub => ub.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.HasOne(ub => ub.Beehive)
+            .WithMany(b => b.AssignedUsers)
+            .HasForeignKey(ub => ub.BeehiveId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder.ToTable("UserBeehives");
+    }
+}
+
 public class BeehiveConfiguration : IEntityTypeConfiguration<Beehive>
 {
     public void Configure(EntityTypeBuilder<Beehive> builder)

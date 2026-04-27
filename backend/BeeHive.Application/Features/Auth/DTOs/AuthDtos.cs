@@ -9,5 +9,6 @@ public record LoginResponseDto(
     string LastName,
     string Role,
     int? OrganizationId,
-    string? OrganizationName
+    string? OrganizationName,
+    IReadOnlyList<int> AssignedBeehiveIds
 );
