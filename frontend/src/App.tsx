@@ -36,22 +36,23 @@ export default function App() {
 
               {/* Apiary list + detail — all authenticated users */}
               <Route path="apiaries"  element={<ApiaryListPage />} />
-              <Route path="apiaries/:id" element={<ApiaryDetailPage />} />
 
-              {/* Apiary create/edit — OrgAdmin and SystemAdmin only */}
+              {/* Apiary create/edit — OrgAdmin and SystemAdmin only (before :id to avoid conflict) */}
               <Route element={<RoleRoute allowedRoles={APIARY_MANAGERS} />}>
                 <Route path="apiaries/new"      element={<ApiaryFormPage />} />
                 <Route path="apiaries/:id/edit" element={<ApiaryFormPage />} />
               </Route>
 
-              {/* Beehive detail — all authenticated users */}
-              <Route path="beehives/:id" element={<BeehiveDetailPage />} />
+              <Route path="apiaries/:id" element={<ApiaryDetailPage />} />
 
-              {/* Beehive create/edit — Admin, OrgAdmin, SystemAdmin */}
+              {/* Beehive create/edit — Admin, OrgAdmin, SystemAdmin (before :id to avoid conflict) */}
               <Route element={<RoleRoute allowedRoles={HIVE_MANAGERS} />}>
                 <Route path="beehives/new"      element={<BeehiveFormPage />} />
                 <Route path="beehives/:id/edit" element={<BeehiveFormPage />} />
               </Route>
+
+              {/* Beehive detail — all authenticated users */}
+              <Route path="beehives/:id" element={<BeehiveDetailPage />} />
 
               {/* Inspection create/edit — all authenticated users (User allowed for assigned hives) */}
               <Route path="inspections/new"        element={<InspectionFormPage />} />
