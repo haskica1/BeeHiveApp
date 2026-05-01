@@ -77,8 +77,21 @@ public class TodosController : ControllerBase
 
         if (dto.ApiaryId.HasValue)
         {
-            if (role != "OrgAdmin" && role != "SystemAdmin")
+            if (role == "OrgAdmin" || role == "SystemAdmin")
+            {
+                // Allowed — no further scope check needed for these roles
+            }
+            else if (role == "Admin")
+            {
+                // Admin may only manage todos for their assigned apiary
+                var apiaryIdClaim = User.FindFirstValue("apiaryId");
+                if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != dto.ApiaryId.Value)
+                    return Forbid();
+            }
+            else
+            {
                 return Forbid();
+            }
         }
         else if (dto.BeehiveId.HasValue)
         {
@@ -124,8 +137,20 @@ public class TodosController : ControllerBase
 
         if (existing.ApiaryId.HasValue)
         {
-            if (role != "OrgAdmin" && role != "SystemAdmin")
+            if (role == "OrgAdmin" || role == "SystemAdmin")
+            {
+                // Allowed
+            }
+            else if (role == "Admin")
+            {
+                var apiaryIdClaim = User.FindFirstValue("apiaryId");
+                if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != existing.ApiaryId.Value)
+                    return Forbid();
+            }
+            else
+            {
                 return Forbid();
+            }
         }
         else if (existing.BeehiveId.HasValue)
         {
@@ -162,8 +187,20 @@ public class TodosController : ControllerBase
 
         if (existing.ApiaryId.HasValue)
         {
-            if (role != "OrgAdmin" && role != "SystemAdmin")
+            if (role == "OrgAdmin" || role == "SystemAdmin")
+            {
+                // Allowed
+            }
+            else if (role == "Admin")
+            {
+                var apiaryIdClaim = User.FindFirstValue("apiaryId");
+                if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != existing.ApiaryId.Value)
+                    return Forbid();
+            }
+            else
+            {
                 return Forbid();
+            }
         }
         else if (existing.BeehiveId.HasValue)
         {

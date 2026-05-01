@@ -52,11 +52,20 @@ public class BeehivesController : ControllerBase
     [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Create([FromBody] CreateBeehiveDto dto)
     {
         var validation = await _createValidator.ValidateAsync(dto);
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
+
+        // Admin is scoped to a single apiary — reject requests targeting other apiaries
+        if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
+        {
+            var apiaryIdClaim = User.FindFirstValue("apiaryId");
+            if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != dto.ApiaryId)
+                return Forbid();
+        }
 
         var userId = GetUserId();
         var created = await _service.CreateAsync(dto, userId);
@@ -68,12 +77,25 @@ public class BeehivesController : ControllerBase
     [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateBeehiveDto dto)
     {
         var validation = await _updateValidator.ValidateAsync(dto);
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
+
+        // Admin is scoped to a single apiary — verify the beehive belongs to it
+        if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
+        {
+            var apiaryIdClaim = User.FindFirstValue("apiaryId");
+            if (apiaryIdClaim == null) return Forbid();
+            var adminApiaryId = int.Parse(apiaryIdClaim);
+
+            var existing = await _service.GetByIdAsync(id);
+            if (existing.ApiaryId != adminApiaryId || dto.ApiaryId != adminApiaryId)
+                return Forbid();
+        }
 
         var updated = await _service.UpdateAsync(id, dto);
         return Ok(updated);
@@ -83,9 +105,22 @@ public class BeehivesController : ControllerBase
     [HttpDelete("{id:int}")]
     [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
+        // Admin is scoped to a single apiary — verify the beehive belongs to it
+        if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
+        {
+            var apiaryIdClaim = User.FindFirstValue("apiaryId");
+            if (apiaryIdClaim == null) return Forbid();
+            var adminApiaryId = int.Parse(apiaryIdClaim);
+
+            var existing = await _service.GetByIdAsync(id);
+            if (existing.ApiaryId != adminApiaryId)
+                return Forbid();
+        }
+
         await _service.DeleteAsync(id);
         return NoContent();
     }

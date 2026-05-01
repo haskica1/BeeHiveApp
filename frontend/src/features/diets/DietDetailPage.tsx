@@ -167,7 +167,7 @@ export default function DietDetailPage() {
   const navigate = useNavigate()
   const dietId = Number(id)
 
-  const { canEditDelete } = usePermissions()
+  const { canEditDelete, isAssignedToHive } = usePermissions()
   const { data: diet, isLoading, error } = useDiet(dietId)
   const deleteMutation   = useDeleteDiet(diet?.beehiveId ?? 0)
   const completeMutation = useCompleteEarlyDiet(dietId, diet?.beehiveId ?? 0)
@@ -181,9 +181,10 @@ export default function DietDetailPage() {
   if (error)     return <ErrorMessage message={error.message} />
   if (!diet)     return null
 
-  const isFinished = diet.status === DietStatus.Completed || diet.status === DietStatus.StoppedEarly
-  const canDelete  = canEditDelete && diet.status === DietStatus.NotStarted
-  const canEdit    = canEditDelete && !isFinished
+  const isFinished  = diet.status === DietStatus.Completed || diet.status === DietStatus.StoppedEarly
+  const canManage   = canEditDelete || isAssignedToHive(diet.beehiveId)
+  const canDelete   = canManage && diet.status === DietStatus.NotStarted
+  const canEdit     = canManage && !isFinished
 
   const pendingEntries   = diet.feedingEntries.filter(e => e.status === FeedingEntryStatus.Pending)
   const completedEntries = diet.feedingEntries.filter(e => e.status === FeedingEntryStatus.Completed)
@@ -226,7 +227,7 @@ export default function DietDetailPage() {
                 <Trash2 className="w-4 h-4" /> Delete
               </button>
             )}
-            {canEditDelete && !isFinished && (
+            {canManage && !isFinished && (
               <button
                 onClick={() => setShowCompleteEarly(true)}
                 className="btn-secondary text-sm"

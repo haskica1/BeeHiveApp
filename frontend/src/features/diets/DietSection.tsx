@@ -78,7 +78,8 @@ function DietCard({ diet }: { diet: Diet }) {
 
 export default function DietSection({ beehiveId }: { beehiveId: number }) {
   const { data: diets = [], isLoading } = useDietsByBeehive(beehiveId)
-  const { canManageDiets } = usePermissions()
+  const { canManageDiets, isAssignedToHive } = usePermissions()
+  const canManageThisDiet = canManageDiets || isAssignedToHive(beehiveId)
   const [showAll, setShowAll] = useState(false)
 
   const active   = diets.filter(d => d.status === DietStatus.InProgress || d.status === DietStatus.NotStarted)
@@ -94,7 +95,7 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
           <Leaf className="w-5 h-5 text-honey-500" />
           Feeding Programmes
         </h2>
-        {canManageDiets && (
+        {canManageThisDiet && (
           <Link
             to={`/diets/new?beehiveId=${beehiveId}`}
             className="btn-primary text-sm"
@@ -111,11 +112,11 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
           <Leaf className="w-10 h-10 mx-auto mb-3 text-gray-200" />
           <p className="font-medium text-gray-500">No feeding programmes yet</p>
           <p className="text-sm mt-1">
-            {canManageDiets
+            {canManageThisDiet
               ? 'Create a diet to track feeding schedules for this hive.'
               : 'No feeding programmes have been scheduled yet.'}
           </p>
-          {canManageDiets && (
+          {canManageThisDiet && (
             <Link
               to={`/diets/new?beehiveId=${beehiveId}`}
               className="btn-primary text-sm mt-4 inline-flex"

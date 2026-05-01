@@ -83,7 +83,7 @@ export default function BeehiveDetailPage() {
   const navigate = useNavigate()
   const beehiveId = Number(id)
 
-  const { canEditDelete, canManageHiveTodos, isAssignedToHive } = usePermissions()
+  const { canEditDelete, canManageInspections, canManageHiveTodos, isAssignedToHive } = usePermissions()
   const { data: beehive, isLoading, error } = useBeehive(beehiveId)
   const deleteMutation = useDeleteInspection(beehiveId)
 
@@ -232,7 +232,7 @@ export default function BeehiveDetailPage() {
                     )}
                   </div>
                 </div>
-                {canEditDelete && (
+                {(canManageInspections || isAssignedToHive(beehiveId)) && (
                   <div className="flex gap-1 shrink-0">
                     <Link
                       to={`/inspections/${inspection.id}/edit?beehiveId=${beehiveId}`}

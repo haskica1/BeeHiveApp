@@ -53,22 +53,16 @@ export default function App() {
                 <Route path="beehives/:id/edit" element={<BeehiveFormPage />} />
               </Route>
 
-              {/* Inspection create — all authenticated users (all roles can manage inspections) */}
-              <Route path="inspections/new" element={<InspectionFormPage />} />
+              {/* Inspection create/edit — all authenticated users (User allowed for assigned hives) */}
+              <Route path="inspections/new"        element={<InspectionFormPage />} />
+              <Route path="inspections/:id/edit"   element={<InspectionFormPage />} />
 
-              {/* Inspection edit — Admin, OrgAdmin, SystemAdmin */}
-              <Route element={<RoleRoute allowedRoles={HIVE_MANAGERS} />}>
-                <Route path="inspections/:id/edit" element={<InspectionFormPage />} />
-              </Route>
-
-              {/* Diet detail — all authenticated users (User role can view) */}
+              {/* Diet detail — all authenticated users */}
               <Route path="diets/:id" element={<DietDetailPage />} />
 
-              {/* Diet create/edit — Admin, OrgAdmin, SystemAdmin */}
-              <Route element={<RoleRoute allowedRoles={HIVE_MANAGERS} />}>
-                <Route path="diets/new"      element={<DietFormPage />} />
-                <Route path="diets/:id/edit" element={<DietFormPage />} />
-              </Route>
+              {/* Diet create/edit — all authenticated users (User allowed for assigned hives) */}
+              <Route path="diets/new"      element={<DietFormPage />} />
+              <Route path="diets/:id/edit" element={<DietFormPage />} />
 
               {/* Admin routes — SystemAdmin only */}
               <Route element={<AdminRoute />}>

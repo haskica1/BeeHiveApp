@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Diets;
 using BeeHive.Application.Features.Diets.DTOs;
 using FluentValidation;
@@ -13,18 +14,21 @@ namespace BeeHive.API.Controllers;
 [Authorize]
 public class DietsController : ControllerBase
 {
-    private readonly IDietService _service;
-    private readonly IValidator<CreateDietDto> _createValidator;
-    private readonly IValidator<UpdateDietDto> _updateValidator;
-    private readonly IValidator<CompleteEarlyDto> _completeEarlyValidator;
+    private readonly IDietService       _service;
+    private readonly IBeehiveService    _beehiveService;
+    private readonly IValidator<CreateDietDto>      _createValidator;
+    private readonly IValidator<UpdateDietDto>      _updateValidator;
+    private readonly IValidator<CompleteEarlyDto>   _completeEarlyValidator;
 
     public DietsController(
         IDietService service,
+        IBeehiveService beehiveService,
         IValidator<CreateDietDto> createValidator,
         IValidator<UpdateDietDto> updateValidator,
         IValidator<CompleteEarlyDto> completeEarlyValidator)
     {
         _service                = service;
+        _beehiveService         = beehiveService;
         _createValidator        = createValidator;
         _updateValidator        = updateValidator;
         _completeEarlyValidator = completeEarlyValidator;
@@ -50,11 +54,15 @@ public class DietsController : ControllerBase
         return Ok(diet);
     }
 
-    /// <summary>Creates a new diet and auto-generates feeding entries. Admin, OrgAdmin, and SystemAdmin only.</summary>
+    /// <summary>
+    /// Creates a new diet and auto-generates feeding entries.
+    /// Admin, OrgAdmin, SystemAdmin: unrestricted within their scope.
+    /// User: only for beehives they are assigned to.
+    /// </summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Create([FromBody] CreateDietDto dto)
     {
@@ -62,18 +70,23 @@ public class DietsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
+        if (await IsForbiddenForUserAsync(dto.BeehiveId))
+            return Forbid();
+
         var userId = GetUserId();
         var created = await _service.CreateAsync(dto, userId);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
     /// <summary>
-    /// Updates a diet (only allowed when not completed/stopped). Not available to User role.
+    /// Updates a diet (only allowed when not completed/stopped).
+    /// Admin, OrgAdmin, SystemAdmin: allowed.
+    /// User: only for beehives they are assigned to.
     /// </summary>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateDietDto dto)
@@ -82,29 +95,43 @@ public class DietsController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
+        var existing = await _service.GetByIdAsync(id);
+        if (await IsForbiddenForUserAsync(existing.BeehiveId))
+            return Forbid();
+
         var updated = await _service.UpdateAsync(id, dto);
         return Ok(updated);
     }
 
-    /// <summary>Deletes a diet (only allowed before it has started). Not available to User role.</summary>
+    /// <summary>
+    /// Deletes a diet (only allowed before it has started).
+    /// Admin, OrgAdmin, SystemAdmin: allowed.
+    /// User: only for beehives they are assigned to.
+    /// </summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> Delete(int id)
     {
+        var existing = await _service.GetByIdAsync(id);
+        if (await IsForbiddenForUserAsync(existing.BeehiveId))
+            return Forbid();
+
         await _service.DeleteAsync(id);
         return NoContent();
     }
 
     /// <summary>
-    /// Stops a diet early. Not available to User role.
+    /// Stops a diet early.
+    /// Admin, OrgAdmin, SystemAdmin: allowed.
+    /// User: only for beehives they are assigned to.
     /// </summary>
     [HttpPost("{id:int}/complete-early")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
     [ProducesResponseType(typeof(DietDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> CompleteEarly(int id, [FromBody] CompleteEarlyDto dto)
@@ -112,6 +139,10 @@ public class DietsController : ControllerBase
         var validation = await _completeEarlyValidator.ValidateAsync(dto);
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
+
+        var existing = await _service.GetByIdAsync(id);
+        if (await IsForbiddenForUserAsync(existing.BeehiveId))
+            return Forbid();
 
         var updated = await _service.CompleteEarlyAsync(id, dto);
         return Ok(updated);
@@ -129,6 +160,19 @@ public class DietsController : ControllerBase
         await _service.CompleteFeedingEntryAsync(dietId, entryId);
         var updated = await _service.GetByIdAsync(dietId);
         return Ok(updated);
+    }
+
+    // Returns true when the caller is a User role who is NOT assigned to the given beehive.
+    // Returns false for all other roles (they are always permitted by role).
+    private async Task<bool> IsForbiddenForUserAsync(int beehiveId)
+    {
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        if (role != "User") return false;
+
+        var userId = GetUserId();
+        if (userId == null) return true;
+
+        return !await _beehiveService.IsUserAssignedToBeehiveAsync(userId.Value, beehiveId);
     }
 
     private int? GetUserId()

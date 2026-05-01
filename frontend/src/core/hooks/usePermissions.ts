@@ -17,7 +17,8 @@ export function usePermissions() {
     // OrgAdmin + SystemAdmin
     canManageApiaries: isSystemAdmin || isOrgAdmin,
     canManageApiary: isSystemAdmin || isOrgAdmin,
-    canManageApiaryTodos: isSystemAdmin || isOrgAdmin,
+    // Admin can manage todos on their assigned apiary too
+    canManageApiaryTodos: isSystemAdmin || isOrgAdmin || isAdmin,
 
     // Admin + OrgAdmin + SystemAdmin
     canManageHives: isSystemAdmin || isOrgAdmin || isAdmin,

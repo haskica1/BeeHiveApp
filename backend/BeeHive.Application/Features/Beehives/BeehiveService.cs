@@ -16,6 +16,7 @@ public interface IBeehiveService
     Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto, int? createdById);
     Task<BeehiveDto> UpdateAsync(int id, UpdateBeehiveDto dto);
     Task DeleteAsync(int id);
+    Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
 }
 
 // ── Implementation ───────────────────────────────────────────────────────────
@@ -97,4 +98,7 @@ public class BeehiveService : IBeehiveService
         await _uow.Beehives.DeleteAsync(beehive);
         await _uow.SaveChangesAsync();
     }
+
+    public Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
+        _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId);
 }
