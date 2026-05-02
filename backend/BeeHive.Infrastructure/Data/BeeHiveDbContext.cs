@@ -35,15 +35,28 @@ public class BeeHiveDbContext : DbContext
     }
 
     /// <summary>
-    /// Automatically sets UpdatedAt on modified entities before saving.
+    /// Automatically sets UpdatedAt on modified entities before saving, and normalises
+    /// any DateTime.Unspecified values to UTC so Npgsql accepts them as timestamptz.
     /// </summary>
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         foreach (var entry in ChangeTracker.Entries()
-            .Where(e => e.State == EntityState.Modified))
+            .Where(e => e.State is EntityState.Added or EntityState.Modified))
         {
-            if (entry.Entity is BeeHive.Domain.Common.BaseEntity entity)
+            if (entry.State == EntityState.Modified &&
+                entry.Entity is BeeHive.Domain.Common.BaseEntity entity)
+            {
                 entity.UpdatedAt = DateTime.UtcNow;
+            }
+
+            // Npgsql 6+ requires DateTimeKind.Utc for timestamptz columns.
+            // User-supplied dates arrive as Kind=Unspecified; convert them here
+            // so callers don't need to remember to do it everywhere.
+            foreach (var prop in entry.Properties)
+            {
+                if (prop.CurrentValue is DateTime dt && dt.Kind == DateTimeKind.Unspecified)
+                    prop.CurrentValue = DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+            }
         }
 
         return base.SaveChangesAsync(cancellationToken);
