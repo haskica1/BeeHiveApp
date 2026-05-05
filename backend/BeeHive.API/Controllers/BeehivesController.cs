@@ -64,7 +64,16 @@ public class BeehivesController : ControllerBase
         {
             var apiaryIdClaim = User.FindFirstValue("apiaryId");
             if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != dto.ApiaryId)
-                return Forbid();
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    type = "https://httpstatuses.com/403",
+                    title = "Access Denied",
+                    status = 403,
+                    errors = new Dictionary<string, string[]>
+                    {
+                        ["detail"] = ["Admin users can only create beehives in their assigned apiary."]
+                    }
+                });
         }
 
         var userId = GetUserId();
@@ -89,12 +98,30 @@ public class BeehivesController : ControllerBase
         if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
         {
             var apiaryIdClaim = User.FindFirstValue("apiaryId");
-            if (apiaryIdClaim == null) return Forbid();
+            if (apiaryIdClaim == null) return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                type = "https://httpstatuses.com/403",
+                title = "Access Denied",
+                status = 403,
+                errors = new Dictionary<string, string[]>
+                {
+                    ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
+                }
+            });
             var adminApiaryId = int.Parse(apiaryIdClaim);
 
             var existing = await _service.GetByIdAsync(id);
             if (existing.ApiaryId != adminApiaryId || dto.ApiaryId != adminApiaryId)
-                return Forbid();
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    type = "https://httpstatuses.com/403",
+                    title = "Access Denied",
+                    status = 403,
+                    errors = new Dictionary<string, string[]>
+                    {
+                        ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
+                    }
+                });
         }
 
         var updated = await _service.UpdateAsync(id, dto);
@@ -113,12 +140,30 @@ public class BeehivesController : ControllerBase
         if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
         {
             var apiaryIdClaim = User.FindFirstValue("apiaryId");
-            if (apiaryIdClaim == null) return Forbid();
+            if (apiaryIdClaim == null) return StatusCode(StatusCodes.Status403Forbidden, new
+            {
+                type = "https://httpstatuses.com/403",
+                title = "Access Denied",
+                status = 403,
+                errors = new Dictionary<string, string[]>
+                {
+                    ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
+                }
+            });
             var adminApiaryId = int.Parse(apiaryIdClaim);
 
             var existing = await _service.GetByIdAsync(id);
             if (existing.ApiaryId != adminApiaryId)
-                return Forbid();
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    type = "https://httpstatuses.com/403",
+                    title = "Access Denied",
+                    status = 403,
+                    errors = new Dictionary<string, string[]>
+                    {
+                        ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
+                    }
+                });
         }
 
         await _service.DeleteAsync(id);

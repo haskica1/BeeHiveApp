@@ -58,7 +58,10 @@ public class GlobalExceptionMiddleware
             _ => (
                 HttpStatusCode.InternalServerError,
                 "An unexpected error occurred",
-                new Dictionary<string, string[]> { ["detail"] = ["Please contact support if this persists."] }
+                new Dictionary<string, string[]>
+                {
+                    ["detail"] = [$"{exception.GetType().Name}: {exception.Message}"]
+                }
             )
         };
 
