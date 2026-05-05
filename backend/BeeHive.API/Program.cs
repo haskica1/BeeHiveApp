@@ -1,7 +1,3 @@
-// Npgsql 6+ rejects DateTime.Unspecified for timestamptz columns.
-// This switch makes it behave like older versions and treat Unspecified as UTC.
-AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
-
 using System.Text;
 using BeeHive.API.Middleware;
 using BeeHive.Application;
@@ -13,6 +9,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+
+// Npgsql 6+ rejects DateTime.Unspecified for timestamptz columns.
+// This switch makes it treat Unspecified as UTC, matching pre-6 behavior.
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
