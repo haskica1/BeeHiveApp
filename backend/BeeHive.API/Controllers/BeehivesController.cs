@@ -27,6 +27,50 @@ public class BeehivesController : ControllerBase
         _updateValidator = updateValidator;
     }
 
+    /// <summary>
+    /// Public QR scan lookup — resolves a beehive's unique scan ID to its internal ID and name.
+    /// No authentication required; used as the first step of the scan-to-detail flow.
+    /// </summary>
+    [HttpGet("scan/{uniqueId:guid}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(BeehiveScanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ScanLookup(Guid uniqueId)
+    {
+        var result = await _service.GetScanInfoAsync(uniqueId);
+        return result is null ? NotFound() : Ok(result);
+    }
+
+    /// <summary>
+    /// Returns whether the current authenticated user has access to view the beehive.
+    /// Used by the scan flow to decide between redirecting to the detail page or showing a "no access" screen.
+    /// </summary>
+    [HttpGet("{id:int}/has-access")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> HasAccess(int id)
+    {
+        var userId  = GetUserId() ?? 0;
+        var role    = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        var apiary  = User.FindFirstValue("apiaryId");
+
+        var hasAccess = await _service.HasAccessAsync(userId, role, apiary, id);
+        return Ok(new { hasAccess });
+    }
+
+    /// <summary>
+    /// Regenerates QR codes for all existing beehives to use the new scan URL format.
+    /// SystemAdmin only — run once after deploying this update.
+    /// </summary>
+    [HttpPost("regenerate-qr-codes")]
+    [Authorize(Roles = "SystemAdmin")]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> RegenerateQrCodes()
+    {
+        var count = await _service.RegenerateAllQrCodesAsync();
+        return Ok(new { updated = count, message = $"QR codes regenerated for {count} beehive(s)." });
+    }
+
     /// <summary>Returns all beehives belonging to the specified apiary.</summary>
     [HttpGet("by-apiary/{apiaryId:int}")]
     [ProducesResponseType(typeof(IEnumerable<BeehiveDto>), StatusCodes.Status200OK)]

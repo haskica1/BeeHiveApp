@@ -139,6 +139,16 @@ public class BeehiveRepository : Repository<Beehive>, IBeehiveRepository
             .OrderBy(b => b.Apiary.Name)
             .ThenBy(b => b.Name)
             .ToListAsync();
+
+    public async Task<Beehive?> GetByUniqueIdAsync(Guid uniqueId) =>
+        await _context.Beehives
+            .AsNoTracking()
+            .FirstOrDefaultAsync(b => b.UniqueId == uniqueId);
+
+    public async Task<IEnumerable<Beehive>> GetAllWithUniqueIdAsync() =>
+        await _context.Beehives
+            .Where(b => b.UniqueId != null)
+            .ToListAsync();
 }
 
 // ── Inspection Repository ─────────────────────────────────────────────────────

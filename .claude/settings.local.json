@@ -19,7 +19,12 @@
       "Bash(echo \"EXIT:$?\")",
       "Bash(grep -A3 \"FK_Todos_Apiaries\\\\|FK_Todos_Beehives\" \"c:/Users/asimh/source/BeeHiveApp/backend/BeeHive.Infrastructure/Migrations/\"*AddTodos*.cs)",
       "Bash(git rm *)",
-      "Bash(xargs grep *)"
+      "Bash(xargs grep *)",
+      "Bash(git push *)",
+      "Bash(git commit -m ' *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\backend\\\\BeeHive.Application\\\\Features\\\\Beehives\" -Filter \"*.cs\")",
+      "Bash(Select-Object Name, FullName)",
+      "Bash(dir \"C:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\" /s /b)"
     ]
   }
 }

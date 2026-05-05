@@ -1,3 +1,4 @@
+import axios from 'axios'
 import apiClient from './apiClient'
 import type {
   Beehive,
@@ -8,6 +9,19 @@ import type {
   CreateInspectionPayload,
   UpdateInspectionPayload,
 } from '../models'
+
+export interface BeehiveScanInfo {
+  id: number
+  name: string
+  apiaryId: number
+}
+
+// Raw axios instance for unauthenticated calls (no auth redirect interceptor)
+const publicClient = axios.create({
+  baseURL: import.meta.env.VITE_API_URL ?? '/api',
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 10_000,
+})
 
 // ── Beehive Service ───────────────────────────────────────────────────────────
 
@@ -34,6 +48,23 @@ export const beehiveService = {
 
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/beehives/${id}`)
+  },
+
+  /** Public — no auth required. Resolves a scan uniqueId to {id, name, apiaryId}. Returns null if not found. */
+  scanLookup: async (uniqueId: string): Promise<BeehiveScanInfo | null> => {
+    try {
+      const res = await publicClient.get<BeehiveScanInfo>(`/beehives/scan/${uniqueId}`)
+      return res.data
+    } catch (err: any) {
+      if (err.response?.status === 404) return null
+      throw err
+    }
+  },
+
+  /** Authenticated — asks the backend whether the current user can access this beehive. */
+  checkAccess: async (id: number): Promise<boolean> => {
+    const res = await apiClient.get<{ hasAccess: boolean }>(`/beehives/${id}/has-access`)
+    return res.data.hasAccess
   },
 }
 

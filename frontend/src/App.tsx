@@ -17,6 +17,7 @@ import AdminDashboardPage from './features/admin/AdminDashboardPage'
 import OrganizationFormPage from './features/admin/OrganizationFormPage'
 import UserFormPage from './features/admin/UserFormPage'
 import SmartRedirect from './shared/components/SmartRedirect'
+import ScanPage from './features/beehives/ScanPage'
 
 const APIARY_MANAGERS  = ['OrgAdmin', 'SystemAdmin']
 const HIVE_MANAGERS    = ['Admin', 'OrgAdmin', 'SystemAdmin']
@@ -26,8 +27,9 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* Public route */}
+          {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/scan/:uniqueId" element={<ScanPage />} />
 
           {/* Protected routes — redirect to /login if not authenticated */}
           <Route element={<ProtectedRoute />}>

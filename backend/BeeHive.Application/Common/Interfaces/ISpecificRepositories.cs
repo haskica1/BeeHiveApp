@@ -66,6 +66,12 @@ public interface IBeehiveRepository : IRepository<Beehive>
 
     /// <summary>Returns all beehives belonging to a specific organization (across all its apiaries).</summary>
     Task<IEnumerable<Beehive>> GetByOrganizationAsync(int organizationId);
+
+    /// <summary>Looks up a beehive by its permanent unique scan identifier.</summary>
+    Task<Beehive?> GetByUniqueIdAsync(Guid uniqueId);
+
+    /// <summary>Returns all beehives that have a UniqueId set (for QR regeneration).</summary>
+    Task<IEnumerable<Beehive>> GetAllWithUniqueIdAsync();
 }
 
 /// <summary>Inspection-specific data access operations.</summary>

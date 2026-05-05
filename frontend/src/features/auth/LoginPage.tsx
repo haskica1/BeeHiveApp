@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { Eye, EyeOff, Loader2 } from 'lucide-react'
 import { useAuth } from '../../core/context/AuthContext'
@@ -13,6 +13,8 @@ interface LoginForm {
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
+  const returnUrl = searchParams.get('returnUrl')
   const [showPassword, setShowPassword] = useState(false)
   const [serverError, setServerError] = useState<string | null>(null)
 
@@ -26,7 +28,8 @@ export default function LoginPage() {
     setServerError(null)
     try {
       const response = await login(data.email, data.password) as LoginResponse
-      navigate(response.role === 'SystemAdmin' ? '/admin' : '/apiaries', { replace: true })
+      const destination = returnUrl ?? (response.role === 'SystemAdmin' ? '/admin' : '/apiaries')
+      navigate(destination, { replace: true })
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Login failed. Please try again.')
     }
