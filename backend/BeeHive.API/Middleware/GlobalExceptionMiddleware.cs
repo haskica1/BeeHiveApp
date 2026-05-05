@@ -60,7 +60,9 @@ public class GlobalExceptionMiddleware
                 "An unexpected error occurred",
                 new Dictionary<string, string[]>
                 {
-                    ["detail"] = [$"{exception.GetType().Name}: {exception.Message}"]
+                    ["detail"] = [$"{exception.GetType().Name}: {exception.Message}"],
+                    ["innerException"] = [exception.InnerException?.Message ?? "none"],
+                    ["innerInnerException"] = [exception.InnerException?.InnerException?.Message ?? "none"]
                 }
             )
         };
