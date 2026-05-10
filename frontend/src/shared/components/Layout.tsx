@@ -1,11 +1,13 @@
 import { useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, LayoutDashboard, LogOut, Menu, X } from 'lucide-react'
+import { Home, LayoutDashboard, LogOut, Menu, QrCode, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
+import QrScannerModal from './QrScannerModal'
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [scannerOpen, setScannerOpen] = useState(false)
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
@@ -42,6 +44,14 @@ export default function Layout() {
             ) : (
               <NavItem to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
             )}
+            <button
+              onClick={() => setScannerOpen(true)}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-honey-50 hover:text-honey-700 transition-colors"
+              title="Scan beehive QR code"
+            >
+              <QrCode className="w-4 h-4" />
+              Scan
+            </button>
           </nav>
 
           {/* User info + logout (desktop) */}
@@ -140,6 +150,18 @@ export default function Layout() {
       <footer className="border-t border-honey-200 bg-white py-4 text-center text-xs text-gray-400">
         BeeHive App © {new Date().getFullYear()} — Keeping your colonies thriving 🍯
       </footer>
+
+      {/* ── Mobile FAB ───────────────────────────────────────────────────────── */}
+      <button
+        onClick={() => setScannerOpen(true)}
+        className="sm:hidden fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-honey-500 hover:bg-honey-600 active:bg-honey-700 text-white shadow-honey shadow-lg transition-colors"
+        aria-label="Scan beehive QR code"
+      >
+        <QrCode className="w-6 h-6" />
+      </button>
+
+      {/* ── QR Scanner Modal ─────────────────────────────────────────────────── */}
+      {scannerOpen && <QrScannerModal onClose={() => setScannerOpen(false)} />}
     </div>
   )
 }
