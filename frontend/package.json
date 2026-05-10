@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@zxing/browser": "^0.1.5",
-    "@zxing/library": "^0.20.0",
+    "@zxing/library": "^0.21.0",
     "@tanstack/react-query": "^5.51.0",
     "axios": "^1.7.0",
     "clsx": "^2.1.1",
