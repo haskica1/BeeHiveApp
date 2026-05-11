@@ -10,8 +10,7 @@ import clsx from 'clsx'
 import { useCalendarEvents } from '../../core/services/queries'
 import { FeedingEntryStatus, TodoPriority } from '../../core/models'
 import type { CalendarTodo, CalendarFeedingEntry } from '../../core/models'
-import LoadingSpinner from '../../shared/components/LoadingSpinner'
-import ErrorMessage from '../../shared/components/ErrorMessage'
+import { LoadingSpinner, ErrorMessage } from '../../shared/components'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
