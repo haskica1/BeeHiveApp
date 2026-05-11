@@ -325,6 +325,39 @@ export interface CompleteEarlyPayload {
   comment: string
 }
 
+// ── Calendar ──────────────────────────────────────────────────────────────────
+
+export interface CalendarTodo {
+  id: number
+  title: string
+  notes?: string
+  dueDate?: string
+  priority: TodoPriority
+  priorityName: string
+  isCompleted: boolean
+  apiaryId?: number
+  apiaryName?: string
+  beehiveId?: number
+  beehiveName?: string
+}
+
+export interface CalendarFeedingEntry {
+  id: number
+  scheduledDate: string
+  status: FeedingEntryStatus
+  statusName: string
+  dietId: number
+  dietName: string
+  beehiveId: number
+  beehiveName: string
+  foodTypeName: string
+}
+
+export interface CalendarEventsResponse {
+  todos: CalendarTodo[]
+  feedingEntries: CalendarFeedingEntry[]
+}
+
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
 export interface AdminOrganization {

@@ -20,6 +20,7 @@ import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
 import StatsPage from './features/stats/StatsPage'
+import CalendarPage from './features/calendar/CalendarPage'
 
 const APIARY_MANAGERS  = ['OrgAdmin', 'SystemAdmin']
 const HIVE_MANAGERS    = ['Admin', 'OrgAdmin', 'SystemAdmin']
@@ -74,6 +75,9 @@ export default function App() {
 
               {/* Stats — all authenticated users */}
               <Route path="stats" element={<StatsPage />} />
+
+              {/* Calendar — all authenticated users */}
+              <Route path="calendar" element={<CalendarPage />} />
 
               {/* Admin routes — SystemAdmin only */}
               <Route element={<AdminRoute />}>

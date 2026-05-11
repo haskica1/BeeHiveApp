@@ -4,6 +4,7 @@ import { beehiveService, inspectionService } from '../services/beehiveService'
 import { todoService } from '../services/todoService'
 import { dietService } from '../services/dietService'
 import { statsService } from '../services/statsService'
+import { calendarService } from '../services/calendarService'
 import type {
   CreateApiaryPayload,
   UpdateApiaryPayload,
@@ -21,6 +22,7 @@ import type {
 // ── Query Keys ────────────────────────────────────────────────────────────────
 
 export const queryKeys = {
+  calendarEvents:     ['calendar', 'events'] as const,
   stats:              ['stats'] as const,
   apiaries:           ['apiaries'] as const,
   apiary:             (id: number) => ['apiaries', id] as const,
@@ -277,5 +279,14 @@ export const useStats = () =>
   useQuery({
     queryKey: queryKeys.stats,
     queryFn:  statsService.get,
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 5,
+  })
+
+// ── Calendar Hook ─────────────────────────────────────────────────────────────
+
+export const useCalendarEvents = () =>
+  useQuery({
+    queryKey: queryKeys.calendarEvents,
+    queryFn:  calendarService.getEvents,
+    staleTime: 1000 * 60 * 5,
   })

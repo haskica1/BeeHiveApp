@@ -4,6 +4,7 @@ using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Auth;
+using BeeHive.Application.Features.Calendar;
 using BeeHive.Application.Features.Profile;
 using BeeHive.Application.Features.Stats;
 using BeeHive.Application.Features.Beehives;
@@ -30,6 +31,7 @@ public static class DependencyInjection
         services.AddValidatorsFromAssemblyContaining<CreateApiaryValidator>();
 
         // Application services
+        services.AddScoped<ICalendarService, CalendarService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IStatsService, StatsService>();

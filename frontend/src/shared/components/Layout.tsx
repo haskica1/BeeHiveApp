@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, X } from 'lucide-react'
+import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import QrScannerModal from './QrScannerModal'
@@ -75,6 +75,7 @@ export default function Layout() {
               ) : (
                 <NavPill to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
               )}
+              <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Calendar" />
               <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistics" />
               <button
                 onClick={() => setScannerOpen(true)}
@@ -167,6 +168,12 @@ export default function Layout() {
                 onClick={() => setMobileOpen(false)}
               />
             )}
+            <MobileNavItem
+              to="/calendar"
+              icon={<CalendarDays className="w-4 h-4" />}
+              label="Calendar"
+              onClick={() => setMobileOpen(false)}
+            />
             <MobileNavItem
               to="/stats"
               icon={<BarChart2 className="w-4 h-4" />}
