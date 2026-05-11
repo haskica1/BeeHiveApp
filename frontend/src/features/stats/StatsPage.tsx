@@ -37,7 +37,7 @@ function CustomTooltip({ active, payload, label }: {
 
 // ── Custom pie label ───────────────────────────────────────────────────────────
 
-function PieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }: {
+function PieLabel({ cx, cy, midAngle, innerRadius, outerRadius, percent }: {
   cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number;
   percent: number; name: string
 }) {
