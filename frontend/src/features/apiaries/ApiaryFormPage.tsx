@@ -1,9 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Loader2, MapPin } from 'lucide-react'
+import { ArrowLeft, Loader2, MapPin, X } from 'lucide-react'
 import { useApiary, useCreateApiary, useUpdateApiary } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage, PageHeader } from '../../shared/components'
+import LocationPickerModal from '../../shared/components/LocationPickerModal'
 import type { CreateApiaryPayload } from '../../core/models'
 
 export default function ApiaryFormPage() {
@@ -16,17 +17,15 @@ export default function ApiaryFormPage() {
   const createMutation = useCreateApiary()
   const updateMutation = useUpdateApiary(apiaryId)
 
+  const [mapOpen, setMapOpen] = useState(false)
+  const [pickedLocation, setPickedLocation] = useState<{ lat: number; lng: number } | null>(null)
+
   const {
     register,
     handleSubmit,
     reset,
-    watch,
     formState: { errors, isSubmitting },
   } = useForm<CreateApiaryPayload>()
-
-  const lat = watch('latitude')
-  const lon = watch('longitude')
-  const bothFilled = lat != null && lat !== ('' as never) && lon != null && lon !== ('' as never)
 
   // Populate form when editing
   useEffect(() => {
@@ -34,18 +33,18 @@ export default function ApiaryFormPage() {
       reset({
         name: apiary.name,
         description: apiary.description ?? '',
-        latitude: apiary.latitude ?? undefined,
-        longitude: apiary.longitude ?? undefined,
       })
+      if (apiary.latitude != null && apiary.longitude != null) {
+        setPickedLocation({ lat: apiary.latitude, lng: apiary.longitude })
+      }
     }
   }, [apiary, isEditing, reset])
 
   const onSubmit = async (data: CreateApiaryPayload) => {
-    // Coerce empty string → null so the API receives null, not ''
     const payload: CreateApiaryPayload = {
       ...data,
-      latitude:  data.latitude  !== ('' as never) ? Number(data.latitude)  : null,
-      longitude: data.longitude !== ('' as never) ? Number(data.longitude) : null,
+      latitude:  pickedLocation?.lat  ?? null,
+      longitude: pickedLocation?.lng ?? null,
     }
     if (isEditing) {
       await updateMutation.mutateAsync(payload)
@@ -123,63 +122,38 @@ export default function ApiaryFormPage() {
               <MapPin className="w-3.5 h-3.5 text-honey-600" />
               Location <span className="text-gray-400 font-normal">(for weather forecast)</span>
             </label>
-            <p className="text-xs text-gray-500 mb-2">
-              Find coordinates on{' '}
-              <a
-                href="https://maps.google.com"
-                target="_blank"
-                rel="noreferrer"
-                className="text-honey-600 hover:underline"
-              >
-                Google Maps
-              </a>
-              {' '}— right-click any spot and copy the lat/lng shown.
-            </p>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block" htmlFor="latitude">
-                  Latitude
-                </label>
-                <input
-                  id="latitude"
-                  type="number"
-                  step="any"
-                  placeholder="e.g. 43.8563"
-                  className="form-input"
-                  {...register('latitude', {
-                    min: { value: -90,  message: 'Must be ≥ -90'  },
-                    max: { value:  90,  message: 'Must be ≤ 90'   },
-                  })}
-                />
-                {errors.latitude && <p className="form-error">{errors.latitude.message}</p>}
+
+            {pickedLocation ? (
+              <div className="flex items-center gap-2 p-3 rounded-xl border border-honey-200 bg-honey-50">
+                <MapPin className="w-4 h-4 text-honey-600 shrink-0" />
+                <span className="flex-1 text-sm font-mono text-gray-700">
+                  {pickedLocation.lat.toFixed(6)}, {pickedLocation.lng.toFixed(6)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setMapOpen(true)}
+                  className="text-xs text-honey-600 hover:underline font-medium"
+                >
+                  Change
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPickedLocation(null)}
+                  className="p-0.5 rounded text-gray-400 hover:text-red-500 transition-colors"
+                  aria-label="Remove location"
+                >
+                  <X className="w-4 h-4" />
+                </button>
               </div>
-              <div>
-                <label className="text-xs text-gray-500 mb-1 block" htmlFor="longitude">
-                  Longitude
-                </label>
-                <input
-                  id="longitude"
-                  type="number"
-                  step="any"
-                  placeholder="e.g. 18.4131"
-                  className="form-input"
-                  {...register('longitude', {
-                    min: { value: -180, message: 'Must be ≥ -180' },
-                    max: { value:  180, message: 'Must be ≤ 180'  },
-                  })}
-                />
-                {errors.longitude && <p className="form-error">{errors.longitude.message}</p>}
-              </div>
-            </div>
-            {bothFilled && (
-              <a
-                href={`https://maps.google.com/?q=${lat},${lon}`}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center gap-1 mt-2 text-xs text-honey-600 hover:underline"
+            ) : (
+              <button
+                type="button"
+                onClick={() => setMapOpen(true)}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-honey-200 text-honey-600 hover:border-honey-400 hover:bg-honey-50 transition-colors text-sm font-medium"
               >
-                <MapPin className="w-3 h-3" /> Preview on Google Maps
-              </a>
+                <MapPin className="w-4 h-4" />
+                Pick location on map
+              </button>
             )}
           </div>
 
@@ -204,6 +178,15 @@ export default function ApiaryFormPage() {
           </div>
         </form>
       </div>
+
+      {mapOpen && (
+        <LocationPickerModal
+          initialLat={pickedLocation?.lat}
+          initialLng={pickedLocation?.lng}
+          onConfirm={(lat, lng) => { setPickedLocation({ lat, lng }); setMapOpen(false) }}
+          onClose={() => setMapOpen(false)}
+        />
+      )}
     </div>
   )
 }
