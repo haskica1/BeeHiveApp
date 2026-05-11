@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer } from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronUp, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
@@ -112,6 +112,8 @@ export default function ApiaryDetailPage() {
   const deleteTodo = useDeleteTodo(todoKey)
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
+  const [weatherOpen, setWeatherOpen] = useState(true)
+  const [hivesOpen, setHivesOpen] = useState(true)
 
   const handleDeleteBeehive = async () => {
     if (!deleteTarget) return
@@ -139,21 +141,11 @@ export default function ApiaryDetailPage() {
           </button>
         }
         actions={
-          <>
-            {canManageApiaries && (
-              <Link to={`/apiaries/${apiaryId}/edit`} className="btn-secondary text-sm">
-                <Pencil className="w-4 h-4" /> Edit
-              </Link>
-            )}
-            {canManageHives && (
-              <Link
-                to={`/beehives/new?apiaryId=${apiaryId}`}
-                className="btn-primary text-sm"
-              >
-                <Plus className="w-4 h-4" /> Add Beehive
-              </Link>
-            )}
-          </>
+          canManageApiaries && (
+            <Link to={`/apiaries/${apiaryId}/edit`} className="btn-secondary text-sm">
+              <Pencil className="w-4 h-4" /> Edit
+            </Link>
+          )
         }
       />
 
@@ -177,24 +169,34 @@ export default function ApiaryDetailPage() {
 
       {/* Weather forecast */}
       <section className="mb-8">
-        <div className="flex items-center justify-between mb-3">
+        <button
+          onClick={() => setWeatherOpen(v => !v)}
+          className="flex items-center justify-between w-full mb-3 group"
+        >
           <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
             🌤️ 7-Day Weather Forecast
           </h2>
-          {apiary.hasLocation && (
-            <a
-              href={`https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`}
-              target="_blank"
-              rel="noreferrer"
-              className="inline-flex items-center gap-1 text-xs text-honey-600 hover:underline"
-            >
-              <MapPin className="w-3 h-3" />
-              {apiary.latitude?.toFixed(4)}, {apiary.longitude?.toFixed(4)}
-            </a>
-          )}
-        </div>
+          <div className="flex items-center gap-2">
+            {apiary.hasLocation && weatherOpen && (
+              <a
+                href={`https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`}
+                target="_blank"
+                rel="noreferrer"
+                onClick={e => e.stopPropagation()}
+                className="inline-flex items-center gap-1 text-xs text-honey-600 hover:underline"
+              >
+                <MapPin className="w-3 h-3" />
+                {apiary.latitude?.toFixed(4)}, {apiary.longitude?.toFixed(4)}
+              </a>
+            )}
+            {weatherOpen
+              ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            }
+          </div>
+        </button>
 
-        {!apiary.hasLocation ? (
+        {weatherOpen && (!apiary.hasLocation ? (
           <div className="card text-center py-6 border-dashed border-2 border-gray-200">
             <MapPin className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-gray-500 text-sm">No location set for this apiary.</p>
@@ -247,7 +249,7 @@ export default function ApiaryDetailPage() {
           <div className="card text-center py-4 text-gray-400 text-sm">
             Weather data unavailable.
           </div>
-        )}
+        ))}
       </section>
 
       {/* To-do list */}
@@ -265,9 +267,31 @@ export default function ApiaryDetailPage() {
       />
 
       {/* Beehive list */}
-      <h2 className="font-display text-xl font-semibold text-gray-800 mb-4">Beehives</h2>
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setHivesOpen(v => !v)}
+            className="flex items-center gap-2 group"
+          >
+            <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
+              🏠 Beehives
+              {apiary.beehiveCount > 0 && (
+                <span className="badge bg-honey-100 text-honey-700 text-xs">{apiary.beehiveCount}</span>
+              )}
+            </h2>
+            {hivesOpen
+              ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            }
+          </button>
+          {canManageHives && (
+            <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
+              <Plus className="w-4 h-4" /> Add Beehive
+            </Link>
+          )}
+        </div>
 
-      {!apiary.beehives?.length ? (
+        {hivesOpen && (!apiary.beehives?.length ? (
         <EmptyState
           title="No beehives yet"
           description="Add your first beehive to this apiary."
@@ -328,7 +352,8 @@ export default function ApiaryDetailPage() {
             </div>
           ))}
         </div>
-      )}
+      ))}
+      </section>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}

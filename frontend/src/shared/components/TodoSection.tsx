@@ -207,6 +207,7 @@ export function TodoSection({
   const { canEditDelete } = usePermissions()
   const effectiveCanCreate = canCreate ?? canEditDelete
   const effectiveCanManage = canManage ?? canEditDelete
+  const [sectionOpen, setSectionOpen]   = useState(true)
   const [showAddForm, setShowAddForm]   = useState(false)
   const [editingId, setEditingId]       = useState<number | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -254,13 +255,22 @@ export function TodoSection({
     <section className="mb-8">
       {/* Section header */}
       <div className="flex items-center justify-between mb-3">
-        <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
-          ✅ To-Do List
-          {open.length > 0 && (
-            <span className="badge bg-honey-100 text-honey-700 text-xs">{open.length}</span>
-          )}
-        </h2>
-        {effectiveCanCreate && !showAddForm && (
+        <button
+          onClick={() => setSectionOpen(v => !v)}
+          className="flex items-center gap-2 group"
+        >
+          <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
+            ✅ To-Do List
+            {open.length > 0 && (
+              <span className="badge bg-honey-100 text-honey-700 text-xs">{open.length}</span>
+            )}
+          </h2>
+          {sectionOpen
+            ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          }
+        </button>
+        {effectiveCanCreate && !showAddForm && sectionOpen && (
           <button onClick={() => setShowAddForm(true)} className="btn-primary text-sm">
             <Plus className="w-4 h-4" /> Add Task
           </button>
@@ -268,7 +278,7 @@ export function TodoSection({
       </div>
 
       {/* Add form */}
-      {showAddForm && (
+      {sectionOpen && showAddForm && (
         <div className="mb-3">
           <TodoForm
             assignableUsers={assignableUsers}
@@ -280,12 +290,12 @@ export function TodoSection({
       )}
 
       {/* Loading */}
-      {isLoading && (
+      {sectionOpen && isLoading && (
         <p className="text-sm text-gray-400 py-4 text-center">Loading tasks…</p>
       )}
 
       {/* Empty state */}
-      {!isLoading && todos.length === 0 && !showAddForm && (
+      {sectionOpen && !isLoading && todos.length === 0 && !showAddForm && (
         <div className="card text-center py-8 border-dashed border-2 border-gray-200">
           <p className="text-2xl mb-2">📋</p>
           <p className="text-gray-500 text-sm">No tasks yet. Add the first one!</p>
@@ -293,7 +303,7 @@ export function TodoSection({
       )}
 
       {/* Open tasks */}
-      {open.length > 0 && (
+      {sectionOpen && open.length > 0 && (
         <div className="space-y-2">
           {open.map(todo => (
             <TodoItem
@@ -314,7 +324,7 @@ export function TodoSection({
       )}
 
       {/* Completed tasks (collapsible) */}
-      {done.length > 0 && (
+      {sectionOpen && done.length > 0 && (
         <div className="mt-4">
           <button
             onClick={() => setShowCompleted(v => !v)}

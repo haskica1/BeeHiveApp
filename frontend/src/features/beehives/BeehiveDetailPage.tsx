@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
+import { ArrowLeft, ChevronDown, ChevronUp, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import { jsPDF } from 'jspdf'
 import {
@@ -96,6 +96,8 @@ export default function BeehiveDetailPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
+  const [detailsOpen, setDetailsOpen] = useState(true)
+  const [inspectionsOpen, setInspectionsOpen] = useState(true)
 
   const handleDelete = async () => {
     if (!deleteTarget) return
@@ -137,50 +139,57 @@ export default function BeehiveDetailPage() {
                 <Pencil className="w-4 h-4" /> Edit
               </Link>
             )}
-            <Link
-              to={`/inspections/new?beehiveId=${beehiveId}`}
-              className="btn-primary text-sm"
-            >
-              <Plus className="w-4 h-4" /> Add Inspection
-            </Link>
           </>
         }
       />
 
       {/* Beehive info card */}
-      <div className="card mb-6 bg-gradient-to-br from-honey-50 to-white">
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
-          <InfoItem icon="🐝" label="Type" value={beehive.typeName} />
-          <InfoItem icon="🪵" label="Material" value={beehive.materialName} />
-          <InfoItem
-            icon="📅"
-            label="Established"
-            value={format(new Date(beehive.dateCreated), 'dd MMM yyyy')}
-          />
-          <InfoItem
-            icon="📋"
-            label="Inspections"
-            value={String(beehive.inspectionCount)}
-          />
-        </div>
-        {beehive.notes && (
-          <p className="mt-4 pt-4 border-t border-honey-100 text-sm text-gray-600 italic">
-            📝 {beehive.notes}
-          </p>
+      <section className="mb-6">
+        <button
+          onClick={() => setDetailsOpen(v => !v)}
+          className="flex items-center justify-between w-full mb-3 group"
+        >
+          <h2 className="font-display text-xl font-semibold text-gray-800">🐝 Hive Details</h2>
+          {detailsOpen
+            ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          }
+        </button>
+        {detailsOpen && (
+          <div className="card bg-gradient-to-br from-honey-50 to-white">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+              <InfoItem icon="🐝" label="Type" value={beehive.typeName} />
+              <InfoItem icon="🪵" label="Material" value={beehive.materialName} />
+              <InfoItem
+                icon="📅"
+                label="Established"
+                value={format(new Date(beehive.dateCreated), 'dd MMM yyyy')}
+              />
+              <InfoItem
+                icon="📋"
+                label="Inspections"
+                value={String(beehive.inspectionCount)}
+              />
+            </div>
+            {beehive.notes && (
+              <p className="mt-4 pt-4 border-t border-honey-100 text-sm text-gray-600 italic">
+                📝 {beehive.notes}
+              </p>
+            )}
+            {beehive.uniqueId && (
+              <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-400 font-mono flex items-center gap-1.5">
+                <QrCode className="w-3.5 h-3.5 shrink-0 text-honey-400" />
+                {beehive.uniqueId}
+              </p>
+            )}
+            {beehive.createdByName && (
+              <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-500 flex items-center gap-1.5">
+                👤 Created by {beehive.createdByName}
+              </p>
+            )}
+          </div>
         )}
-        {/* Unique ID chip */}
-        {beehive.uniqueId && (
-          <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-400 font-mono flex items-center gap-1.5">
-            <QrCode className="w-3.5 h-3.5 shrink-0 text-honey-400" />
-            {beehive.uniqueId}
-          </p>
-        )}
-        {beehive.createdByName && (
-          <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-500 flex items-center gap-1.5">
-            👤 Created by {beehive.createdByName}
-          </p>
-        )}
-      </div>
+      </section>
 
       {/* Feeding programmes */}
       <DietSection beehiveId={beehiveId} />
@@ -200,9 +209,31 @@ export default function BeehiveDetailPage() {
       />
 
       {/* Inspections */}
-      <h2 className="font-display text-xl font-semibold text-gray-800 mb-4">Inspection History</h2>
+      <section className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <button
+            onClick={() => setInspectionsOpen(v => !v)}
+            className="flex items-center gap-2 group"
+          >
+            <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
+              📋 Inspection History
+              {beehive.inspectionCount > 0 && (
+                <span className="badge bg-honey-100 text-honey-700 text-xs">{beehive.inspectionCount}</span>
+              )}
+            </h2>
+            {inspectionsOpen
+              ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            }
+          </button>
+          {(canManageInspections || isAssignedToHive(beehiveId)) && (
+            <Link to={`/inspections/new?beehiveId=${beehiveId}`} className="btn-primary text-sm">
+              <Plus className="w-4 h-4" /> Add Inspection
+            </Link>
+          )}
+        </div>
 
-      {!beehive.inspections?.length ? (
+        {inspectionsOpen && (!beehive.inspections?.length ? (
         <EmptyState
           title="No inspections recorded"
           description="Record your first inspection for this beehive."
@@ -266,7 +297,8 @@ export default function BeehiveDetailPage() {
             </div>
           ))}
         </div>
-      )}
+      ))}
+      </section>
 
       {/* Delete inspection confirmation */}
       <ConfirmDialog

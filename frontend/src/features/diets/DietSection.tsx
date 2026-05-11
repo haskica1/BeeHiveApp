@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronRight, Plus, Leaf } from 'lucide-react'
+import { ChevronDown, ChevronRight, ChevronUp, Plus, Leaf } from 'lucide-react'
 import { format } from 'date-fns'
 import { useDietsByBeehive } from '../../core/services/queries'
 import { LoadingSpinner } from '../../shared/components'
@@ -80,6 +80,7 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
   const { data: diets = [], isLoading } = useDietsByBeehive(beehiveId)
   const { canManageDiets, isAssignedToHive } = usePermissions()
   const canManageThisDiet = canManageDiets || isAssignedToHive(beehiveId)
+  const [sectionOpen, setSectionOpen] = useState(true)
   const [showAll, setShowAll] = useState(false)
 
   const active   = diets.filter(d => d.status === DietStatus.InProgress || d.status === DietStatus.NotStarted)
@@ -91,11 +92,23 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
     <section className="mb-8">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
-          <Leaf className="w-5 h-5 text-honey-500" />
-          Feeding Programmes
-        </h2>
-        {canManageThisDiet && (
+        <button
+          onClick={() => setSectionOpen(v => !v)}
+          className="flex items-center gap-2 group"
+        >
+          <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
+            <Leaf className="w-5 h-5 text-honey-500" />
+            Feeding Programmes
+            {diets.length > 0 && (
+              <span className="badge bg-honey-100 text-honey-700 text-xs">{diets.length}</span>
+            )}
+          </h2>
+          {sectionOpen
+            ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+            : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+          }
+        </button>
+        {canManageThisDiet && sectionOpen && (
           <Link
             to={`/diets/new?beehiveId=${beehiveId}`}
             className="btn-primary text-sm"
@@ -105,7 +118,7 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
         )}
       </div>
 
-      {isLoading ? (
+      {sectionOpen && (isLoading ? (
         <LoadingSpinner message="Loading diets…" />
       ) : diets.length === 0 ? (
         <div className="card text-center py-8 text-gray-400">
@@ -156,7 +169,7 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
             </div>
           )}
         </>
-      )}
+      ))}
     </section>
   )
 }
