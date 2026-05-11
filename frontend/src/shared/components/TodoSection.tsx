@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Check, Loader2, Pencil, Plus, Trash2, ChevronDown, ChevronUp, Calendar, User } from 'lucide-react'
+import { CollapsibleSection } from './CollapsibleSection'
 import { format, parseISO, isPast, isToday } from 'date-fns'
 import type { Todo, CreateTodoPayload, UpdateTodoPayload, AssignableUser } from '../../core/models'
 import { TodoPriority } from '../../core/models'
@@ -207,7 +208,6 @@ export function TodoSection({
   const { canEditDelete } = usePermissions()
   const effectiveCanCreate = canCreate ?? canEditDelete
   const effectiveCanManage = canManage ?? canEditDelete
-  const [sectionOpen, setSectionOpen]   = useState(true)
   const [showAddForm, setShowAddForm]   = useState(false)
   const [editingId, setEditingId]       = useState<number | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
@@ -251,34 +251,17 @@ export function TodoSection({
     })
   }
 
-  return (
-    <section className="mb-8">
-      {/* Section header */}
-      <div className="flex items-center justify-between mb-3">
-        <button
-          onClick={() => setSectionOpen(v => !v)}
-          className="flex items-center gap-2 group"
-        >
-          <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
-            ✅ To-Do List
-            {open.length > 0 && (
-              <span className="badge bg-honey-100 text-honey-700 text-xs">{open.length}</span>
-            )}
-          </h2>
-          {sectionOpen
-            ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-            : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          }
-        </button>
-        {effectiveCanCreate && !showAddForm && sectionOpen && (
-          <button onClick={() => setShowAddForm(true)} className="btn-primary text-sm">
-            <Plus className="w-4 h-4" /> Add Task
-          </button>
-        )}
-      </div>
+  const addAction = effectiveCanCreate && !showAddForm
+    ? (
+      <button onClick={() => setShowAddForm(true)} className="btn-primary text-sm">
+        <Plus className="w-4 h-4" /> Add Task
+      </button>
+    ) : null
 
+  return (
+    <CollapsibleSection title="To-Do List" icon="✅" count={open.length} action={addAction}>
       {/* Add form */}
-      {sectionOpen && showAddForm && (
+      {showAddForm && (
         <div className="mb-3">
           <TodoForm
             assignableUsers={assignableUsers}
@@ -290,20 +273,20 @@ export function TodoSection({
       )}
 
       {/* Loading */}
-      {sectionOpen && isLoading && (
+      {isLoading && (
         <p className="text-sm text-gray-400 py-4 text-center">Loading tasks…</p>
       )}
 
       {/* Empty state */}
-      {sectionOpen && !isLoading && todos.length === 0 && !showAddForm && (
-        <div className="card text-center py-8 border-dashed border-2 border-gray-200">
+      {!isLoading && todos.length === 0 && !showAddForm && (
+        <div className="text-center py-8 border-dashed border-2 border-gray-200 rounded-xl">
           <p className="text-2xl mb-2">📋</p>
           <p className="text-gray-500 text-sm">No tasks yet. Add the first one!</p>
         </div>
       )}
 
       {/* Open tasks */}
-      {sectionOpen && open.length > 0 && (
+      {open.length > 0 && (
         <div className="space-y-2">
           {open.map(todo => (
             <TodoItem
@@ -324,7 +307,7 @@ export function TodoSection({
       )}
 
       {/* Completed tasks (collapsible) */}
-      {sectionOpen && done.length > 0 && (
+      {done.length > 0 && (
         <div className="mt-4">
           <button
             onClick={() => setShowCompleted(v => !v)}
@@ -333,7 +316,6 @@ export function TodoSection({
             {showCompleted ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             {done.length} completed task{done.length !== 1 ? 's' : ''}
           </button>
-
           {showCompleted && (
             <div className="space-y-2 opacity-70">
               {done.map(todo => (
@@ -355,7 +337,7 @@ export function TodoSection({
           )}
         </div>
       )}
-    </section>
+    </CollapsibleSection>
   )
 }
 

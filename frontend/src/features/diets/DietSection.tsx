@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ChevronDown, ChevronRight, ChevronUp, Plus, Leaf } from 'lucide-react'
+import { ChevronRight, Plus, Leaf } from 'lucide-react'
+import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import { format } from 'date-fns'
 import { useDietsByBeehive } from '../../core/services/queries'
 import { LoadingSpinner } from '../../shared/components'
@@ -80,7 +81,6 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
   const { data: diets = [], isLoading } = useDietsByBeehive(beehiveId)
   const { canManageDiets, isAssignedToHive } = usePermissions()
   const canManageThisDiet = canManageDiets || isAssignedToHive(beehiveId)
-  const [sectionOpen, setSectionOpen] = useState(true)
   const [showAll, setShowAll] = useState(false)
 
   const active   = diets.filter(d => d.status === DietStatus.InProgress || d.status === DietStatus.NotStarted)
@@ -88,37 +88,18 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
 
   const visibleFinished = showAll ? finished : finished.slice(0, 2)
 
-  return (
-    <section className="mb-8">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-4">
-        <button
-          onClick={() => setSectionOpen(v => !v)}
-          className="flex items-center gap-2 group"
-        >
-          <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
-            <Leaf className="w-5 h-5 text-honey-500" />
-            Feeding Programmes
-            {diets.length > 0 && (
-              <span className="badge bg-honey-100 text-honey-700 text-xs">{diets.length}</span>
-            )}
-          </h2>
-          {sectionOpen
-            ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-            : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-          }
-        </button>
-        {canManageThisDiet && sectionOpen && (
-          <Link
-            to={`/diets/new?beehiveId=${beehiveId}`}
-            className="btn-primary text-sm"
-          >
-            <Plus className="w-4 h-4" /> Add Diet
-          </Link>
-        )}
-      </div>
+  const addAction = canManageThisDiet
+    ? <Link to={`/diets/new?beehiveId=${beehiveId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Add Diet</Link>
+    : null
 
-      {sectionOpen && (isLoading ? (
+  return (
+    <CollapsibleSection
+      title="Feeding Programmes"
+      icon={<Leaf className="w-5 h-5 text-honey-500" />}
+      count={diets.length}
+      action={addAction}
+    >
+      {isLoading ? (
         <LoadingSpinner message="Loading diets…" />
       ) : diets.length === 0 ? (
         <div className="card text-center py-8 text-gray-400">
@@ -169,7 +150,7 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
             </div>
           )}
         </>
-      ))}
-    </section>
+      )}
+    </CollapsibleSection>
   )
 }

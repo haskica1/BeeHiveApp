@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ChevronDown, ChevronUp, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer } from 'lucide-react'
 import { format, parseISO } from 'date-fns'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
@@ -16,6 +16,7 @@ import {
   PageHeader,
 } from '../../shared/components'
 import { TodoSection } from '../../shared/components/TodoSection'
+import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import type { Beehive, DailyWeather } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
@@ -112,8 +113,6 @@ export default function ApiaryDetailPage() {
   const deleteTodo = useDeleteTodo(todoKey)
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
-  const [weatherOpen, setWeatherOpen] = useState(true)
-  const [hivesOpen, setHivesOpen] = useState(true)
 
   const handleDeleteBeehive = async () => {
     if (!deleteTarget) return
@@ -168,49 +167,25 @@ export default function ApiaryDetailPage() {
       </div>
 
       {/* Weather forecast */}
-      <section className="mb-8">
-        <button
-          onClick={() => setWeatherOpen(v => !v)}
-          className="flex items-center justify-between w-full mb-3 group"
-        >
-          <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
-            🌤️ 7-Day Weather Forecast
-          </h2>
-          <div className="flex items-center gap-2">
-            {apiary.hasLocation && weatherOpen && (
-              <a
-                href={`https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`}
-                target="_blank"
-                rel="noreferrer"
-                onClick={e => e.stopPropagation()}
-                className="inline-flex items-center gap-1 text-xs text-honey-600 hover:underline"
-              >
-                <MapPin className="w-3 h-3" />
-                {apiary.latitude?.toFixed(4)}, {apiary.longitude?.toFixed(4)}
-              </a>
-            )}
-            {weatherOpen
-              ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-              : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-            }
-          </div>
-        </button>
-
-        {weatherOpen && (!apiary.hasLocation ? (
-          <div className="card text-center py-6 border-dashed border-2 border-gray-200">
+      <CollapsibleSection
+        title="7-Day Weather Forecast"
+        icon="🌤️"
+        action={
+          apiary.hasLocation
+            ? <a href={`https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-honey-600 hover:underline font-medium"><MapPin className="w-3 h-3" />{apiary.latitude?.toFixed(4)}, {apiary.longitude?.toFixed(4)}</a>
+            : undefined
+        }
+      >
+        {!apiary.hasLocation ? (
+          <div className="text-center py-6 border-dashed border-2 border-gray-200 rounded-xl">
             <MapPin className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-gray-500 text-sm">No location set for this apiary.</p>
-            <Link
-              to={`/apiaries/${apiaryId}/edit`}
-              className="inline-flex items-center gap-1 mt-3 text-sm text-honey-600 hover:underline"
-            >
+            <Link to={`/apiaries/${apiaryId}/edit`} className="inline-flex items-center gap-1 mt-3 text-sm text-honey-600 hover:underline">
               <Pencil className="w-3.5 h-3.5" /> Add location
             </Link>
           </div>
         ) : weatherLoading ? (
-          <div className="card py-6 text-center">
-            <LoadingSpinner message="Fetching forecast…" />
-          </div>
+          <LoadingSpinner message="Fetching forecast…" />
         ) : weather ? (
           <>
             <div className="grid grid-cols-7 gap-2">
@@ -218,9 +193,8 @@ export default function ApiaryDetailPage() {
                 <DayCard key={day.date} day={day} isToday={day.date === today} />
               ))}
             </div>
-            {/* Summary row */}
             {weather.daily[0] && (
-              <div className="mt-3 card flex flex-wrap gap-4 py-3 text-sm text-gray-600">
+              <div className="mt-3 bg-honey-50 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm text-gray-600">
                 <span className="flex items-center gap-1.5">
                   <Thermometer className="w-4 h-4 text-red-400" />
                   Today: <strong className="text-red-500">{Math.round(weather.daily[0].maxTemp ?? 0)}°C</strong>
@@ -239,18 +213,14 @@ export default function ApiaryDetailPage() {
                     Wind: <strong>{Math.round(weather.daily[0].maxWindSpeed)} km/h</strong>
                   </span>
                 )}
-                <span className="ml-auto text-xs text-gray-400">
-                  via Open-Meteo · {weather.timezone}
-                </span>
+                <span className="ml-auto text-xs text-gray-400">via Open-Meteo · {weather.timezone}</span>
               </div>
             )}
           </>
         ) : (
-          <div className="card text-center py-4 text-gray-400 text-sm">
-            Weather data unavailable.
-          </div>
-        ))}
-      </section>
+          <p className="text-center py-4 text-gray-400 text-sm">Weather data unavailable.</p>
+        )}
+      </CollapsibleSection>
 
       {/* To-do list */}
       <TodoSection
@@ -267,93 +237,74 @@ export default function ApiaryDetailPage() {
       />
 
       {/* Beehive list */}
-      <section className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <button
-            onClick={() => setHivesOpen(v => !v)}
-            className="flex items-center gap-2 group"
-          >
-            <h2 className="font-display text-xl font-semibold text-gray-800 flex items-center gap-2">
-              🏠 Beehives
-              {apiary.beehiveCount > 0 && (
-                <span className="badge bg-honey-100 text-honey-700 text-xs">{apiary.beehiveCount}</span>
-              )}
-            </h2>
-            {hivesOpen
-              ? <ChevronUp className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
-              : <ChevronDown className="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-colors" />
+      <CollapsibleSection
+        title="Beehives"
+        icon="🏠"
+        count={apiary.beehiveCount}
+        action={
+          canManageHives
+            ? <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Add Beehive</Link>
+            : undefined
+        }
+      >
+        {!apiary.beehives?.length ? (
+          <EmptyState
+            title="No beehives yet"
+            description="Add your first beehive to this apiary."
+            action={
+              canManageHives ? (
+                <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
+                  <Plus className="w-4 h-4" /> Add Beehive
+                </Link>
+              ) : undefined
             }
-          </button>
-          {canManageHives && (
-            <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
-              <Plus className="w-4 h-4" /> Add Beehive
-            </Link>
-          )}
-        </div>
-
-        {hivesOpen && (!apiary.beehives?.length ? (
-        <EmptyState
-          title="No beehives yet"
-          description="Add your first beehive to this apiary."
-          action={
-            canManageHives ? (
-              <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
-                <Plus className="w-4 h-4" /> Add Beehive
-              </Link>
-            ) : undefined
-          }
-        />
-      ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {apiary.beehives.map((beehive: Beehive) => (
-            <div
-              key={beehive.id}
-              className="card hover:shadow-honey hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
-              onClick={() => navigate(`/beehives/${beehive.id}`)}
-            >
-              <div className="flex items-start gap-3">
-                <span className="text-2xl shrink-0 mt-0.5">🏠</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-start justify-between gap-2">
-                    <h3 className="font-semibold text-gray-800 truncate group-hover:text-honey-700 transition-colors">
-                      {beehive.name}
-                    </h3>
-                    {canEditDelete && (
-                      <div
-                        className="flex gap-1 shrink-0"
-                        onClick={e => e.stopPropagation()}
-                      >
-                        <Link
-                          to={`/beehives/${beehive.id}/edit`}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </Link>
-                        <button
-                          onClick={() => setDeleteTarget({ id: beehive.id, name: beehive.name })}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
+          />
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {apiary.beehives.map((beehive: Beehive) => (
+              <div
+                key={beehive.id}
+                className="card hover:shadow-honey hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
+                onClick={() => navigate(`/beehives/${beehive.id}`)}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl shrink-0 mt-0.5">🏠</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-semibold text-gray-800 truncate group-hover:text-honey-700 transition-colors">
+                        {beehive.name}
+                      </h3>
+                      {canEditDelete && (
+                        <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
+                          <Link
+                            to={`/beehives/${beehive.id}/edit`}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </Link>
+                          <button
+                            onClick={() => setDeleteTarget({ id: beehive.id, name: beehive.name })}
+                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 mt-1.5">
+                      <span className="badge bg-honey-100 text-honey-700">{beehive.typeName}</span>
+                      <span className="badge bg-gray-100 text-gray-600">{beehive.materialName}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-gray-500">
+                      📋 {beehive.inspectionCount} inspection{beehive.inspectionCount !== 1 ? 's' : ''}
+                    </p>
                   </div>
-
-                  <div className="flex flex-wrap gap-1.5 mt-1.5">
-                    <span className="badge bg-honey-100 text-honey-700">{beehive.typeName}</span>
-                    <span className="badge bg-gray-100 text-gray-600">{beehive.materialName}</span>
-                  </div>
-
-                  <p className="mt-2 text-xs text-gray-500">
-                    📋 {beehive.inspectionCount} inspection{beehive.inspectionCount !== 1 ? 's' : ''}
-                  </p>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      ))}
-      </section>
+            ))}
+          </div>
+        )}
+      </CollapsibleSection>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
