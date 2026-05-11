@@ -5,6 +5,7 @@ using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Auth;
 using BeeHive.Application.Features.Profile;
+using BeeHive.Application.Features.Stats;
 using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Diets;
 using BeeHive.Application.Features.Inspections;
@@ -31,6 +32,7 @@ public static class DependencyInjection
         // Application services
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IProfileService, ProfileService>();
+        services.AddScoped<IStatsService, StatsService>();
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IApiaryService, ApiaryService>();
         services.AddScoped<IBeehiveService, BeehiveService>();

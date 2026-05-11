@@ -3,6 +3,7 @@ import { apiaryService } from '../services/apiaryService'
 import { beehiveService, inspectionService } from '../services/beehiveService'
 import { todoService } from '../services/todoService'
 import { dietService } from '../services/dietService'
+import { statsService } from '../services/statsService'
 import type {
   CreateApiaryPayload,
   UpdateApiaryPayload,
@@ -20,6 +21,7 @@ import type {
 // ── Query Keys ────────────────────────────────────────────────────────────────
 
 export const queryKeys = {
+  stats:              ['stats'] as const,
   apiaries:           ['apiaries'] as const,
   apiary:             (id: number) => ['apiaries', id] as const,
   apiaryWeather:      (id: number) => ['apiaries', id, 'weather'] as const,
@@ -268,3 +270,12 @@ export const useCompleteFeedingEntry = (dietId: number, beehiveId: number) => {
     },
   })
 }
+
+// ── Stats Hook ────────────────────────────────────────────────────────────────
+
+export const useStats = () =>
+  useQuery({
+    queryKey: queryKeys.stats,
+    queryFn:  statsService.get,
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  })

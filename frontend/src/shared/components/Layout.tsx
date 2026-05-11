@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, X } from 'lucide-react'
+import { BarChart2, Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import QrScannerModal from './QrScannerModal'
@@ -75,6 +75,7 @@ export default function Layout() {
               ) : (
                 <NavPill to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
               )}
+              <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistics" />
               <button
                 onClick={() => setScannerOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:shadow-sm hover:text-honey-700 transition-all"
@@ -166,6 +167,12 @@ export default function Layout() {
                 onClick={() => setMobileOpen(false)}
               />
             )}
+            <MobileNavItem
+              to="/stats"
+              icon={<BarChart2 className="w-4 h-4" />}
+              label="Statistics"
+              onClick={() => setMobileOpen(false)}
+            />
             <button
               onClick={() => { setMobileOpen(false); setScannerOpen(true) }}
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-honey-50 transition-colors"

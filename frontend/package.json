@@ -23,7 +23,8 @@
     "react": "^18.3.0",
     "react-dom": "^18.3.0",
     "react-hook-form": "^7.52.0",
-    "react-router-dom": "^6.26.0"
+    "react-router-dom": "^6.26.0",
+    "recharts": "^2.12.7"
   },
   "devDependencies": {
     "@types/leaflet": "^1.9.14",

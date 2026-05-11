@@ -19,6 +19,7 @@ import UserFormPage from './features/admin/UserFormPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
+import StatsPage from './features/stats/StatsPage'
 
 const APIARY_MANAGERS  = ['OrgAdmin', 'SystemAdmin']
 const HIVE_MANAGERS    = ['Admin', 'OrgAdmin', 'SystemAdmin']
@@ -70,6 +71,9 @@ export default function App() {
 
               {/* Profile — all authenticated users */}
               <Route path="profile" element={<ProfilePage />} />
+
+              {/* Stats — all authenticated users */}
+              <Route path="stats" element={<StatsPage />} />
 
               {/* Admin routes — SystemAdmin only */}
               <Route element={<AdminRoute />}>
