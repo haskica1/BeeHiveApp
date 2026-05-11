@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { Home, LayoutDashboard, LogOut, Menu, QrCode, X } from 'lucide-react'
+import { Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import QrScannerModal from './QrScannerModal'
@@ -116,6 +116,14 @@ export default function Layout() {
                       </div>
                     </div>
                   </div>
+                  {/* Edit profile */}
+                  <button
+                    onClick={() => { setProfileOpen(false); navigate('/profile') }}
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <Settings className="w-4 h-4" />
+                    Edit Profile
+                  </button>
                   {/* Sign out */}
                   <button
                     onClick={() => { setProfileOpen(false); handleLogout() }}
@@ -180,6 +188,13 @@ export default function Layout() {
                     <p className="text-xs text-gray-500 truncate">{roleLabel}</p>
                   </div>
                 </div>
+                <button
+                  onClick={() => { setMobileOpen(false); navigate('/profile') }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-honey-50 transition-colors"
+                >
+                  <Settings className="w-4 h-4 text-honey-600" />
+                  Edit Profile
+                </button>
                 <button
                   onClick={() => { setMobileOpen(false); handleLogout() }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"

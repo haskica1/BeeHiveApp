@@ -18,6 +18,7 @@ import OrganizationFormPage from './features/admin/OrganizationFormPage'
 import UserFormPage from './features/admin/UserFormPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
+import ProfilePage from './features/profile/ProfilePage'
 
 const APIARY_MANAGERS  = ['OrgAdmin', 'SystemAdmin']
 const HIVE_MANAGERS    = ['Admin', 'OrgAdmin', 'SystemAdmin']
@@ -66,6 +67,9 @@ export default function App() {
               {/* Diet create/edit — all authenticated users (User allowed for assigned hives) */}
               <Route path="diets/new"      element={<DietFormPage />} />
               <Route path="diets/:id/edit" element={<DietFormPage />} />
+
+              {/* Profile — all authenticated users */}
+              <Route path="profile" element={<ProfilePage />} />
 
               {/* Admin routes — SystemAdmin only */}
               <Route element={<AdminRoute />}>

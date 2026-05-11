@@ -50,4 +50,11 @@ export const authService = {
   isAuthenticated(): boolean {
     return !!localStorage.getItem(TOKEN_KEY)
   },
+
+  updateStoredUser(partial: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>): void {
+    const current = this.getUser()
+    if (!current) return
+    const updated = { ...current, ...partial }
+    localStorage.setItem(USER_KEY, JSON.stringify(updated))
+  },
 }

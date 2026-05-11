@@ -32,7 +32,9 @@
       "Read(//c/Program Files/**)",
       "PowerShell(Get-ChildItem -Path \"$env:APPDATA\\\\nvm\", \"$env:LOCALAPPDATA\\\\Programs\", \"C:\\\\nvm\" -Filter \"node.exe\" -Recurse -Depth 3 -ErrorAction SilentlyContinue | Select-Object -First 5 FullName)",
       "Read(//c//**)",
-      "PowerShell([System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\) -split \";\" | Where-Object { $_ -ne \"\" })"
+      "PowerShell([System.Environment]::GetEnvironmentVariable\\(\"PATH\",\"User\"\\) -split \";\" | Where-Object { $_ -ne \"\" })",
+      "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\src\" -Recurse -File)",
+      "Bash(Select-Object -First 50)"
     ]
   }
 }
