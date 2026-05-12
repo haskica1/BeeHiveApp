@@ -138,18 +138,21 @@ public class InspectionsController : ControllerBase
     }
 
     /// <summary>
-    /// Parses a Bosnian voice transcript and extracts inspection field values using AI.
-    /// Returns null for fields that could not be determined from the transcript.
+    /// Accepts a recorded audio file, transcribes it with Groq Whisper,
+    /// then extracts inspection field values using Groq Llama.
+    /// Returns transcript + extracted fields (null for anything not mentioned).
     /// </summary>
     [HttpPost("parse-voice")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ParseVoiceResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> ParseVoice([FromBody] ParseVoiceRequest request)
+    public async Task<IActionResult> ParseVoice(IFormFile? audio)
     {
-        if (string.IsNullOrWhiteSpace(request.Transcript))
-            return BadRequest(new { message = "Transcript cannot be empty." });
+        if (audio == null || audio.Length == 0)
+            return BadRequest(new { message = "Audio file is required." });
 
-        var result = await _voiceParsingService.ParseAsync(request.Transcript);
+        await using var stream = audio.OpenReadStream();
+        var result = await _voiceParsingService.ParseAsync(stream, audio.FileName);
         return Ok(result);
     }
 

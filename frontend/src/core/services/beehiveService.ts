@@ -96,8 +96,11 @@ export const inspectionService = {
     await apiClient.delete(`/inspections/${id}`)
   },
 
-  parseVoice: async (transcript: string): Promise<ParseVoiceResult> => {
-    const res = await apiClient.post<ParseVoiceResult>('/inspections/parse-voice', { transcript })
+  parseVoice: async (audioBlob: Blob): Promise<ParseVoiceResult> => {
+    const ext = audioBlob.type.includes('mp4') ? 'mp4' : audioBlob.type.includes('ogg') ? 'ogg' : 'webm'
+    const formData = new FormData()
+    formData.append('audio', audioBlob, `recording.${ext}`)
+    const res = await apiClient.post<ParseVoiceResult>('/inspections/parse-voice', formData)
     return res.data
   },
 }

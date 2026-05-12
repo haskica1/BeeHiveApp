@@ -155,6 +155,7 @@ export interface CreateInspectionPayload {
 export interface UpdateInspectionPayload extends CreateInspectionPayload {}
 
 export interface ParseVoiceResult {
+  transcript?: string | null
   date?: string | null
   temperature?: number | null
   honeyLevel?: HoneyLevel | null

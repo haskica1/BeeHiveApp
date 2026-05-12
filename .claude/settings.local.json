@@ -40,7 +40,8 @@
       "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd \"c:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\"; npx tsc --noEmit 2>&1 | Select-Object -First 50)",
       "PowerShell(Get-Command node, npm, npx -ErrorAction SilentlyContinue)",
       "PowerShell(& \"C:\\\\Program Files\\\\nodejs\\\\npx.cmd\" --version 2>&1)",
-      "PowerShell(& \"c:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\node_modules\\\\.bin\\\\tsc.cmd\" --noEmit 2>&1)"
+      "PowerShell(& \"c:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\\\\frontend\\\\node_modules\\\\.bin\\\\tsc.cmd\" --noEmit 2>&1)",
+      "Bash(git add *)"
     ]
   }
 }
