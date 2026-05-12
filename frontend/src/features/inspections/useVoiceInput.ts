@@ -21,8 +21,7 @@ export function useVoiceInput(): UseVoiceInputReturn {
   const hasErrorRef    = useRef(false)
 
   const startRecording = useCallback(() => {
-    const SpeechRecognition =
-      window.SpeechRecognition ?? (window as unknown as { webkitSpeechRecognition: typeof window.SpeechRecognition }).webkitSpeechRecognition
+    const SpeechRecognition = window.SpeechRecognition ?? window.webkitSpeechRecognition
 
     if (!SpeechRecognition) {
       setState('error')
