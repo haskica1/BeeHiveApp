@@ -154,6 +154,14 @@ export interface CreateInspectionPayload {
 
 export interface UpdateInspectionPayload extends CreateInspectionPayload {}
 
+export interface ParseVoiceResult {
+  date?: string | null
+  temperature?: number | null
+  honeyLevel?: HoneyLevel | null
+  broodStatus?: string | null
+  notes?: string | null
+}
+
 // ── Todo ──────────────────────────────────────────────────────────────────────
 
 export enum TodoPriority {

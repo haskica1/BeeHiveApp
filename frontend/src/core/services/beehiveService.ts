@@ -8,6 +8,7 @@ import type {
   Inspection,
   CreateInspectionPayload,
   UpdateInspectionPayload,
+  ParseVoiceResult,
 } from '../models'
 
 export interface BeehiveScanInfo {
@@ -93,5 +94,10 @@ export const inspectionService = {
 
   delete: async (id: number): Promise<void> => {
     await apiClient.delete(`/inspections/${id}`)
+  },
+
+  parseVoice: async (transcript: string): Promise<ParseVoiceResult> => {
+    const res = await apiClient.post<ParseVoiceResult>('/inspections/parse-voice', { transcript })
+    return res.data
   },
 }

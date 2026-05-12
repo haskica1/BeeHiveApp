@@ -16,19 +16,22 @@ public class InspectionsController : ControllerBase
 {
     private readonly IInspectionService _service;
     private readonly IBeehiveService    _beehiveService;
+    private readonly IVoiceParsingService _voiceParsingService;
     private readonly IValidator<CreateInspectionDto> _createValidator;
     private readonly IValidator<UpdateInspectionDto> _updateValidator;
 
     public InspectionsController(
         IInspectionService service,
         IBeehiveService beehiveService,
+        IVoiceParsingService voiceParsingService,
         IValidator<CreateInspectionDto> createValidator,
         IValidator<UpdateInspectionDto> updateValidator)
     {
-        _service         = service;
-        _beehiveService  = beehiveService;
-        _createValidator = createValidator;
-        _updateValidator = updateValidator;
+        _service             = service;
+        _beehiveService      = beehiveService;
+        _voiceParsingService = voiceParsingService;
+        _createValidator     = createValidator;
+        _updateValidator     = updateValidator;
     }
 
     /// <summary>Returns all inspections for the specified beehive, newest first.</summary>
@@ -132,6 +135,22 @@ public class InspectionsController : ControllerBase
 
         await _service.DeleteAsync(id);
         return NoContent();
+    }
+
+    /// <summary>
+    /// Parses a Bosnian voice transcript and extracts inspection field values using AI.
+    /// Returns null for fields that could not be determined from the transcript.
+    /// </summary>
+    [HttpPost("parse-voice")]
+    [ProducesResponseType(typeof(ParseVoiceResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ParseVoice([FromBody] ParseVoiceRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Transcript))
+            return BadRequest(new { message = "Transcript cannot be empty." });
+
+        var result = await _voiceParsingService.ParseAsync(request.Transcript);
+        return Ok(result);
     }
 
     private int? GetUserId()

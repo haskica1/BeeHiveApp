@@ -1,7 +1,7 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, Loader2, Mic, MicOff, X } from 'lucide-react'
 import {
   useCreateInspection,
   useUpdateInspection,
@@ -12,6 +12,7 @@ import { queryKeys } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage, PageHeader } from '../../shared/components'
 import { HoneyLevel, HoneyLevelLabels } from '../../core/models'
 import type { CreateInspectionPayload } from '../../core/models'
+import { useVoiceInput } from './useVoiceInput'
 
 export default function InspectionFormPage() {
   const { id } = useParams<{ id?: string }>()
@@ -20,6 +21,10 @@ export default function InspectionFormPage() {
   const inspectionId = Number(id)
   const beehiveId = Number(searchParams.get('beehiveId') ?? 0)
   const navigate = useNavigate()
+
+  const [voiceOpen, setVoiceOpen] = useState(false)
+  const [parseError, setParseError] = useState<string | null>(null)
+  const [isParsing, setIsParsing] = useState(false)
 
   // When editing, load existing inspection
   const { data: inspection, isLoading } = useQuery({
@@ -37,6 +42,7 @@ export default function InspectionFormPage() {
     register,
     handleSubmit,
     reset,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<CreateInspectionPayload>({
     defaultValues: {
@@ -59,6 +65,48 @@ export default function InspectionFormPage() {
     }
   }, [inspection, isEditing, reset])
 
+  const voice = useVoiceInput()
+
+  const handleVoiceToggle = () => {
+    if (!voiceOpen) {
+      setVoiceOpen(true)
+      setParseError(null)
+      voice.reset()
+    } else {
+      voice.reset()
+      setVoiceOpen(false)
+      setParseError(null)
+    }
+  }
+
+  const handleStartStop = () => {
+    if (voice.state === 'recording') {
+      voice.stopRecording()
+    } else {
+      voice.startRecording()
+    }
+  }
+
+  const handleApplyTranscript = async () => {
+    if (!voice.transcript.trim()) return
+    setIsParsing(true)
+    setParseError(null)
+    try {
+      const result = await inspectionService.parseVoice(voice.transcript)
+      if (result.date)        setValue('date', result.date)
+      if (result.temperature != null) setValue('temperature', result.temperature)
+      if (result.honeyLevel  != null) setValue('honeyLevel', result.honeyLevel)
+      if (result.broodStatus) setValue('broodStatus', result.broodStatus)
+      if (result.notes)       setValue('notes', result.notes)
+      setVoiceOpen(false)
+      voice.reset()
+    } catch {
+      setParseError('Greška pri obradi transkripta. Pokušajte ponovo.')
+    } finally {
+      setIsParsing(false)
+    }
+  }
+
   const onSubmit = async (data: CreateInspectionPayload) => {
     const payload: CreateInspectionPayload = {
       ...data,
@@ -80,6 +128,9 @@ export default function InspectionFormPage() {
   const mutationError = createMutation.error ?? updateMutation.error
   const backUrl = `/beehives/${resolvedBeehiveId}`
 
+  const isRecording = voice.state === 'recording'
+  const canApply = (voice.state === 'done' || (voice.state === 'recording' && voice.transcript)) && voice.transcript.trim().length > 0
+
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
       <PageHeader
@@ -98,6 +149,100 @@ export default function InspectionFormPage() {
         {mutationError && (
           <div className="mb-5">
             <ErrorMessage message={mutationError.message} />
+          </div>
+        )}
+
+        {/* Voice input panel */}
+        {!isEditing && (
+          <div className="mb-5">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium text-gray-600">Unesite glasom</span>
+              <button
+                type="button"
+                onClick={handleVoiceToggle}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                  voiceOpen
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    : 'bg-honey-50 text-honey-700 hover:bg-honey-100 border border-honey-200'
+                }`}
+              >
+                {voiceOpen ? (
+                  <><X className="w-3.5 h-3.5" /> Zatvori</>
+                ) : (
+                  <><Mic className="w-3.5 h-3.5" /> Unos glasom</>
+                )}
+              </button>
+            </div>
+
+            {voiceOpen && (
+              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+                {/* Mic button */}
+                <div className="flex items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleStartStop}
+                    disabled={voice.state === 'processing' || isParsing}
+                    className={`flex items-center justify-center w-11 h-11 rounded-full transition-all shadow-sm ${
+                      isRecording
+                        ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
+                        : 'bg-white border-2 border-honey-400 text-honey-600 hover:bg-honey-50'
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    title={isRecording ? 'Zaustavi snimanje' : 'Počni snimanje'}
+                  >
+                    {isRecording ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+                  </button>
+
+                  <span className="text-sm text-gray-500">
+                    {isRecording
+                      ? 'Snima... kliknite za zaustavljanje'
+                      : voice.state === 'done' || voice.transcript
+                      ? 'Snimanje završeno'
+                      : 'Kliknite za početak snimanja'}
+                  </span>
+
+                  {isRecording && (
+                    <span className="ml-auto flex items-center gap-1 text-xs text-red-500 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                      LIVE
+                    </span>
+                  )}
+                </div>
+
+                {/* Transcript display */}
+                {voice.transcript && (
+                  <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
+                    <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Prepoznat tekst</p>
+                    <p className="text-sm text-gray-700 leading-relaxed">{voice.transcript}</p>
+                  </div>
+                )}
+
+                {/* Error from speech recognition */}
+                {voice.errorMessage && (
+                  <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{voice.errorMessage}</p>
+                )}
+
+                {/* Error from parsing */}
+                {parseError && (
+                  <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{parseError}</p>
+                )}
+
+                {/* Apply button */}
+                {canApply && (
+                  <button
+                    type="button"
+                    onClick={handleApplyTranscript}
+                    disabled={isParsing}
+                    className="w-full btn-primary flex items-center justify-center gap-2 py-2"
+                  >
+                    {isParsing ? (
+                      <><Loader2 className="w-4 h-4 animate-spin" /> Obrađujem...</>
+                    ) : (
+                      'Popuni polja iz snimka'
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         )}
 

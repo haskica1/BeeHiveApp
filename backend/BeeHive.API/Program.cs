@@ -1,6 +1,7 @@
 using System.Text;
 using BeeHive.API.Middleware;
 using BeeHive.Application;
+using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Weather;
 using BeeHive.Infrastructure;
 using BeeHive.Infrastructure.Data;
@@ -62,6 +63,12 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
 {
     client.BaseAddress = new Uri("https://api.open-meteo.com/");
     client.Timeout = TimeSpan.FromSeconds(10);
+});
+
+// Voice parsing service — calls Google Gemini API; key configured via Gemini:ApiKey
+builder.Services.AddHttpClient<IVoiceParsingService, VoiceParsingService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
