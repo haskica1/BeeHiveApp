@@ -1,5 +1,5 @@
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using BeeHive.Application.Features.Inspections.DTOs;
@@ -20,7 +20,6 @@ public interface IVoiceParsingService
 public class VoiceParsingService : IVoiceParsingService
 {
     private readonly HttpClient _http;
-    private readonly string _apiKey;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -29,8 +28,9 @@ public class VoiceParsingService : IVoiceParsingService
 
     public VoiceParsingService(HttpClient http, IConfiguration config)
     {
-        _http   = http;
-        _apiKey = config["Gemini:ApiKey"] ?? throw new InvalidOperationException("Gemini:ApiKey is not configured.");
+        _http = http;
+        var apiKey = config["Groq:ApiKey"] ?? throw new InvalidOperationException("Groq:ApiKey is not configured.");
+        _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
     }
 
     public async Task<ParseVoiceResult> ParseAsync(string transcript)
@@ -45,13 +45,13 @@ public class VoiceParsingService : IVoiceParsingService
 
             Iz teksta izvuci podatke o inspekciji košnice i vrati SAMO validan JSON objekat (bez markdown, bez objašnjenja).
             Koristi isključivo ovaj format:
-            {{
+            {
               "date": "<datum u formatu yyyy-MM-dd, ili null ako nije pomenut>",
               "temperature": <broj s decimalama u Celzijusima, ili null>,
               "honeyLevel": <1 za nizak/malo meda, 2 za srednji/osrednji, 3 za visok/puno meda, ili null>,
               "broodStatus": "<opis legla/matice/jaja, ili null>",
               "notes": "<ostale napomene/zapažanja, ili null>"
-            }}
+            }
 
             Pravila:
             - Ako je datum relativan ("danas", "juče", "jučer"), pretvori u apsolutni datum u odnosu na danas ({{{today}}}).
@@ -62,38 +62,27 @@ public class VoiceParsingService : IVoiceParsingService
 
         var requestBody = new
         {
-            contents = new[]
+            model       = "llama-3.3-70b-versatile",
+            temperature = 0.1,
+            messages    = new[]
             {
-                new { parts = new[] { new { text = prompt } } }
+                new { role = "user", content = prompt }
             },
-            generationConfig = new
-            {
-                temperature      = 0.1,
-                responseMimeType = "application/json",
-            }
+            response_format = new { type = "json_object" },
         };
 
-        var url      = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={_apiKey}";
-        var response = await _http.PostAsJsonAsync(url, requestBody);
+        var response = await _http.PostAsJsonAsync(
+            "https://api.groq.com/openai/v1/chat/completions", requestBody);
         response.EnsureSuccessStatusCode();
 
-        var raw = await response.Content.ReadFromJsonAsync<GeminiResponse>(JsonOpts)
-            ?? throw new InvalidOperationException("Empty response from Gemini API.");
+        var raw = await response.Content.ReadFromJsonAsync<GroqResponse>(JsonOpts)
+            ?? throw new InvalidOperationException("Empty response from Groq API.");
 
-        var jsonText = raw.Candidates?[0].Content?.Parts?[0].Text
-            ?? throw new InvalidOperationException("No content in Gemini response.");
-
-        // Strip possible markdown fences that the model may include despite instructions
-        jsonText = jsonText.Trim();
-        if (jsonText.StartsWith("```"))
-        {
-            var start = jsonText.IndexOf('\n') + 1;
-            var end   = jsonText.LastIndexOf("```");
-            if (end > start) jsonText = jsonText[start..end].Trim();
-        }
+        var jsonText = raw.Choices?[0].Message?.Content
+            ?? throw new InvalidOperationException("No content in Groq response.");
 
         var parsed = JsonSerializer.Deserialize<GeminiParsedInspection>(jsonText, JsonOpts)
-            ?? throw new InvalidOperationException("Failed to deserialize Gemini extraction result.");
+            ?? throw new InvalidOperationException("Failed to deserialize Groq extraction result.");
 
         return new ParseVoiceResult
         {
@@ -108,35 +97,29 @@ public class VoiceParsingService : IVoiceParsingService
 
 // ── Internal response shapes ──────────────────────────────────────────────────
 
-internal sealed class GeminiResponse
+internal sealed class GroqResponse
 {
-    [JsonPropertyName("candidates")]
-    public List<GeminiCandidate>? Candidates { get; set; }
+    [JsonPropertyName("choices")]
+    public List<GroqChoice>? Choices { get; set; }
 }
 
-internal sealed class GeminiCandidate
+internal sealed class GroqChoice
+{
+    [JsonPropertyName("message")]
+    public GroqMessage? Message { get; set; }
+}
+
+internal sealed class GroqMessage
 {
     [JsonPropertyName("content")]
-    public GeminiContent? Content { get; set; }
-}
-
-internal sealed class GeminiContent
-{
-    [JsonPropertyName("parts")]
-    public List<GeminiPart>? Parts { get; set; }
-}
-
-internal sealed class GeminiPart
-{
-    [JsonPropertyName("text")]
-    public string? Text { get; set; }
+    public string? Content { get; set; }
 }
 
 internal sealed class GeminiParsedInspection
 {
-    [JsonPropertyName("date")]          public string?  Date        { get; set; }
-    [JsonPropertyName("temperature")]   public double?  Temperature { get; set; }
-    [JsonPropertyName("honeyLevel")]    public int?     HoneyLevel  { get; set; }
-    [JsonPropertyName("broodStatus")]   public string?  BroodStatus { get; set; }
-    [JsonPropertyName("notes")]         public string?  Notes       { get; set; }
+    [JsonPropertyName("date")]          public string? Date        { get; set; }
+    [JsonPropertyName("temperature")]   public double? Temperature { get; set; }
+    [JsonPropertyName("honeyLevel")]    public int?    HoneyLevel  { get; set; }
+    [JsonPropertyName("broodStatus")]   public string? BroodStatus { get; set; }
+    [JsonPropertyName("notes")]         public string? Notes       { get; set; }
 }
