@@ -100,7 +100,10 @@ export const inspectionService = {
     const ext = audioBlob.type.includes('mp4') ? 'mp4' : audioBlob.type.includes('ogg') ? 'ogg' : 'webm'
     const formData = new FormData()
     formData.append('audio', audioBlob, `recording.${ext}`)
-    const res = await apiClient.post<ParseVoiceResult>('/inspections/parse-voice', formData)
+    const res = await apiClient.post<ParseVoiceResult>('/inspections/parse-voice', formData, {
+      headers: { 'Content-Type': undefined },
+      timeout: 30_000,
+    })
     return res.data
   },
 }
