@@ -35,8 +35,24 @@ public static class DatabaseInitializer
             await context.SaveChangesAsync();
 
         var orgs = await context.Organizations.ToListAsync();
-        var goldenHive  = orgs.FirstOrDefault(o => o.Id == 1);
+        var goldenHive   = orgs.FirstOrDefault(o => o.Id == 1);
         var mountainBees = orgs.FirstOrDefault(o => o.Id == 2);
+
+        // Resolve actual apiary IDs from the database rather than hardcoding them,
+        // so the seeder survives if the seeded apiaries were deleted or IDs shifted.
+        var goldenHiveApiaryId = goldenHive == null ? null :
+            await context.Apiaries
+                .Where(a => a.OrganizationId == goldenHive.Id)
+                .OrderBy(a => a.Id)
+                .Select(a => (int?)a.Id)
+                .FirstOrDefaultAsync();
+
+        var mountainBeesApiaryId = mountainBees == null ? null :
+            await context.Apiaries
+                .Where(a => a.OrganizationId == mountainBees.Id)
+                .OrderBy(a => a.Id)
+                .Select(a => (int?)a.Id)
+                .FirstOrDefaultAsync();
 
         var usersToAdd = new List<User>();
 
@@ -65,8 +81,9 @@ public static class DatabaseInitializer
 
         // ── Admin ─────────────────────────────────────────────────────────────
         // Apiary-scoped admins — one per apiary per org.
+        // ApiaryId is looked up at runtime so hardcoded IDs never cause FK failures.
 
-        if (goldenHive != null)
+        if (goldenHive != null && goldenHiveApiaryId != null)
         {
             AddIfMissing(context, usersToAdd, new User
             {
@@ -76,7 +93,7 @@ public static class DatabaseInitializer
                 PasswordHash   = Hash("Admin123!"),
                 Role           = UserRole.Admin,
                 OrganizationId = goldenHive.Id,
-                ApiaryId       = 2, // Dolinska Farma — belongs to Golden Hive Co
+                ApiaryId       = goldenHiveApiaryId,
                 CreatedAt      = DateTime.UtcNow
             });
 
@@ -88,12 +105,12 @@ public static class DatabaseInitializer
                 PasswordHash   = Hash("Admin123!"),
                 Role           = UserRole.Admin,
                 OrganizationId = goldenHive.Id,
-                ApiaryId       = 2,
+                ApiaryId       = goldenHiveApiaryId,
                 CreatedAt      = DateTime.UtcNow
             });
         }
 
-        if (mountainBees != null)
+        if (mountainBees != null && mountainBeesApiaryId != null)
         {
             AddIfMissing(context, usersToAdd, new User
             {
@@ -103,7 +120,7 @@ public static class DatabaseInitializer
                 PasswordHash   = Hash("Admin123!"),
                 Role           = UserRole.Admin,
                 OrganizationId = mountainBees.Id,
-                ApiaryId       = 1, // Gorska Pčelinja — belongs to Mountain Bees
+                ApiaryId       = mountainBeesApiaryId,
                 CreatedAt      = DateTime.UtcNow
             });
 
@@ -115,7 +132,7 @@ public static class DatabaseInitializer
                 PasswordHash   = Hash("Admin123!"),
                 Role           = UserRole.Admin,
                 OrganizationId = mountainBees.Id,
-                ApiaryId       = 1,
+                ApiaryId       = mountainBeesApiaryId,
                 CreatedAt      = DateTime.UtcNow
             });
         }
