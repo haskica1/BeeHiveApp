@@ -246,7 +246,10 @@ export default function InspectionFormPage() {
               type="date"
               className="form-input"
               max={new Date().toISOString().split('T')[0]}
-              {...register('date', { required: 'Inspection date is required' })}
+              {...register('date', {
+                required: 'Inspection date is required',
+                validate: v => v <= new Date().toISOString().split('T')[0] || 'Date cannot be in the future',
+              })}
             />
             {errors.date && <p className="form-error">{errors.date.message}</p>}
           </div>

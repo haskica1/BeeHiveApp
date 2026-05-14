@@ -48,7 +48,7 @@
 
   /* Form input */
   .form-input {
-    @apply w-full px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm
+    @apply w-full min-w-0 px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm
            placeholder:text-gray-400 focus:outline-none focus:ring-2
            focus:ring-honey-400 focus:border-honey-400 transition;
   }

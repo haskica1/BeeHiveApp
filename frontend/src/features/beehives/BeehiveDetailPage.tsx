@@ -305,7 +305,7 @@ export default function BeehiveDetailPage() {
             <div className="flex gap-3 mt-6">
               <button
                 onClick={() => setQrOpen(false)}
-                className="btn-secondary flex-1"
+                className="btn-secondary flex-1 text-sm py-2 px-3"
               >
                 Close
               </button>
@@ -313,7 +313,7 @@ export default function BeehiveDetailPage() {
                 onClick={() =>
                   downloadQrPdf(beehive.name, beehive.uniqueId!, beehive.qrCodeBase64!)
                 }
-                className="btn-primary flex-1"
+                className="btn-primary flex-1 text-sm py-2 px-3"
               >
                 <Download className="w-4 h-4" /> Download PDF
               </button>

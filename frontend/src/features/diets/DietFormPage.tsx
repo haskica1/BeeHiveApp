@@ -75,6 +75,7 @@ export default function DietFormPage() {
     const e: Record<string, string> = {}
     if (!name.trim()) e.name = 'Name is required.'
     if (!startDate) e.startDate = 'Start date is required.'
+    else if (startDate > format(new Date(), 'yyyy-MM-dd')) e.startDate = 'Date cannot be in the future.'
     if (!duration || duration < 1) e.duration = 'Duration must be at least 1 day.'
     if (!frequency || frequency < 1) e.frequency = 'Frequency must be at least 1 day.'
     if (frequency > duration) e.frequency = 'Frequency cannot exceed duration.'
@@ -163,17 +164,16 @@ export default function DietFormPage() {
             {errors.name && <p className="form-error">{errors.name}</p>}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label">Start Date *</label>
-              <input
-                type="date"
-                className={`form-input ${errors.startDate ? 'border-red-400' : ''}`}
-                value={startDate}
-                onChange={e => setStartDate(e.target.value)}
-              />
-              {errors.startDate && <p className="form-error">{errors.startDate}</p>}
-            </div>
+          <div>
+            <label className="form-label">Start Date *</label>
+            <input
+              type="date"
+              className={`form-input ${errors.startDate ? 'border-red-400' : ''}`}
+              max={format(new Date(), 'yyyy-MM-dd')}
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+            />
+            {errors.startDate && <p className="form-error">{errors.startDate}</p>}
           </div>
 
           <div>

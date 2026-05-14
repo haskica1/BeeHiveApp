@@ -37,6 +37,7 @@ public class MappingProfile : Profile
         CreateMap<Beehive, BeehiveDetailDto>()
             .ForMember(d => d.TypeName, o => o.MapFrom(s => s.Type.ToString()))
             .ForMember(d => d.MaterialName, o => o.MapFrom(s => s.Material.ToString()))
+            .ForMember(d => d.InspectionCount, o => o.MapFrom(s => s.Inspections.Count()))
             .ForMember(d => d.CreatedByName, o => o.MapFrom(s =>
                 s.CreatedBy != null ? $"{s.CreatedBy.FirstName} {s.CreatedBy.LastName}" : null));
 

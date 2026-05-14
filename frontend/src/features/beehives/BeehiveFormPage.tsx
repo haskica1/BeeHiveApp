@@ -165,7 +165,10 @@ export default function BeehiveFormPage() {
               type="date"
               className="form-input"
               max={new Date().toISOString().split('T')[0]}
-              {...register('dateCreated', { required: 'Date established is required' })}
+              {...register('dateCreated', {
+                required: 'Date established is required',
+                validate: v => v <= new Date().toISOString().split('T')[0] || 'Date cannot be in the future',
+              })}
             />
             {errors.dateCreated && <p className="form-error">{errors.dateCreated.message}</p>}
           </div>

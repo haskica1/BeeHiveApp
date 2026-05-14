@@ -172,7 +172,7 @@ export default function ApiaryDetailPage() {
         icon="🌤️"
         action={
           apiary.hasLocation
-            ? <a href={`https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-honey-600 hover:underline font-medium"><MapPin className="w-3 h-3" />{apiary.latitude?.toFixed(4)}, {apiary.longitude?.toFixed(4)}</a>
+            ? <a href={`https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-honey-600 hover:underline font-medium"><MapPin className="w-3 h-3" />View on Map</a>
             : undefined
         }
       >
@@ -188,10 +188,12 @@ export default function ApiaryDetailPage() {
           <LoadingSpinner message="Fetching forecast…" />
         ) : weather ? (
           <>
-            <div className="grid grid-cols-7 gap-2">
-              {weather.daily.map((day) => (
-                <DayCard key={day.date} day={day} isToday={day.date === today} />
-              ))}
+            <div className="overflow-x-auto -mx-1 px-1">
+              <div className="grid grid-cols-7 gap-2 min-w-[480px]">
+                {weather.daily.map((day) => (
+                  <DayCard key={day.date} day={day} isToday={day.date === today} />
+                ))}
+              </div>
             </div>
             {weather.daily[0] && (
               <div className="mt-3 bg-honey-50 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm text-gray-600">
