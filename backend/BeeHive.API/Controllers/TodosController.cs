@@ -219,10 +219,12 @@ public class TodosController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Returns users that can be assigned a todo, filtered by the caller's role.</summary>
-    [HttpGet("assignable-users")]
+    /// <summary>Returns users that can be assigned a todo for a beehive, filtered by the caller's role.</summary>
+    [HttpGet("assignable-users/{beehiveId:int}")]
     [ProducesResponseType(typeof(IEnumerable<AssignableUserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAssignableUsers()
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetAssignableUsersForBeehive(int beehiveId)
     {
         var role          = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
         var userId        = GetUserId();
@@ -231,7 +233,18 @@ public class TodosController : ControllerBase
         var apiaryIdClaim = User.FindFirstValue("apiaryId");
         var apiaryId      = apiaryIdClaim != null ? int.Parse(apiaryIdClaim) : (int?)null;
 
-        var users = await _service.GetAssignableUsersAsync(role, userId, orgId, apiaryId);
+        // Authorization: ensure caller can access this beehive
+        if (role == "User")
+        {
+            if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, beehiveId))
+                return Forbid();
+        }
+        else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
+        {
+            return Forbid();
+        }
+
+        var users = await _service.GetAssignableUsersForBeehiveAsync(beehiveId, role, userId, orgId, apiaryId);
         return Ok(users);
     }
 

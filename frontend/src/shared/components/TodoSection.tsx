@@ -5,6 +5,7 @@ import { format, parseISO, isPast, isToday } from 'date-fns'
 import type { Todo, CreateTodoPayload, UpdateTodoPayload, AssignableUser } from '../../core/models'
 import { TodoPriority } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
+import { useAssignableUsersForBeehive } from '../../core/services/queries'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -204,6 +205,9 @@ export function TodoSection({
   onDelete,
   isMutating,
 }: TodoSectionProps) {
+  // Fetch beehive-specific assignable users if beehiveId is provided
+  const { data: beehiveAssignableUsers } = useAssignableUsersForBeehive(beehiveId ?? 0)
+
   // Fall back to the hook's canEditDelete only if props are not explicitly provided
   const { canEditDelete } = usePermissions()
   const effectiveCanCreate = canCreate ?? canEditDelete
@@ -211,6 +215,9 @@ export function TodoSection({
   const [showAddForm, setShowAddForm]   = useState(false)
   const [editingId, setEditingId]       = useState<number | null>(null)
   const [showCompleted, setShowCompleted] = useState(false)
+
+  // Use beehive-specific assignable users for beehive-scoped todos
+  const effectiveAssignableUsers = beehiveId ? beehiveAssignableUsers : assignableUsers
 
   const open   = todos.filter(t => !t.isCompleted)
   const done   = todos.filter(t => t.isCompleted)
@@ -264,7 +271,7 @@ export function TodoSection({
       {showAddForm && (
         <div className="mb-3">
           <TodoForm
-            assignableUsers={assignableUsers}
+            assignableUsers={effectiveAssignableUsers}
             onSave={handleAdd}
             onCancel={() => setShowAddForm(false)}
             isSaving={isMutating}
@@ -295,7 +302,7 @@ export function TodoSection({
               isEditing={editingId === todo.id}
               isMutating={isMutating}
               canEditDelete={effectiveCanManage}
-              assignableUsers={assignableUsers}
+              assignableUsers={effectiveAssignableUsers}
               onToggle={() => handleToggle(todo)}
               onEdit={() => setEditingId(todo.id)}
               onCancelEdit={() => setEditingId(null)}
@@ -325,7 +332,7 @@ export function TodoSection({
                   isEditing={editingId === todo.id}
                   isMutating={isMutating}
                   canEditDelete={effectiveCanManage}
-                  assignableUsers={assignableUsers}
+                  assignableUsers={effectiveAssignableUsers}
                   onToggle={() => handleToggle(todo)}
                   onEdit={() => setEditingId(todo.id)}
                   onCancelEdit={() => setEditingId(null)}

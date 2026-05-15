@@ -178,6 +178,10 @@ public class CreateTodoValidator : AbstractValidator<CreateTodoDto>
         RuleFor(x => x.BeehiveId)
             .GreaterThan(0).WithMessage("A valid beehive must be specified.")
             .When(x => x.BeehiveId.HasValue);
+
+        RuleFor(x => x.AssignedToId)
+            .GreaterThan(0).WithMessage("Invalid assignee.")
+            .When(x => x.AssignedToId.HasValue);
     }
 }
 
@@ -195,6 +199,10 @@ public class UpdateTodoValidator : AbstractValidator<UpdateTodoDto>
 
         RuleFor(x => x.Priority)
             .IsInEnum().WithMessage("Invalid priority value.");
+
+        RuleFor(x => x.AssignedToId)
+            .GreaterThan(0).WithMessage("Invalid assignee.")
+            .When(x => x.AssignedToId.HasValue);
     }
 }
 

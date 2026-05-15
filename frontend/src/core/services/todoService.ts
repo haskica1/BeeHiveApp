@@ -30,4 +30,9 @@ export const todoService = {
     const res = await apiClient.get<AssignableUser[]>('/todos/assignable-users')
     return res.data
   },
+
+  getAssignableUsersForBeehive: async (beehiveId: number): Promise<AssignableUser[]> => {
+    const res = await apiClient.get<AssignableUser[]>(`/todos/assignable-users/${beehiveId}`)
+    return res.data
+  },
 }

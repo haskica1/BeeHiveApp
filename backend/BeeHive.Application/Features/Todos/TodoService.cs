@@ -22,6 +22,7 @@ public interface ITodoService
     Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
     Task DeleteAsync(int id);
     Task<IEnumerable<AssignableUserDto>> GetAssignableUsersAsync(string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId);
+    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId, string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId);
     Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
 }
 
@@ -132,6 +133,33 @@ public class TodoService : ITodoService
         }
 
         return users
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .Select(u => new AssignableUserDto(u.Id, $"{u.FirstName} {u.LastName}"));
+    }
+
+    public async Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(
+        int beehiveId, string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId)
+    {
+        var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+        if (beehive == null)
+            throw new NotFoundException(nameof(Beehive), beehiveId);
+
+        var results = new HashSet<User>();
+
+        // All Admins assigned to the beehive's apiary
+        var admins = await _uow.Users.FindAsync(u =>
+            u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
+        foreach (var admin in admins)
+            results.Add(admin);
+
+        // All Users with beehive-scoped access to this specific beehive
+        var beehiveUsers = await _uow.Users.FindAsync(u =>
+            u.AssignedBeehives.Any(ub => ub.BeehiveId == beehiveId));
+        foreach (var user in beehiveUsers)
+            results.Add(user);
+
+        return results
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .Select(u => new AssignableUserDto(u.Id, $"{u.FirstName} {u.LastName}"));
