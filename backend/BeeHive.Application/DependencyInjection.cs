@@ -3,6 +3,7 @@ using BeeHive.Application.Common.Mappings;
 using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Apiaries;
+using BeeHive.Application.Features.OrgManagement;
 using BeeHive.Application.Features.Auth;
 using BeeHive.Application.Features.Calendar;
 using BeeHive.Application.Features.Profile;
@@ -33,6 +34,7 @@ public static class DependencyInjection
         // Application services
         services.AddScoped<ICalendarService, CalendarService>();
         services.AddScoped<IAdminService, AdminService>();
+        services.AddScoped<IOrgManagementService, OrgManagementService>();
         services.AddScoped<IProfileService, ProfileService>();
         services.AddScoped<IStatsService, StatsService>();
         services.AddScoped<IAuthService, AuthService>();

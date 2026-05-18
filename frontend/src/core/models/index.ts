@@ -435,6 +435,39 @@ export interface UpdateAdminUserPayload {
   assignedBeehiveIds: number[]
 }
 
+// ── Org Management ────────────────────────────────────────────────────────────
+
+export interface OrgMember {
+  id: number
+  firstName: string
+  lastName: string
+  email: string
+  role: string
+  apiaryId?: number
+  apiaryName?: string
+  assignedBeehiveIds: number[]
+  assignedBeehiveNames: string[]
+}
+
+export interface OrgAvailableBeehive {
+  id: number
+  name: string
+  apiaryName: string
+}
+
+export interface OrgAvailableApiary {
+  id: number
+  name: string
+}
+
+export interface UpdateBeehiveAssignmentsPayload {
+  beehiveIds: number[]
+}
+
+export interface UpdateApiaryAssignmentPayload {
+  apiaryId: number | null
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

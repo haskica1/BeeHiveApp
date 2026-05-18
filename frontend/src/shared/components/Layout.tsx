@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, X } from 'lucide-react'
+import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import QrScannerModal from './QrScannerModal'
@@ -74,6 +74,9 @@ export default function Layout() {
                 <NavPill to="/admin" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
               ) : (
                 <NavPill to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
+              )}
+              {(isOrgAdmin || isAdmin) && (
+                <NavPill to="/members" icon={<Users className="w-4 h-4" />} label="Members" />
               )}
               <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Calendar" />
               <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistics" />
@@ -165,6 +168,14 @@ export default function Layout() {
                 to="/apiaries"
                 icon={<Home className="w-4 h-4" />}
                 label="Apiaries"
+                onClick={() => setMobileOpen(false)}
+              />
+            )}
+            {(isOrgAdmin || isAdmin) && (
+              <MobileNavItem
+                to="/members"
+                icon={<Users className="w-4 h-4" />}
+                label="Members"
                 onClick={() => setMobileOpen(false)}
               />
             )}

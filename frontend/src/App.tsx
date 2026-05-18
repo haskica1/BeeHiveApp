@@ -16,6 +16,8 @@ import DietDetailPage from './features/diets/DietDetailPage'
 import AdminDashboardPage from './features/admin/AdminDashboardPage'
 import OrganizationFormPage from './features/admin/OrganizationFormPage'
 import UserFormPage from './features/admin/UserFormPage'
+import MembersPage from './features/members/MembersPage'
+import MemberAssignmentPage from './features/members/MemberAssignmentPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
@@ -24,6 +26,7 @@ import CalendarPage from './features/calendar/CalendarPage'
 
 const APIARY_MANAGERS  = ['OrgAdmin', 'SystemAdmin']
 const HIVE_MANAGERS    = ['Admin', 'OrgAdmin', 'SystemAdmin']
+const MEMBER_MANAGERS  = ['OrgAdmin', 'Admin']
 
 export default function App() {
   return (
@@ -78,6 +81,12 @@ export default function App() {
 
               {/* Calendar — all authenticated users */}
               <Route path="calendar" element={<CalendarPage />} />
+
+              {/* Members routes — OrgAdmin and Admin */}
+              <Route element={<RoleRoute allowedRoles={MEMBER_MANAGERS} />}>
+                <Route path="members"                        element={<MembersPage />} />
+                <Route path="members/:id/assignments"        element={<MemberAssignmentPage />} />
+              </Route>
 
               {/* Admin routes — SystemAdmin only */}
               <Route element={<AdminRoute />}>
