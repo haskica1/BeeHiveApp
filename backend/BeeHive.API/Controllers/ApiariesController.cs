@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Apiaries.DTOs;
+using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Weather;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
@@ -19,17 +20,20 @@ namespace BeeHive.API.Controllers;
 public class ApiariesController : ControllerBase
 {
     private readonly IApiaryService _service;
+    private readonly IBeehiveService _beehiveService;
     private readonly IWeatherService _weather;
     private readonly IValidator<CreateApiaryDto> _createValidator;
     private readonly IValidator<UpdateApiaryDto> _updateValidator;
 
     public ApiariesController(
         IApiaryService service,
+        IBeehiveService beehiveService,
         IWeatherService weather,
         IValidator<CreateApiaryDto> createValidator,
         IValidator<UpdateApiaryDto> updateValidator)
     {
         _service = service;
+        _beehiveService = beehiveService;
         _weather = weather;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
@@ -47,10 +51,9 @@ public class ApiariesController : ControllerBase
 
         var apiaries = await _service.GetAllByOrganizationAsync(orgId);
 
-        // Admin users are scoped to a single apiary (filtered by JWT claim).
-        // If the claim is absent (misconfigured account) fall back to all org apiaries
-        // so the user is never completely locked out.
         var role = User.FindFirstValue(ClaimTypes.Role);
+
+        // Admin users are scoped to a single apiary (filtered by JWT claim).
         if (role == "Admin")
         {
             var apiaryIdClaim = User.FindFirstValue("apiaryId");
@@ -59,6 +62,14 @@ public class ApiariesController : ControllerBase
                 var apiaryId = int.Parse(apiaryIdClaim);
                 return Ok(apiaries.Where(a => a.Id == apiaryId));
             }
+        }
+
+        // User-role accounts only see apiaries that contain at least one beehive assigned to them.
+        if (role == "User")
+        {
+            var userId = GetUserId() ?? 0;
+            var assignedApiaryIds = await _beehiveService.GetAssignedApiaryIdsAsync(userId);
+            return Ok(apiaries.Where(a => assignedApiaryIds.Contains(a.Id)));
         }
 
         return Ok(apiaries);

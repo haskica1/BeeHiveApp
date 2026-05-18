@@ -71,13 +71,22 @@ public class BeehivesController : ControllerBase
         return Ok(new { updated = count, message = $"QR codes regenerated for {count} beehive(s)." });
     }
 
-    /// <summary>Returns all beehives belonging to the specified apiary.</summary>
+    /// <summary>Returns all beehives belonging to the specified apiary.
+    /// User-role accounts only see beehives assigned to them.</summary>
     [HttpGet("by-apiary/{apiaryId:int}")]
     [ProducesResponseType(typeof(IEnumerable<BeehiveDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByApiary(int apiaryId)
     {
         var beehives = await _service.GetByApiaryIdAsync(apiaryId);
+
+        if (User.FindFirstValue(ClaimTypes.Role) == "User")
+        {
+            var userId = GetUserId() ?? 0;
+            var assignedIds = await _service.GetAssignedBeehiveIdsAsync(userId);
+            beehives = beehives.Where(b => assignedIds.Contains(b.Id));
+        }
+
         return Ok(beehives);
     }
 

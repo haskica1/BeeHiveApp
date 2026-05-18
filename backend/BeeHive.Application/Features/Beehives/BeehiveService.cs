@@ -19,6 +19,12 @@ public interface IBeehiveService
     Task DeleteAsync(int id);
     Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
 
+    /// <summary>Returns the set of beehive IDs assigned to the given user.</summary>
+    Task<HashSet<int>> GetAssignedBeehiveIdsAsync(int userId);
+
+    /// <summary>Returns the set of apiary IDs that contain at least one beehive assigned to the given user.</summary>
+    Task<HashSet<int>> GetAssignedApiaryIdsAsync(int userId);
+
     /// <summary>Public scan lookup — resolves a uniqueId to the minimal beehive info needed for redirect.</summary>
     Task<BeehiveScanDto?> GetScanInfoAsync(Guid uniqueId);
 
@@ -113,6 +119,20 @@ public class BeehiveService : IBeehiveService
 
     public Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
         _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId);
+
+    public async Task<HashSet<int>> GetAssignedBeehiveIdsAsync(int userId)
+    {
+        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId);
+        if (user is null) return [];
+        return user.AssignedBeehives.Select(ub => ub.BeehiveId).ToHashSet();
+    }
+
+    public async Task<HashSet<int>> GetAssignedApiaryIdsAsync(int userId)
+    {
+        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId);
+        if (user is null) return [];
+        return user.AssignedBeehives.Select(ub => ub.Beehive.ApiaryId).ToHashSet();
+    }
 
     public async Task<BeehiveScanDto?> GetScanInfoAsync(Guid uniqueId)
     {
