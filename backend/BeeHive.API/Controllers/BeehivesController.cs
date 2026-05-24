@@ -90,13 +90,25 @@ public class BeehivesController : ControllerBase
         return Ok(beehives);
     }
 
-    /// <summary>Returns a single beehive including all its inspections.</summary>
+    /// <summary>Returns a single beehive including all its inspections.
+    /// Admin and User roles are subject to access checks.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(BeehiveDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
+        // Load first so a non-existent ID returns 404, not 403
         var beehive = await _service.GetByIdAsync(id);
+
+        var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
+        var userId = GetUserId() ?? 0;
+        var apiaryIdClaim = User.FindFirstValue("apiaryId");
+
+        var hasAccess = await _service.HasAccessAsync(userId, role, apiaryIdClaim, id);
+        if (!hasAccess)
+            return Forbid();
+
         return Ok(beehive);
     }
 

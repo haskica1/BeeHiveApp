@@ -75,13 +75,38 @@ public class ApiariesController : ControllerBase
         return Ok(apiaries);
     }
 
-    /// <summary>Returns a single apiary including its beehives.</summary>
+    /// <summary>Returns a single apiary including its beehives.
+    /// Admin sees only their assigned apiary; User sees only their assigned beehives within it.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(ApiaryDetailDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
+        var role = User.FindFirstValue(ClaimTypes.Role);
+
+        // Admin may only access their assigned apiary
+        if (role == "Admin")
+        {
+            var apiaryIdClaim = User.FindFirstValue("apiaryId");
+            if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != id)
+                return Forbid();
+        }
+
         var apiary = await _service.GetByIdAsync(id);
+
+        // User sees only their assigned beehives; no assigned beehives here = no access
+        if (role == "User")
+        {
+            var userId = GetUserId() ?? 0;
+            var assignedIds = await _beehiveService.GetAssignedBeehiveIdsAsync(userId);
+            var visibleBeehives = apiary.Beehives.Where(b => assignedIds.Contains(b.Id)).ToList();
+            if (visibleBeehives.Count == 0)
+                return Forbid();
+            apiary.Beehives = visibleBeehives;
+            apiary.BeehiveCount = visibleBeehives.Count;
+        }
+
         return Ok(apiary);
     }
 
