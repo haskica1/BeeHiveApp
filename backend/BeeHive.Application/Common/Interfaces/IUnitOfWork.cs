@@ -13,6 +13,7 @@ public interface IUnitOfWork : IDisposable
     ITodoRepository Todos { get; }
     IDietRepository Diets { get; }
     IFeedingEntryRepository FeedingEntries { get; }
+    IExpenseRepository Expenses { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

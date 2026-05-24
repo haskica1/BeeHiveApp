@@ -22,6 +22,8 @@ public class BeeHiveDbContext : DbContext
     public DbSet<Todo> Todos => Set<Todo>();
     public DbSet<Diet> Diets => Set<Diet>();
     public DbSet<FeedingEntry> FeedingEntries => Set<FeedingEntry>();
+    public DbSet<Expense> Expenses => Set<Expense>();
+    public DbSet<ExpenseItem> ExpenseItems => Set<ExpenseItem>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

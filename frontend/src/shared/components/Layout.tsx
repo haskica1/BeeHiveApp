@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, Settings, Users, X } from 'lucide-react'
+import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, ReceiptText, Settings, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import QrScannerModal from './QrScannerModal'
@@ -13,9 +13,10 @@ export default function Layout() {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
 
-  const isSystemAdmin = user?.role === 'SystemAdmin'
-  const isOrgAdmin    = user?.role === 'OrgAdmin'
-  const isAdmin       = user?.role === 'Admin'
+  const isSystemAdmin  = user?.role === 'SystemAdmin'
+  const isOrgAdmin     = user?.role === 'OrgAdmin'
+  const isAdmin        = user?.role === 'Admin'
+  const canSeeExpenses = isSystemAdmin || isOrgAdmin || isAdmin
 
   const avatarClass = isSystemAdmin
     ? 'bg-purple-100 text-purple-700'
@@ -77,6 +78,9 @@ export default function Layout() {
               )}
               {(isOrgAdmin || isAdmin) && (
                 <NavPill to="/members" icon={<Users className="w-4 h-4" />} label="Members" />
+              )}
+              {canSeeExpenses && (
+                <NavPill to="/expenses" icon={<ReceiptText className="w-4 h-4" />} label="Expenses" />
               )}
               <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Calendar" />
               <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistics" />
@@ -176,6 +180,14 @@ export default function Layout() {
                 to="/members"
                 icon={<Users className="w-4 h-4" />}
                 label="Members"
+                onClick={() => setMobileOpen(false)}
+              />
+            )}
+            {canSeeExpenses && (
+              <MobileNavItem
+                to="/expenses"
+                icon={<ReceiptText className="w-4 h-4" />}
+                label="Expenses"
                 onClick={() => setMobileOpen(false)}
               />
             )}

@@ -468,6 +468,71 @@ export interface UpdateApiaryAssignmentPayload {
   apiaryId: number | null
 }
 
+// ── Expenses ──────────────────────────────────────────────────────────────────
+
+export enum ExpenseSource {
+  Manual      = 1,
+  ReceiptScan = 2,
+}
+
+export const ExpenseSourceLabels: Record<ExpenseSource, string> = {
+  [ExpenseSource.Manual]:      'Manual',
+  [ExpenseSource.ReceiptScan]: 'Receipt Scan',
+}
+
+export interface ExpenseItem {
+  id: number
+  name: string
+  quantity: number
+  unit?: string
+  unitPrice: number
+  totalPrice: number
+  sortOrder: number
+}
+
+export interface Expense {
+  id: number
+  source: ExpenseSource
+  sourceName: string
+  purchaseDate: string
+  totalAmount: number
+  currency: string
+  notes?: string
+  itemCount: number
+  createdByName?: string
+  createdAt: string
+}
+
+export interface ExpenseDetail extends Expense {
+  items: ExpenseItem[]
+}
+
+export interface CreateExpenseItemPayload {
+  name: string
+  quantity: number
+  unit?: string
+  unitPrice: number
+  totalPrice: number
+  sortOrder: number
+}
+
+export interface CreateExpensePayload {
+  source: ExpenseSource
+  purchaseDate: string
+  totalAmount: number
+  currency: string
+  notes?: string
+  items: CreateExpenseItemPayload[]
+}
+
+export interface UpdateExpensePayload {
+  purchaseDate: string
+  totalAmount: number
+  currency: string
+  notes?: string
+  items: CreateExpenseItemPayload[]
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

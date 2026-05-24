@@ -18,15 +18,19 @@ import OrganizationFormPage from './features/admin/OrganizationFormPage'
 import UserFormPage from './features/admin/UserFormPage'
 import MembersPage from './features/members/MembersPage'
 import MemberAssignmentPage from './features/members/MemberAssignmentPage'
+import ExpensesPage from './features/expenses/ExpensesPage'
+import ExpenseFormPage from './features/expenses/ExpenseFormPage'
+import ReceiptScanPage from './features/expenses/ReceiptScanPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
 import StatsPage from './features/stats/StatsPage'
 import CalendarPage from './features/calendar/CalendarPage'
 
-const APIARY_MANAGERS  = ['OrgAdmin', 'SystemAdmin']
-const HIVE_MANAGERS    = ['Admin', 'OrgAdmin', 'SystemAdmin']
-const MEMBER_MANAGERS  = ['OrgAdmin', 'Admin']
+const APIARY_MANAGERS   = ['OrgAdmin', 'SystemAdmin']
+const HIVE_MANAGERS     = ['Admin', 'OrgAdmin', 'SystemAdmin']
+const MEMBER_MANAGERS   = ['OrgAdmin', 'Admin']
+const EXPENSE_MANAGERS  = ['Admin', 'OrgAdmin', 'SystemAdmin']
 
 export default function App() {
   return (
@@ -86,6 +90,14 @@ export default function App() {
               <Route element={<RoleRoute allowedRoles={MEMBER_MANAGERS} />}>
                 <Route path="members"                        element={<MembersPage />} />
                 <Route path="members/:id/assignments"        element={<MemberAssignmentPage />} />
+              </Route>
+
+              {/* Expenses — Admin, OrgAdmin, SystemAdmin */}
+              <Route element={<RoleRoute allowedRoles={EXPENSE_MANAGERS} />}>
+                <Route path="expenses"           element={<ExpensesPage />} />
+                <Route path="expenses/scan"      element={<ReceiptScanPage />} />
+                <Route path="expenses/new"       element={<ExpenseFormPage />} />
+                <Route path="expenses/:id/edit"  element={<ExpenseFormPage />} />
               </Route>
 
               {/* Admin routes — SystemAdmin only */}

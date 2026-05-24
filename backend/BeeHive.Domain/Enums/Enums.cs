@@ -73,3 +73,9 @@ public enum UserRole
     OrgAdmin    = 3,
     User        = 4,
 }
+
+public enum ExpenseSource
+{
+    Manual      = 1,
+    ReceiptScan = 2,
+}

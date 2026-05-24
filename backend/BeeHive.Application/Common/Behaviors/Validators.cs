@@ -1,6 +1,7 @@
 using BeeHive.Application.Features.Apiaries.DTOs;
 using BeeHive.Application.Features.Beehives.DTOs;
 using BeeHive.Application.Features.Diets.DTOs;
+using BeeHive.Application.Features.Expenses.DTOs;
 using BeeHive.Application.Features.Inspections.DTOs;
 using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Enums;
@@ -290,5 +291,83 @@ public class CompleteEarlyValidator : AbstractValidator<CompleteEarlyDto>
         RuleFor(x => x.Comment)
             .NotEmpty().WithMessage("A comment is required when stopping a diet early.")
             .MaximumLength(1000).WithMessage("Comment must not exceed 1000 characters.");
+    }
+}
+
+// ── Expense Validators ───────────────────────────────────────────────────────
+
+public class ExpenseItemValidator : AbstractValidator<CreateExpenseItemDto>
+{
+    public ExpenseItemValidator()
+    {
+        RuleFor(x => x.Name)
+            .NotEmpty().WithMessage("Product name is required.")
+            .MaximumLength(200).WithMessage("Product name must not exceed 200 characters.");
+
+        RuleFor(x => x.Quantity)
+            .GreaterThan(0).WithMessage("Quantity must be greater than 0.");
+
+        RuleFor(x => x.UnitPrice)
+            .GreaterThanOrEqualTo(0).WithMessage("Unit price must be 0 or greater.");
+
+        RuleFor(x => x.TotalPrice)
+            .GreaterThanOrEqualTo(0).WithMessage("Total price must be 0 or greater.");
+
+        RuleFor(x => x.Unit)
+            .MaximumLength(50).WithMessage("Unit label must not exceed 50 characters.")
+            .When(x => x.Unit is not null);
+    }
+}
+
+public class CreateExpenseValidator : AbstractValidator<CreateExpenseDto>
+{
+    public CreateExpenseValidator()
+    {
+        RuleFor(x => x.Source)
+            .IsInEnum().WithMessage("Invalid expense source.");
+
+        RuleFor(x => x.PurchaseDate)
+            .NotEmpty().WithMessage("Purchase date is required.");
+
+        RuleFor(x => x.TotalAmount)
+            .GreaterThanOrEqualTo(0).WithMessage("Total amount must be 0 or greater.");
+
+        RuleFor(x => x.Currency)
+            .NotEmpty().WithMessage("Currency is required.")
+            .MaximumLength(10).WithMessage("Currency must not exceed 10 characters.");
+
+        RuleFor(x => x.Notes)
+            .MaximumLength(2000).WithMessage("Notes must not exceed 2000 characters.")
+            .When(x => x.Notes is not null);
+
+        RuleFor(x => x.Items)
+            .NotEmpty().WithMessage("At least one expense item is required.");
+
+        RuleForEach(x => x.Items).SetValidator(new ExpenseItemValidator());
+    }
+}
+
+public class UpdateExpenseValidator : AbstractValidator<UpdateExpenseDto>
+{
+    public UpdateExpenseValidator()
+    {
+        RuleFor(x => x.PurchaseDate)
+            .NotEmpty().WithMessage("Purchase date is required.");
+
+        RuleFor(x => x.TotalAmount)
+            .GreaterThanOrEqualTo(0).WithMessage("Total amount must be 0 or greater.");
+
+        RuleFor(x => x.Currency)
+            .NotEmpty().WithMessage("Currency is required.")
+            .MaximumLength(10).WithMessage("Currency must not exceed 10 characters.");
+
+        RuleFor(x => x.Notes)
+            .MaximumLength(2000).WithMessage("Notes must not exceed 2000 characters.")
+            .When(x => x.Notes is not null);
+
+        RuleFor(x => x.Items)
+            .NotEmpty().WithMessage("At least one expense item is required.");
+
+        RuleForEach(x => x.Items).SetValidator(new ExpenseItemValidator());
     }
 }
