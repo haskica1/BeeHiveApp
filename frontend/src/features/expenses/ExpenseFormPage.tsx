@@ -42,7 +42,6 @@ export default function ExpenseFormPage() {
     reset,
     watch,
     setValue,
-    formState: { errors },
   } = useForm<FormValues>({
     defaultValues: {
       purchaseDate: new Date().toISOString().split('T')[0],
