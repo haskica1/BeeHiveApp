@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Features.Notifications;
 using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
@@ -32,11 +33,13 @@ public class TodoService : ITodoService
 {
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
+    private readonly INotificationService _notifications;
 
-    public TodoService(IUnitOfWork uow, IMapper mapper)
+    public TodoService(IUnitOfWork uow, IMapper mapper, INotificationService notifications)
     {
-        _uow    = uow;
-        _mapper = mapper;
+        _uow           = uow;
+        _mapper        = mapper;
+        _notifications = notifications;
     }
 
     public async Task<IEnumerable<TodoDto>> GetByApiaryIdAsync(int apiaryId)
@@ -79,8 +82,16 @@ public class TodoService : ITodoService
         await _uow.Todos.AddAsync(todo);
         await _uow.SaveChangesAsync();
 
-        // Reload with navigation properties for the response
         var created = await _uow.Todos.GetByIdWithUsersAsync(todo.Id);
+
+        // 6) Todo creation notifications
+        if (createdById.HasValue)
+        {
+            var creator = await _uow.Users.GetByIdWithOrganizationAsync(createdById.Value);
+            if (creator != null)
+                await SendTodoCreatedNotificationsAsync(created!, creator);
+        }
+
         return _mapper.Map<TodoDto>(created!);
     }
 
@@ -112,21 +123,18 @@ public class TodoService : ITodoService
 
         if (callerRole == nameof(UserRole.SystemAdmin) || callerRole == nameof(UserRole.OrgAdmin))
         {
-            // Org-level: all users in the same organization
             users = callerOrgId.HasValue
                 ? await _uow.Users.FindAsync(u => u.OrganizationId == callerOrgId)
                 : Enumerable.Empty<User>();
         }
         else if (callerRole == nameof(UserRole.Admin))
         {
-            // Apiary-level: all users assigned to the same apiary
             users = callerApiaryId.HasValue
                 ? await _uow.Users.FindAsync(u => u.ApiaryId == callerApiaryId)
                 : Enumerable.Empty<User>();
         }
         else
         {
-            // Regular user: only themselves
             users = callerUserId.HasValue
                 ? await _uow.Users.FindAsync(u => u.Id == callerUserId)
                 : Enumerable.Empty<User>();
@@ -147,13 +155,11 @@ public class TodoService : ITodoService
 
         var results = new HashSet<User>();
 
-        // All Admins assigned to the beehive's apiary
         var admins = await _uow.Users.FindAsync(u =>
             u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
         foreach (var admin in admins)
             results.Add(admin);
 
-        // All Users with beehive-scoped access to this specific beehive
         var beehiveUsers = await _uow.Users.FindAsync(u =>
             u.AssignedBeehives.Any(ub => ub.BeehiveId == beehiveId));
         foreach (var user in beehiveUsers)
@@ -176,4 +182,65 @@ public class TodoService : ITodoService
 
     public Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
         _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId);
+
+    // ── Notification helpers ──────────────────────────────────────────────────
+
+    private async Task SendTodoCreatedNotificationsAsync(Todo todo, User creator)
+    {
+        // Resolve the apiary for context label
+        int? apiaryId = todo.ApiaryId;
+        if (!apiaryId.HasValue && todo.BeehiveId.HasValue)
+        {
+            var beehive = await _uow.Beehives.GetByIdAsync(todo.BeehiveId.Value);
+            apiaryId = beehive?.ApiaryId;
+        }
+
+        var apiary = apiaryId.HasValue ? await _uow.Apiaries.GetByIdAsync(apiaryId.Value) : null;
+        var context = apiary != null ? $" in apiary '{apiary.Name}'" : string.Empty;
+
+        // Notify creator's superior (same cascading rule as beehive creation)
+        if (creator.Role == UserRole.Admin)
+        {
+            var orgAdmins = await _uow.Users.FindAsync(u =>
+                u.OrganizationId == creator.OrganizationId && u.Role == UserRole.OrgAdmin);
+
+            foreach (var orgAdmin in orgAdmins)
+            {
+                if (orgAdmin.Id == creator.Id) continue;
+                await _notifications.NotifyAsync(
+                    orgAdmin.Id,
+                    "New TODO created",
+                    $"Admin {creator.FirstName} {creator.LastName} created todo '{todo.Title}'{context}.",
+                    NotificationType.TodoCreated,
+                    todo.Id, nameof(Todo));
+            }
+        }
+        else if (creator.Role == UserRole.OrgAdmin && apiaryId.HasValue)
+        {
+            var admins = await _uow.Users.FindAsync(u =>
+                u.ApiaryId == apiaryId.Value && u.Role == UserRole.Admin);
+
+            foreach (var admin in admins)
+            {
+                if (admin.Id == creator.Id) continue;
+                await _notifications.NotifyAsync(
+                    admin.Id,
+                    "New TODO created",
+                    $"Organization Admin {creator.FirstName} {creator.LastName} created todo '{todo.Title}'{context}.",
+                    NotificationType.TodoCreated,
+                    todo.Id, nameof(Todo));
+            }
+        }
+
+        // Notify assignee if different from creator
+        if (todo.AssignedToId.HasValue && todo.AssignedToId != creator.Id)
+        {
+            await _notifications.NotifyAsync(
+                todo.AssignedToId.Value,
+                "TODO assigned to you",
+                $"'{todo.Title}' has been assigned to you{context}.",
+                NotificationType.TodoCreated,
+                todo.Id, nameof(Todo));
+        }
+    }
 }

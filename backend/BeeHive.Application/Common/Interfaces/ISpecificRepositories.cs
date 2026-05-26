@@ -91,3 +91,11 @@ public interface IExpenseRepository : IRepository<Expense>
     /// <summary>Returns a single expense with its items eagerly loaded.</summary>
     Task<Expense?> GetWithItemsAsync(int id);
 }
+
+/// <summary>Notification-specific data access operations.</summary>
+public interface INotificationRepository : IRepository<Notification>
+{
+    Task<IEnumerable<Notification>> GetByUserIdAsync(int userId);
+    Task<int> GetUnreadCountAsync(int userId);
+    Task MarkAllAsReadAsync(int userId);
+}

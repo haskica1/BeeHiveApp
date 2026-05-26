@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Features.Notifications;
 using BeeHive.Application.Features.OrgManagement.DTOs;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
@@ -42,10 +43,12 @@ public interface IOrgManagementService
 public class OrgManagementService : IOrgManagementService
 {
     private readonly IUnitOfWork _uow;
+    private readonly INotificationService _notifications;
 
-    public OrgManagementService(IUnitOfWork uow)
+    public OrgManagementService(IUnitOfWork uow, INotificationService notifications)
     {
-        _uow = uow;
+        _uow           = uow;
+        _notifications = notifications;
     }
 
     public async Task<IEnumerable<OrgMemberDto>> GetMembersAsync(int orgId)
@@ -84,7 +87,7 @@ public class OrgManagementService : IOrgManagementService
         int memberId, UpdateBeehiveAssignmentsDto dto,
         int callerOrgId, int? callerApiaryId, string callerRole)
     {
-        var member = await _uow.Users.GetByIdWithOrganizationAsync(memberId)
+        var member = await _uow.Users.GetByIdWithAssignedBeehivesAsync(memberId)
             ?? throw new NotFoundException(nameof(User), memberId);
 
         if (member.OrganizationId != callerOrgId)
@@ -109,8 +112,36 @@ public class OrgManagementService : IOrgManagementService
                 throw new BusinessRuleException($"Beehive '{beehive.Name}' is not in your apiary.");
         }
 
+        // Capture old assignments for change detection
+        var oldBeehiveIds = member.AssignedBeehives.Select(ub => ub.BeehiveId).ToHashSet();
+        var newBeehiveIds = dto.BeehiveIds.ToHashSet();
+
         await _uow.Users.SetBeehiveAssignmentsAsync(memberId, dto.BeehiveIds);
         await _uow.SaveChangesAsync();
+
+        // 3) Notify member of beehive assignment changes
+        foreach (var beehiveId in newBeehiveIds.Except(oldBeehiveIds))
+        {
+            var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+            if (beehive == null) continue;
+            await _notifications.NotifyAsync(
+                memberId,
+                "Beehive assigned",
+                $"You have been assigned to beehive '{beehive.Name}'.",
+                NotificationType.BeehiveAssigned,
+                beehiveId, nameof(Beehive));
+        }
+
+        foreach (var beehiveId in oldBeehiveIds.Except(newBeehiveIds))
+        {
+            var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+            await _notifications.NotifyAsync(
+                memberId,
+                "Beehive unassigned",
+                $"You have been unassigned from beehive '{beehive?.Name ?? "Unknown"}'.",
+                NotificationType.BeehiveUnassigned,
+                beehiveId, nameof(Beehive));
+        }
 
         var updated = await _uow.Users.GetByIdWithAssignedBeehivesAsync(memberId);
         return MapMember(updated!);
@@ -128,18 +159,39 @@ public class OrgManagementService : IOrgManagementService
         if (member.Role != UserRole.Admin)
             throw new BusinessRuleException("Apiary assignment can only be set for Admin-role members.");
 
+        Apiary? newApiary = null;
         if (dto.ApiaryId.HasValue)
         {
-            var apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value)
+            newApiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value)
                 ?? throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
 
-            if (apiary.OrganizationId != callerOrgId)
+            if (newApiary.OrganizationId != callerOrgId)
                 throw new BusinessRuleException("The selected apiary does not belong to your organization.");
         }
 
+        var oldApiaryId = member.ApiaryId;
         member.ApiaryId = dto.ApiaryId;
         await _uow.Users.UpdateAsync(member);
         await _uow.SaveChangesAsync();
+
+        // 2) Notify admin of apiary assignment change
+        if (dto.ApiaryId.HasValue && dto.ApiaryId != oldApiaryId && newApiary != null)
+        {
+            await _notifications.NotifyAsync(
+                memberId,
+                "Apiary assigned",
+                $"You have been assigned as Admin for apiary '{newApiary.Name}'.",
+                NotificationType.ApiaryAssigned,
+                dto.ApiaryId.Value, nameof(Apiary));
+        }
+        else if (!dto.ApiaryId.HasValue && oldApiaryId.HasValue)
+        {
+            await _notifications.NotifyAsync(
+                memberId,
+                "Apiary unassigned",
+                "You have been unassigned from your apiary.",
+                NotificationType.ApiaryUnassigned);
+        }
 
         var updated = await _uow.Users.GetByIdWithAssignedBeehivesAsync(memberId);
         return MapMember(updated!);

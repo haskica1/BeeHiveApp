@@ -1,6 +1,7 @@
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Admin.DTOs;
+using BeeHive.Application.Features.Notifications;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
 
@@ -32,10 +33,12 @@ public interface IAdminService
 public class AdminService : IAdminService
 {
     private readonly IUnitOfWork _uow;
+    private readonly INotificationService _notifications;
 
-    public AdminService(IUnitOfWork uow)
+    public AdminService(IUnitOfWork uow, INotificationService notifications)
     {
-        _uow = uow;
+        _uow           = uow;
+        _notifications = notifications;
     }
 
     // ── Organizations ──────────────────────────────────────────────────────────
@@ -157,9 +160,10 @@ public class AdminService : IAdminService
                 throw new NotFoundException(nameof(Organization), dto.OrganizationId.Value);
         }
 
+        Apiary? apiary = null;
         if (dto.ApiaryId.HasValue)
         {
-            var apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value);
+            apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value);
             if (apiary == null)
                 throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
             if (dto.OrganizationId.HasValue && apiary.OrganizationId != dto.OrganizationId.Value)
@@ -188,12 +192,62 @@ public class AdminService : IAdminService
         }
 
         var created = await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id);
+
+        // ── Notifications ──────────────────────────────────────────────────────
+        var fullName = $"{user.FirstName} {user.LastName}";
+
+        // 4) Account created — always notify the new user
+        await _notifications.NotifyAsync(
+            user.Id,
+            "Welcome to BeeHive!",
+            $"Your account has been created. You can now log in with your email: {user.Email}.",
+            NotificationType.AccountCreated);
+
+        // 1) OrgAdmin assigned to an organisation
+        if (role == UserRole.OrgAdmin && dto.OrganizationId.HasValue)
+        {
+            var org = await _uow.Organizations.GetWithDetailsAsync(dto.OrganizationId.Value);
+            await _notifications.NotifyAsync(
+                user.Id,
+                "Organization assigned",
+                $"You have been assigned as Organization Admin for '{org?.Name}'.",
+                NotificationType.OrganizationAssigned,
+                dto.OrganizationId.Value, nameof(Organization));
+        }
+
+        // 2) Admin assigned to an apiary
+        if (role == UserRole.Admin && dto.ApiaryId.HasValue && apiary != null)
+        {
+            await _notifications.NotifyAsync(
+                user.Id,
+                "Apiary assigned",
+                $"You have been assigned as Admin for apiary '{apiary.Name}'.",
+                NotificationType.ApiaryAssigned,
+                dto.ApiaryId.Value, nameof(Apiary));
+        }
+
+        // 3) User assigned to beehives
+        if (role == UserRole.User && dto.AssignedBeehiveIds.Count > 0)
+        {
+            foreach (var beehiveId in dto.AssignedBeehiveIds)
+            {
+                var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+                if (beehive == null) continue;
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Beehive assigned",
+                    $"You have been assigned to beehive '{beehive.Name}'.",
+                    NotificationType.BeehiveAssigned,
+                    beehiveId, nameof(Beehive));
+            }
+        }
+
         return MapUser(created!);
     }
 
     public async Task<AdminUserDto> UpdateUserAsync(int id, UpdateAdminUserDto dto)
     {
-        var user = await _uow.Users.GetByIdWithOrganizationAsync(id)
+        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(id)
             ?? throw new NotFoundException(nameof(User), id);
 
         if (!Enum.TryParse<UserRole>(dto.Role, out var role))
@@ -208,12 +262,13 @@ public class AdminService : IAdminService
                 throw new NotFoundException(nameof(Organization), dto.OrganizationId.Value);
         }
 
+        Apiary? newApiary = null;
         if (dto.ApiaryId.HasValue)
         {
-            var apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value);
-            if (apiary == null)
+            newApiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value);
+            if (newApiary == null)
                 throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
-            if (dto.OrganizationId.HasValue && apiary.OrganizationId != dto.OrganizationId.Value)
+            if (dto.OrganizationId.HasValue && newApiary.OrganizationId != dto.OrganizationId.Value)
                 throw new BusinessRuleException("The selected apiary does not belong to the selected organization.");
         }
 
@@ -225,6 +280,12 @@ public class AdminService : IAdminService
                 throw new BusinessRuleException($"A user with email '{dto.Email}' already exists.");
         }
 
+        // Capture old state for change detection
+        var oldRole      = user.Role;
+        var oldOrgId     = user.OrganizationId;
+        var oldApiaryId  = user.ApiaryId;
+        var oldBeehiveIds = user.AssignedBeehives.Select(ub => ub.BeehiveId).ToHashSet();
+
         user.FirstName = dto.FirstName.Trim();
         user.LastName = dto.LastName.Trim();
         user.Email = newEmail;
@@ -234,14 +295,121 @@ public class AdminService : IAdminService
 
         await _uow.Users.UpdateAsync(user);
 
-        // Always sync beehive assignments: clear when not User role, set when User role
-        await _uow.Users.SetBeehiveAssignmentsAsync(
-            id,
-            role == UserRole.User ? dto.AssignedBeehiveIds : []);
-
+        var newBeehiveIds = role == UserRole.User ? dto.AssignedBeehiveIds : new List<int>();
+        await _uow.Users.SetBeehiveAssignmentsAsync(id, newBeehiveIds);
         await _uow.SaveChangesAsync();
 
         var updated = await _uow.Users.GetByIdWithAssignedBeehivesAsync(id);
+
+        // ── Notifications for detected changes ────────────────────────────────
+
+        // 1) Org assignment for OrgAdmin
+        if (role == UserRole.OrgAdmin)
+        {
+            if (dto.OrganizationId.HasValue && dto.OrganizationId != oldOrgId)
+            {
+                var org = await _uow.Organizations.GetWithDetailsAsync(dto.OrganizationId.Value);
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Organization assigned",
+                    $"You have been assigned as Organization Admin for '{org?.Name}'.",
+                    NotificationType.OrganizationAssigned,
+                    dto.OrganizationId.Value, nameof(Organization));
+            }
+            else if (!dto.OrganizationId.HasValue && oldOrgId.HasValue)
+            {
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Organization unassigned",
+                    "You have been unassigned from your organization.",
+                    NotificationType.OrganizationUnassigned);
+            }
+        }
+        else if (oldRole == UserRole.OrgAdmin && oldOrgId.HasValue)
+        {
+            // Role changed away from OrgAdmin
+            await _notifications.NotifyAsync(
+                user.Id,
+                "Organization unassigned",
+                "You have been unassigned from your organization.",
+                NotificationType.OrganizationUnassigned);
+        }
+
+        // 2) Apiary assignment for Admin
+        if (role == UserRole.Admin)
+        {
+            if (dto.ApiaryId.HasValue && dto.ApiaryId != oldApiaryId && newApiary != null)
+            {
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Apiary assigned",
+                    $"You have been assigned as Admin for apiary '{newApiary.Name}'.",
+                    NotificationType.ApiaryAssigned,
+                    dto.ApiaryId.Value, nameof(Apiary));
+            }
+            else if (!dto.ApiaryId.HasValue && oldApiaryId.HasValue)
+            {
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Apiary unassigned",
+                    "You have been unassigned from your apiary.",
+                    NotificationType.ApiaryUnassigned);
+            }
+        }
+        else if (oldRole == UserRole.Admin && oldApiaryId.HasValue)
+        {
+            await _notifications.NotifyAsync(
+                user.Id,
+                "Apiary unassigned",
+                "You have been unassigned from your apiary.",
+                NotificationType.ApiaryUnassigned);
+        }
+
+        // 3) Beehive assignment for User
+        if (role == UserRole.User)
+        {
+            var newSet = newBeehiveIds.ToHashSet();
+            var added   = newSet.Except(oldBeehiveIds).ToList();
+            var removed = oldBeehiveIds.Except(newSet).ToList();
+
+            foreach (var beehiveId in added)
+            {
+                var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+                if (beehive == null) continue;
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Beehive assigned",
+                    $"You have been assigned to beehive '{beehive.Name}'.",
+                    NotificationType.BeehiveAssigned,
+                    beehiveId, nameof(Beehive));
+            }
+
+            foreach (var beehiveId in removed)
+            {
+                var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Beehive unassigned",
+                    $"You have been unassigned from beehive '{beehive?.Name ?? "Unknown"}'.",
+                    NotificationType.BeehiveUnassigned,
+                    beehiveId, nameof(Beehive));
+            }
+        }
+        else if (oldRole == UserRole.User && oldBeehiveIds.Count > 0)
+        {
+            // Role changed away from User — all beehive assignments removed
+            foreach (var beehiveId in oldBeehiveIds)
+            {
+                var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Beehive unassigned",
+                    $"You have been unassigned from beehive '{beehive?.Name ?? "Unknown"}'.",
+                    NotificationType.BeehiveUnassigned,
+                    beehiveId, nameof(Beehive));
+            }
+        }
+
         return MapUser(updated!);
     }
 

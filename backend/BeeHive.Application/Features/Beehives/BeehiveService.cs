@@ -3,7 +3,9 @@ using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Beehives.DTOs;
+using BeeHive.Application.Features.Notifications;
 using BeeHive.Domain.Entities;
+using BeeHive.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 
 namespace BeeHive.Application.Features.Beehives;
@@ -42,19 +44,25 @@ public class BeehiveService : IBeehiveService
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
     private readonly IQrCodeService _qr;
+    private readonly INotificationService _notifications;
     private readonly string _frontendUrl;
 
-    public BeehiveService(IUnitOfWork uow, IMapper mapper, IQrCodeService qr, IConfiguration config)
+    public BeehiveService(
+        IUnitOfWork uow,
+        IMapper mapper,
+        IQrCodeService qr,
+        INotificationService notifications,
+        IConfiguration config)
     {
-        _uow         = uow;
-        _mapper      = mapper;
-        _qr          = qr;
-        _frontendUrl = config["FrontendUrl"] ?? "https://bee-hive-app.vercel.app";
+        _uow           = uow;
+        _mapper        = mapper;
+        _qr            = qr;
+        _notifications = notifications;
+        _frontendUrl   = config["FrontendUrl"] ?? "https://bee-hive-app.vercel.app";
     }
 
     public async Task<IEnumerable<BeehiveDto>> GetByApiaryIdAsync(int apiaryId)
     {
-        // Validate parent apiary exists
         if (!await _uow.Apiaries.ExistsAsync(apiaryId))
             throw new NotFoundException(nameof(Apiary), apiaryId);
 
@@ -72,22 +80,27 @@ public class BeehiveService : IBeehiveService
 
     public async Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto, int? createdById)
     {
-        // Ensure the target apiary exists before creating the beehive
         if (!await _uow.Apiaries.ExistsAsync(dto.ApiaryId))
             throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
 
         var beehive = _mapper.Map<Beehive>(dto);
         beehive.CreatedById = createdById;
-
-        // Assign a permanent unique ID and generate the scan QR code once, on creation
         beehive.UniqueId     = Guid.NewGuid();
         beehive.QrCodeBase64 = _qr.GeneratePngBase64($"{_frontendUrl}/scan/{beehive.UniqueId}");
 
         await _uow.Beehives.AddAsync(beehive);
         await _uow.SaveChangesAsync();
 
-        // Reload to get CreatedBy nav property
         var saved = await _uow.Beehives.GetWithInspectionsAsync(beehive.Id) ?? beehive;
+
+        // 5) Beehive creation notifications — notify the creator's superior
+        if (createdById.HasValue)
+        {
+            var creator = await _uow.Users.GetByIdWithOrganizationAsync(createdById.Value);
+            if (creator != null)
+                await SendBeehiveCreatedNotificationsAsync(saved, creator);
+        }
+
         return _mapper.Map<BeehiveDto>(saved);
     }
 
@@ -165,5 +178,62 @@ public class BeehiveService : IBeehiveService
         }
         await _uow.SaveChangesAsync();
         return count;
+    }
+
+    // ── Notification helpers ──────────────────────────────────────────────────
+
+    private async Task SendBeehiveCreatedNotificationsAsync(Beehive beehive, User creator)
+    {
+        var apiary = await _uow.Apiaries.GetByIdAsync(beehive.ApiaryId);
+        if (apiary == null) return;
+
+        if (creator.Role == UserRole.Admin)
+        {
+            // Notify all OrgAdmins of the same organisation
+            var orgAdmins = await _uow.Users.FindAsync(u =>
+                u.OrganizationId == creator.OrganizationId && u.Role == UserRole.OrgAdmin);
+
+            foreach (var orgAdmin in orgAdmins)
+            {
+                await _notifications.NotifyAsync(
+                    orgAdmin.Id,
+                    "New beehive created",
+                    $"Admin {creator.FirstName} {creator.LastName} created beehive '{beehive.Name}' in apiary '{apiary.Name}'.",
+                    NotificationType.BeehiveCreated,
+                    beehive.Id, nameof(Beehive));
+            }
+        }
+        else if (creator.Role == UserRole.OrgAdmin)
+        {
+            // Notify the Admin(s) responsible for that apiary
+            var admins = await _uow.Users.FindAsync(u =>
+                u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
+
+            foreach (var admin in admins)
+            {
+                await _notifications.NotifyAsync(
+                    admin.Id,
+                    "New beehive created",
+                    $"Organization Admin {creator.FirstName} {creator.LastName} created beehive '{beehive.Name}' in your apiary '{apiary.Name}'.",
+                    NotificationType.BeehiveCreated,
+                    beehive.Id, nameof(Beehive));
+            }
+        }
+        else if (creator.Role == UserRole.SystemAdmin)
+        {
+            // Notify OrgAdmins of the organisation that owns the apiary
+            var orgAdmins = await _uow.Users.FindAsync(u =>
+                u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
+
+            foreach (var orgAdmin in orgAdmins)
+            {
+                await _notifications.NotifyAsync(
+                    orgAdmin.Id,
+                    "New beehive created",
+                    $"System Admin created beehive '{beehive.Name}' in apiary '{apiary.Name}'.",
+                    NotificationType.BeehiveCreated,
+                    beehive.Id, nameof(Beehive));
+            }
+        }
     }
 }

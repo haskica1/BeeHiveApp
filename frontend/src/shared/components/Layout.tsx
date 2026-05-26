@@ -4,6 +4,7 @@ import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, R
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import QrScannerModal from './QrScannerModal'
+import NotificationBell from './NotificationBell'
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -92,6 +93,9 @@ export default function Layout() {
                 Scan
               </button>
             </nav>
+
+            {/* Notification bell */}
+            <NotificationBell />
 
             {/* Profile avatar + dropdown */}
             <div ref={profileRef} className="relative">

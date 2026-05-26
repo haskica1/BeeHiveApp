@@ -14,6 +14,7 @@ public interface IUnitOfWork : IDisposable
     IDietRepository Diets { get; }
     IFeedingEntryRepository FeedingEntries { get; }
     IExpenseRepository Expenses { get; }
+    INotificationRepository Notifications { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

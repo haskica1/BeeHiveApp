@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Infrastructure.Data;
+using BeeHive.Infrastructure.Email;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,7 @@ public static class DependencyInjection
             ));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IEmailService, EmailService>();
 
         return services;
     }

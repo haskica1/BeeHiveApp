@@ -271,3 +271,28 @@ public class ExpenseRepository : Repository<Expense>, IExpenseRepository
             .Include(e => e.CreatedBy)
             .FirstOrDefaultAsync(e => e.Id == id);
 }
+
+// ── Notification Repository ───────────────────────────────────────────────────
+
+public class NotificationRepository : Repository<Notification>, INotificationRepository
+{
+    public NotificationRepository(BeeHiveDbContext context) : base(context) { }
+
+    public async Task<IEnumerable<Notification>> GetByUserIdAsync(int userId) =>
+        await _context.Notifications
+            .AsNoTracking()
+            .Where(n => n.UserId == userId)
+            .OrderByDescending(n => n.CreatedAt)
+            .ToListAsync();
+
+    public async Task<int> GetUnreadCountAsync(int userId) =>
+        await _context.Notifications
+            .CountAsync(n => n.UserId == userId && !n.IsRead);
+
+    public async Task MarkAllAsReadAsync(int userId)
+    {
+        await _context.Notifications
+            .Where(n => n.UserId == userId && !n.IsRead)
+            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsRead, true));
+    }
+}

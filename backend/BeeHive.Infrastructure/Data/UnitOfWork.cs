@@ -22,6 +22,7 @@ public class UnitOfWork : IUnitOfWork
     private IDietRepository? _diets;
     private IFeedingEntryRepository? _feedingEntries;
     private IExpenseRepository? _expenses;
+    private INotificationRepository? _notifications;
 
     public UnitOfWork(BeeHiveDbContext context)
     {
@@ -54,6 +55,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IExpenseRepository Expenses =>
         _expenses ??= new ExpenseRepository(_context);
+
+    public INotificationRepository Notifications =>
+        _notifications ??= new NotificationRepository(_context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         await _context.SaveChangesAsync(cancellationToken);
