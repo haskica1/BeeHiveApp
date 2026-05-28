@@ -23,7 +23,7 @@ public static class DependencyInjection
             ));
 
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        services.AddScoped<IEmailService, EmailService>();
+        services.AddSingleton<IEmailService, EmailService>();
 
         return services;
     }

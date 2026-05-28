@@ -56,13 +56,14 @@ public class NotificationService : INotificationService
         await _uow.Notifications.AddAsync(notification);
         await _uow.SaveChangesAsync();
 
-        // Send email — EmailService catches all exceptions internally so this is safe to await
+        // Send email in the background — never block the main operation
         var user = await _uow.Users.GetByIdAsync(userId);
         if (user != null)
         {
             var fullName = $"{user.FirstName} {user.LastName}";
             var htmlBody = BuildEmailHtml(fullName, title, message);
-            await _email.SendAsync(user.Email, fullName, $"BeeHive — {title}", htmlBody);
+            // EmailService is singleton and catches all exceptions internally — safe to discard
+            _ = _email.SendAsync(user.Email, fullName, $"BeeHive — {title}", htmlBody);
         }
     }
 
