@@ -53,7 +53,7 @@ public class NotificationsController : ControllerBase
 
     private int? GetUserId()
     {
-        var claim = User.FindFirstValue("userId");
+        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         return int.TryParse(claim, out var id) ? id : null;
     }
 }

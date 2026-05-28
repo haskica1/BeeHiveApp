@@ -56,13 +56,13 @@ public class NotificationService : INotificationService
         await _uow.Notifications.AddAsync(notification);
         await _uow.SaveChangesAsync();
 
-        // Send email — fire-and-forget style; EmailService swallows failures internally
+        // Send email — EmailService catches all exceptions internally so this is safe to await
         var user = await _uow.Users.GetByIdAsync(userId);
         if (user != null)
         {
-            var fullName  = $"{user.FirstName} {user.LastName}";
-            var htmlBody  = BuildEmailHtml(fullName, title, message);
-            _ = _email.SendAsync(user.Email, fullName, $"BeeHive — {title}", htmlBody);
+            var fullName = $"{user.FirstName} {user.LastName}";
+            var htmlBody = BuildEmailHtml(fullName, title, message);
+            await _email.SendAsync(user.Email, fullName, $"BeeHive — {title}", htmlBody);
         }
     }
 
