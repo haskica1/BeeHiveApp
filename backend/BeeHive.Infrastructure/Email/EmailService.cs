@@ -1,8 +1,9 @@
-using System.Net;
-using System.Net.Mail;
 using BeeHive.Application.Common.Interfaces;
+using MailKit.Net.Smtp;
+using MailKit.Security;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MimeKit;
 
 namespace BeeHive.Infrastructure.Email;
 
@@ -26,8 +27,7 @@ public class EmailService : IEmailService
             return;
         }
 
-        var port     = int.Parse(_config["Smtp:Port"] ?? "587");
-        var enableSsl = bool.Parse(_config["Smtp:EnableSsl"] ?? "true");
+        var port      = int.Parse(_config["Smtp:Port"] ?? "587");
         var username  = _config["Smtp:Username"] ?? string.Empty;
         var password  = _config["Smtp:Password"] ?? string.Empty;
         var fromEmail = _config["Smtp:FromEmail"] ?? "noreply@beehive.com";
@@ -35,26 +35,22 @@ public class EmailService : IEmailService
 
         try
         {
-            using var client = new SmtpClient(host, port)
-            {
-                EnableSsl   = enableSsl,
-                Credentials = new NetworkCredential(username, password),
-            };
+            var message = new MimeMessage();
+            message.From.Add(new MailboxAddress(fromName, fromEmail));
+            message.To.Add(new MailboxAddress(toName, toEmail));
+            message.Subject = subject;
+            message.Body = new TextPart("html") { Text = htmlBody };
 
-            using var message = new MailMessage
-            {
-                From       = new MailAddress(fromEmail, fromName),
-                Subject    = subject,
-                Body       = htmlBody,
-                IsBodyHtml = true,
-            };
-            message.To.Add(new MailAddress(toEmail, toName));
+            using var client = new SmtpClient();
+            await client.ConnectAsync(host, port, SecureSocketOptions.StartTls);
+            await client.AuthenticateAsync(username, password);
+            await client.SendAsync(message);
+            await client.DisconnectAsync(true);
 
-            await client.SendMailAsync(message);
+            _logger.LogInformation("Email sent to {Email} — subject: {Subject}", toEmail, subject);
         }
         catch (Exception ex)
         {
-            // Email failures must not break the main operation
             _logger.LogError(ex, "Failed to send email to {Email} — subject: {Subject}", toEmail, subject);
         }
     }
