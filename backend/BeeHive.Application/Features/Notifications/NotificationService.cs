@@ -2,6 +2,7 @@ using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Notifications.DTOs;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace BeeHive.Application.Features.Notifications;
 
@@ -28,11 +29,13 @@ public class NotificationService : INotificationService
 {
     private readonly IUnitOfWork _uow;
     private readonly IEmailService _email;
+    private readonly ILogger<NotificationService> _logger;
 
-    public NotificationService(IUnitOfWork uow, IEmailService email)
+    public NotificationService(IUnitOfWork uow, IEmailService email, ILogger<NotificationService> logger)
     {
-        _uow   = uow;
-        _email = email;
+        _uow    = uow;
+        _email  = email;
+        _logger = logger;
     }
 
     public async Task NotifyAsync(
@@ -56,15 +59,20 @@ public class NotificationService : INotificationService
         await _uow.Notifications.AddAsync(notification);
         await _uow.SaveChangesAsync();
 
-        // Send email in the background — never block the main operation
-        var user = await _uow.Users.GetByIdAsync(userId);
-        if (user != null)
+        // Fetch the user by email directly to avoid EF change-tracker issues
+        var users = await _uow.Users.FindAsync(u => u.Id == userId);
+        var user  = users.FirstOrDefault();
+
+        if (user == null)
         {
-            var fullName = $"{user.FirstName} {user.LastName}";
-            var htmlBody = BuildEmailHtml(fullName, title, message);
-            // EmailService is singleton and catches all exceptions internally — safe to discard
-            _ = _email.SendAsync(user.Email, fullName, $"BeeHive — {title}", htmlBody);
+            _logger.LogWarning("NotifyAsync: user {UserId} not found — skipping email", userId);
+            return;
         }
+
+        _logger.LogInformation("NotifyAsync: sending email to {Email} for [{Type}] {Title}", user.Email, type, title);
+
+        await _email.SendAsync(user.Email, $"{user.FirstName} {user.LastName}",
+            $"BeeHive — {title}", BuildEmailHtml($"{user.FirstName} {user.LastName}", title, message));
     }
 
     public async Task<NotificationListDto> GetForUserAsync(int userId)

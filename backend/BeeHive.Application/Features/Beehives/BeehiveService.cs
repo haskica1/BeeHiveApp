@@ -7,6 +7,7 @@ using BeeHive.Application.Features.Notifications;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace BeeHive.Application.Features.Beehives;
 
@@ -45,6 +46,7 @@ public class BeehiveService : IBeehiveService
     private readonly IMapper _mapper;
     private readonly IQrCodeService _qr;
     private readonly INotificationService _notifications;
+    private readonly ILogger<BeehiveService> _logger;
     private readonly string _frontendUrl;
 
     public BeehiveService(
@@ -52,12 +54,14 @@ public class BeehiveService : IBeehiveService
         IMapper mapper,
         IQrCodeService qr,
         INotificationService notifications,
+        ILogger<BeehiveService> logger,
         IConfiguration config)
     {
         _uow           = uow;
         _mapper        = mapper;
         _qr            = qr;
         _notifications = notifications;
+        _logger        = logger;
         _frontendUrl   = config["FrontendUrl"] ?? "https://bee-hive-app.vercel.app";
     }
 
@@ -185,13 +189,23 @@ public class BeehiveService : IBeehiveService
     private async Task SendBeehiveCreatedNotificationsAsync(Beehive beehive, User creator)
     {
         var apiary = await _uow.Apiaries.GetByIdAsync(beehive.ApiaryId);
-        if (apiary == null) return;
+        if (apiary == null)
+        {
+            _logger.LogWarning("SendBeehiveCreatedNotifications: apiary {ApiaryId} not found — skipping", beehive.ApiaryId);
+            return;
+        }
+
+        _logger.LogInformation(
+            "SendBeehiveCreatedNotifications: beehive={BeehiveId} creator={CreatorId} role={Role} apiary.OrgId={OrgId}",
+            beehive.Id, creator.Id, creator.Role, apiary.OrganizationId);
 
         if (creator.Role == UserRole.Admin)
         {
-            // Notify all OrgAdmins of the same organisation
+            // Use apiary.OrganizationId (more reliable than creator.OrganizationId)
             var orgAdmins = await _uow.Users.FindAsync(u =>
-                u.OrganizationId == creator.OrganizationId && u.Role == UserRole.OrgAdmin);
+                u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
+
+            _logger.LogInformation("SendBeehiveCreatedNotifications: Admin path — found {Count} OrgAdmins to notify", orgAdmins.Count());
 
             foreach (var orgAdmin in orgAdmins)
             {
@@ -205,9 +219,10 @@ public class BeehiveService : IBeehiveService
         }
         else if (creator.Role == UserRole.OrgAdmin)
         {
-            // Notify the Admin(s) responsible for that apiary
             var admins = await _uow.Users.FindAsync(u =>
                 u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
+
+            _logger.LogInformation("SendBeehiveCreatedNotifications: OrgAdmin path — found {Count} Admins to notify", admins.Count());
 
             foreach (var admin in admins)
             {
@@ -221,9 +236,10 @@ public class BeehiveService : IBeehiveService
         }
         else if (creator.Role == UserRole.SystemAdmin)
         {
-            // Notify OrgAdmins of the organisation that owns the apiary
             var orgAdmins = await _uow.Users.FindAsync(u =>
                 u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
+
+            _logger.LogInformation("SendBeehiveCreatedNotifications: SystemAdmin path — found {Count} OrgAdmins to notify", orgAdmins.Count());
 
             foreach (var orgAdmin in orgAdmins)
             {
