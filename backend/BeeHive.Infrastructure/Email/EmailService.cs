@@ -27,6 +27,22 @@ public class EmailService : IEmailService
             return;
         }
 
+        await SendCoreAsync(toEmail, toName, subject, htmlBody, suppressErrors: true);
+    }
+
+    /// <summary>Sends email and optionally re-throws on failure (used by the test endpoint).</summary>
+    public async Task SendAsync(string toEmail, string toName, string subject, string htmlBody, bool suppressErrors)
+    {
+        var host = _config["Smtp:Host"];
+        if (string.IsNullOrWhiteSpace(host))
+            throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host in appsettings.");
+
+        await SendCoreAsync(toEmail, toName, subject, htmlBody, suppressErrors);
+    }
+
+    private async Task SendCoreAsync(string toEmail, string toName, string subject, string htmlBody, bool suppressErrors)
+    {
+        var host      = _config["Smtp:Host"]!;
         var port      = int.Parse(_config["Smtp:Port"] ?? "587");
         var username  = _config["Smtp:Username"] ?? string.Empty;
         var password  = _config["Smtp:Password"] ?? string.Empty;
@@ -52,6 +68,7 @@ public class EmailService : IEmailService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send email to {Email} — subject: {Subject}", toEmail, subject);
+            if (!suppressErrors) throw;
         }
     }
 }
