@@ -137,7 +137,7 @@ export default function InspectionFormPage() {
         backButton={
           <button
             onClick={() => navigate(backUrl)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-honey-600 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Beehive
           </button>
@@ -155,15 +155,15 @@ export default function InspectionFormPage() {
         {!isEditing && (
           <div className="mb-5">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-600">Unesite glasom</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-slate-300">Unesite glasom</span>
               <button
                 type="button"
                 onClick={handleVoiceToggle}
                 disabled={isParsing}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   voiceOpen
-                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                    : 'bg-honey-50 text-honey-700 hover:bg-honey-100 border border-honey-200'
+                    ? 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700'
+                    : 'bg-honey-50 text-honey-700 hover:bg-honey-100 border border-honey-200 dark:bg-honey-500/10 dark:text-honey-300 dark:hover:bg-honey-500/20 dark:border-honey-500/30'
                 } disabled:opacity-50`}
               >
                 {voiceOpen ? <><X className="w-3.5 h-3.5" /> Zatvori</> : <><Mic className="w-3.5 h-3.5" /> Unos glasom</>}
@@ -171,7 +171,7 @@ export default function InspectionFormPage() {
             </div>
 
             {voiceOpen && (
-              <div className="rounded-xl border border-gray-200 bg-gray-50 p-4 space-y-3">
+              <div className="rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 p-4 space-y-3">
                 <div className="flex items-center gap-3">
                   {/* Mic button */}
                   <button
@@ -181,7 +181,7 @@ export default function InspectionFormPage() {
                     className={`flex items-center justify-center w-11 h-11 rounded-full transition-all shadow-sm flex-shrink-0 ${
                       isRecording
                         ? 'bg-red-500 hover:bg-red-600 text-white animate-pulse'
-                        : 'bg-white border-2 border-honey-400 text-honey-600 hover:bg-honey-50'
+                        : 'bg-white dark:bg-slate-900 border-2 border-honey-400 text-honey-600 dark:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800'
                     } disabled:opacity-50 disabled:cursor-not-allowed`}
                     title={isRecording ? 'Zaustavi i obradi' : 'Počni snimanje'}
                   >
@@ -195,13 +195,13 @@ export default function InspectionFormPage() {
 
                   <div className="flex-1 min-w-0">
                     {isParsing ? (
-                      <p className="text-sm text-gray-500">Obrađujem snimak...</p>
+                      <p className="text-sm text-gray-500 dark:text-slate-400">Obrađujem snimak...</p>
                     ) : isRecording ? (
                       <p className="text-sm text-red-600 font-medium">
                         Snima se — kliknite za zaustavljanje i obradu
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-gray-500 dark:text-slate-400">
                         Kliknite mikrofon i govorite na bosanskom
                       </p>
                     )}
@@ -217,18 +217,18 @@ export default function InspectionFormPage() {
 
                 {/* Transcript from backend */}
                 {transcript && (
-                  <div className="rounded-lg border border-gray-200 bg-white px-3 py-2.5">
-                    <p className="text-xs text-gray-400 mb-1 font-medium uppercase tracking-wide">Prepoznat tekst</p>
-                    <p className="text-sm text-gray-700 leading-relaxed">{transcript}</p>
+                  <div className="rounded-lg border border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2.5">
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mb-1 font-medium uppercase tracking-wide">Prepoznat tekst</p>
+                    <p className="text-sm text-gray-700 dark:text-slate-300 leading-relaxed">{transcript}</p>
                   </div>
                 )}
 
                 {/* Errors */}
                 {voice.errorMessage && (
-                  <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{voice.errorMessage}</p>
+                  <p className="text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-2">{voice.errorMessage}</p>
                 )}
                 {parseError && (
-                  <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">{parseError}</p>
+                  <p className="text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-500/10 rounded-lg px-3 py-2">{parseError}</p>
                 )}
               </div>
             )}

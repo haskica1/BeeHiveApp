@@ -120,29 +120,29 @@ export default function UserFormPage() {
   }
 
   const inputCls = (hasError: boolean) =>
-    `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white ${
+    `w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 dark:[color-scheme:dark] ${
       hasError
         ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-        : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
+        : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
     }`
 
   return (
     <div className="max-w-xl mx-auto">
       <button
         onClick={() => navigate('/admin')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Dashboard
       </button>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-honey-100 px-8 py-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-6">
           {isEdit ? 'Edit User' : 'New User'}
         </h1>
 
         {errors.root && (
-          <div className="mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+          <div className="mb-5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
             {errors.root.message}
           </div>
         )}
@@ -150,7 +150,7 @@ export default function UserFormPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 First Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -162,7 +162,7 @@ export default function UserFormPage() {
               {errors.firstName && <p className="mt-1 text-xs text-red-600">{errors.firstName.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 Last Name <span className="text-red-500">*</span>
               </label>
               <input
@@ -176,7 +176,7 @@ export default function UserFormPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
               Email <span className="text-red-500">*</span>
             </label>
             <input
@@ -193,7 +193,7 @@ export default function UserFormPage() {
 
           {!isEdit && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 Password <span className="text-red-500">*</span>
               </label>
               <input
@@ -210,11 +210,11 @@ export default function UserFormPage() {
           )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
               Role <span className="text-red-500">*</span>
             </label>
             <select
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               {...register('role', { required: 'Role is required' })}
             >
               <option value="OrgAdmin">Org Admin</option>
@@ -222,7 +222,7 @@ export default function UserFormPage() {
               <option value="User">User</option>
               <option value="SystemAdmin">System Admin</option>
             </select>
-            <p className="mt-1 text-xs text-gray-400">
+            <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
               {selectedRole === 'OrgAdmin' && 'Can manage all apiaries, hives, diets, inspections, and todos within the org.'}
               {selectedRole === 'Admin' && 'Scoped to one apiary — can manage hives, diets, inspections, and hive todos.'}
               {selectedRole === 'User' && 'Can create inspections, manage todos on assigned hives, and view diets.'}
@@ -232,7 +232,7 @@ export default function UserFormPage() {
 
           {needsOrg && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 Organization <span className="text-red-500">*</span>
               </label>
               <select
@@ -252,7 +252,7 @@ export default function UserFormPage() {
 
           {needsApiary && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 Apiary <span className="text-red-500">*</span>
               </label>
               <select
@@ -273,19 +273,19 @@ export default function UserFormPage() {
 
           {needsHives && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 Assigned Hives
               </label>
               {!orgIdNumber ? (
-                <p className="text-xs text-gray-400 py-2">Select an organization first to see available hives.</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 py-2">Select an organization first to see available hives.</p>
               ) : beehives.length === 0 ? (
-                <p className="text-xs text-gray-400 py-2">No hives found in this organization.</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 py-2">No hives found in this organization.</p>
               ) : (
-                <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-48 overflow-y-auto">
+                <div className="border border-gray-200 dark:border-slate-700 rounded-xl divide-y divide-gray-100 dark:divide-slate-800 max-h-48 overflow-y-auto">
                   {beehives.map((b) => (
                     <label
                       key={b.id}
-                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                     >
                       <input
                         type="checkbox"
@@ -293,13 +293,13 @@ export default function UserFormPage() {
                         onChange={() => toggleBeehive(b.id)}
                         className="w-4 h-4 accent-honey-500"
                       />
-                      <span className="text-sm text-gray-800">{b.name}</span>
-                      <span className="text-xs text-gray-400 ml-auto">{b.apiaryName}</span>
+                      <span className="text-sm text-gray-800 dark:text-slate-200">{b.name}</span>
+                      <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">{b.apiaryName}</span>
                     </label>
                   ))}
                 </div>
               )}
-              <p className="mt-1 text-xs text-gray-400">
+              <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
                 {selectedBeehiveIds.length > 0
                   ? `${selectedBeehiveIds.length} hive${selectedBeehiveIds.length !== 1 ? 's' : ''} selected`
                   : 'No hives assigned — user can still view but not manage todos.'}
@@ -311,8 +311,8 @@ export default function UserFormPage() {
             <button
               type="button"
               onClick={() => navigate('/admin')}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700
-                hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200
+                hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>

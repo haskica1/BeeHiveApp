@@ -30,11 +30,11 @@ export default function ExpensesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Expenses</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Expenses</h1>
           {expenses.length > 0 && (
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
               {expenses.length} record{expenses.length !== 1 ? 's' : ''} · Total:{' '}
-              <span className="font-semibold text-gray-700">
+              <span className="font-semibold text-gray-700 dark:text-slate-200">
                 {totalSpent.toFixed(2)} {expenses[0]?.currency ?? 'BAM'}
               </span>
             </p>
@@ -44,7 +44,7 @@ export default function ExpensesPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/expenses/scan')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
           >
             <Camera className="w-4 h-4" />
             Scan Receipt
@@ -68,16 +68,16 @@ export default function ExpensesPage() {
 
       {/* Empty */}
       {!isLoading && expenses.length === 0 && (
-        <div className="text-center py-20 bg-white rounded-2xl border border-honey-100 shadow-sm">
-          <ReceiptText className="w-12 h-12 text-honey-300 mx-auto mb-3" />
-          <p className="text-gray-500 font-medium">No expenses recorded yet.</p>
-          <p className="text-sm text-gray-400 mt-1">
+        <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none">
+          <ReceiptText className="w-12 h-12 text-honey-300 dark:text-honey-500/40 mx-auto mb-3" />
+          <p className="text-gray-500 dark:text-slate-300 font-medium">No expenses recorded yet.</p>
+          <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">
             Add your first expense manually or by scanning a receipt.
           </p>
           <div className="flex items-center justify-center gap-3 mt-5">
             <button
               onClick={() => navigate('/expenses/scan')}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               <Camera className="w-4 h-4" />
               Scan Receipt
@@ -95,7 +95,7 @@ export default function ExpensesPage() {
 
       {/* Error state */}
       {deleteExpense.isError && (
-        <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
           <AlertCircle className="w-4 h-4 shrink-0" />
           Failed to delete expense. Please try again.
         </div>
@@ -132,10 +132,10 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
   const isReceiptScan = expense.source === ExpenseSource.ReceiptScan
 
   return (
-    <div className="bg-white rounded-2xl border border-honey-100 shadow-sm px-5 py-4 flex items-center gap-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none px-5 py-4 flex items-center gap-4">
       {/* Icon */}
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
-        isReceiptScan ? 'bg-blue-50 text-blue-500' : 'bg-honey-50 text-honey-600'
+        isReceiptScan ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/15 dark:text-blue-300' : 'bg-honey-50 text-honey-600 dark:bg-honey-500/15 dark:text-honey-300'
       }`}>
         {isReceiptScan ? <Camera className="w-5 h-5" /> : <PencilLine className="w-5 h-5" />}
       </div>
@@ -143,14 +143,14 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
       {/* Info */}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="font-semibold text-gray-900">
+          <span className="font-semibold text-gray-900 dark:text-slate-100">
             {expense.totalAmount.toFixed(2)} {expense.currency}
           </span>
-          <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+          <span className="text-xs text-gray-400 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 rounded-full px-2 py-0.5">
             {ExpenseSourceLabels[expense.source]}
           </span>
         </div>
-        <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500">
+        <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500 dark:text-slate-400">
           <span>{format(new Date(expense.purchaseDate), 'dd.MM.yyyy')}</span>
           <span>·</span>
           <span>{expense.itemCount} item{expense.itemCount !== 1 ? 's' : ''}</span>
@@ -167,7 +167,7 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
       <div className="flex items-center gap-1 shrink-0">
         <button
           onClick={onEdit}
-          className="p-2 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+          className="p-2 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
           aria-label="Edit expense"
         >
           <PencilLine className="w-4 h-4" />
@@ -175,7 +175,7 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
         <button
           onClick={onDelete}
           disabled={isDeleting}
-          className="p-2 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors disabled:opacity-50"
+          className="p-2 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
           aria-label="Delete expense"
         >
           {isDeleting

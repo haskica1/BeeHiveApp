@@ -66,8 +66,8 @@ export default function NotificationBell() {
         onClick={() => setOpen(v => !v)}
         className={clsx(
           'relative flex items-center justify-center w-8 h-8 rounded-full transition-all',
-          'text-gray-600 hover:bg-honey-100 hover:text-honey-700',
-          open && 'bg-honey-100 text-honey-700'
+          'text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-700 dark:hover:text-honey-300',
+          open && 'bg-honey-100 dark:bg-slate-800 text-honey-700 dark:text-honey-300'
         )}
         aria-label="Notifications"
       >
@@ -80,14 +80,14 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 w-80 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-fade-in z-50">
+        <div className="absolute right-0 top-11 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-fade-in z-50">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <span className="text-sm font-semibold text-gray-800">Notifications</span>
+          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
+            <span className="text-sm font-semibold text-gray-800 dark:text-slate-100">Notifications</span>
             {notifications.length > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
-                className="text-xs text-honey-600 hover:text-honey-800 font-medium transition-colors"
+                className="text-xs text-honey-600 dark:text-honey-400 hover:text-honey-800 dark:hover:text-honey-300 font-medium transition-colors"
               >
                 Mark all read
               </button>
@@ -95,11 +95,11 @@ export default function NotificationBell() {
           </div>
 
           {/* List */}
-          <div className="max-h-96 overflow-y-auto divide-y divide-gray-50">
+          <div className="max-h-96 overflow-y-auto divide-y divide-gray-50 dark:divide-slate-800">
             {notifications.length === 0 ? (
               <div className="px-4 py-8 text-center">
-                <Bell className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-                <p className="text-sm text-gray-400">No notifications yet</p>
+                <Bell className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+                <p className="text-sm text-gray-400 dark:text-slate-500">No notifications yet</p>
               </div>
             ) : (
               notifications.map(n => (
@@ -132,21 +132,23 @@ function NotificationItem({
       onClick={onRead}
       className={clsx(
         'flex gap-3 px-4 py-3 cursor-pointer transition-colors',
-        n.isRead ? 'bg-white hover:bg-gray-50' : 'bg-honey-50 hover:bg-honey-100'
+        n.isRead
+          ? 'bg-white dark:bg-slate-900 hover:bg-gray-50 dark:hover:bg-slate-800'
+          : 'bg-honey-50 dark:bg-honey-500/10 hover:bg-honey-100 dark:hover:bg-honey-500/20'
       )}
     >
       <span className="text-lg shrink-0 mt-0.5">{icon}</span>
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-1">
-          <p className={clsx('text-sm font-medium truncate', n.isRead ? 'text-gray-700' : 'text-gray-900')}>
+          <p className={clsx('text-sm font-medium truncate', n.isRead ? 'text-gray-700 dark:text-slate-300' : 'text-gray-900 dark:text-slate-100')}>
             {n.title}
           </p>
           {!n.isRead && (
             <span className="w-2 h-2 rounded-full bg-honey-500 shrink-0 mt-1" />
           )}
         </div>
-        <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.message}</p>
-        <p className="text-[10px] text-gray-400 mt-1">{time}</p>
+        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.message}</p>
+        <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">{time}</p>
       </div>
     </div>
   )

@@ -18,6 +18,18 @@
     />
 
     <title>BeeHive App</title>
+
+    <!-- Apply persisted theme before first paint to avoid a flash of the wrong theme -->
+    <script>
+      (function () {
+        try {
+          var stored = localStorage.getItem('beehive-theme')
+          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          var dark = stored ? stored === 'dark' : prefersDark
+          if (dark) document.documentElement.classList.add('dark')
+        } catch (e) {}
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>

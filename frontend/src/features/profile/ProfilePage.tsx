@@ -92,10 +92,10 @@ export default function ProfilePage() {
   }
 
   const avatarClass = user?.role === 'SystemAdmin'
-    ? 'bg-purple-100 text-purple-700'
+    ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
     : user?.role === 'OrgAdmin'
-    ? 'bg-blue-100 text-blue-700'
-    : 'bg-honey-100 text-honey-700'
+    ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
+    : 'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300'
 
   const roleLabel = user?.role === 'SystemAdmin'
     ? 'System Admin'
@@ -115,8 +115,8 @@ export default function ProfilePage() {
           {user?.firstName[0] ?? '?'}
         </div>
         <div>
-          <p className="font-semibold text-gray-800 text-lg">{user?.firstName} {user?.lastName}</p>
-          <p className="text-sm text-gray-500">{roleLabel}</p>
+          <p className="font-semibold text-gray-800 dark:text-slate-100 text-lg">{user?.firstName} {user?.lastName}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400">{roleLabel}</p>
         </div>
       </div>
 
@@ -126,12 +126,12 @@ export default function ProfilePage() {
         <div className="card space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <User className="w-4 h-4 text-honey-500" />
-            <h3 className="font-semibold text-gray-700">Personal Information</h3>
+            <h3 className="font-semibold text-gray-700 dark:text-slate-200">Personal Information</h3>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">First Name</label>
               <input
                 {...register('firstName', { required: 'First name is required' })}
                 className={clsx('form-input', errors.firstName && 'border-red-400 focus:ring-red-300')}
@@ -140,7 +140,7 @@ export default function ProfilePage() {
               {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Last Name</label>
               <input
                 {...register('lastName', { required: 'Last name is required' })}
                 className={clsx('form-input', errors.lastName && 'border-red-400 focus:ring-red-300')}
@@ -151,9 +151,9 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <input
                 {...register('email', {
                   required: 'Email is required',
@@ -172,12 +172,12 @@ export default function ProfilePage() {
         <div className="card space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <KeyRound className="w-4 h-4 text-honey-500" />
-            <h3 className="font-semibold text-gray-700">Change Password</h3>
-            <span className="text-xs text-gray-400 font-normal">(optional)</span>
+            <h3 className="font-semibold text-gray-700 dark:text-slate-200">Change Password</h3>
+            <span className="text-xs text-gray-400 dark:text-slate-500 font-normal">(optional)</span>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Current Password</label>
             <div className="relative">
               <input
                 {...register('currentPassword')}
@@ -187,7 +187,7 @@ export default function ProfilePage() {
                 autoComplete="current-password"
               />
               <button type="button" onClick={() => setShowCurrent(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
                 {showCurrent ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -195,7 +195,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">New Password</label>
             <div className="relative">
               <input
                 {...register('newPassword', {
@@ -207,7 +207,7 @@ export default function ProfilePage() {
                 autoComplete="new-password"
               />
               <button type="button" onClick={() => setShowNew(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
                 {showNew ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -215,7 +215,7 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Confirm New Password</label>
             <div className="relative">
               <input
                 {...register('confirmPassword')}
@@ -225,7 +225,7 @@ export default function ProfilePage() {
                 autoComplete="new-password"
               />
               <button type="button" onClick={() => setShowConfirm(v => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300">
                 {showConfirm ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
@@ -235,7 +235,7 @@ export default function ProfilePage() {
 
         {/* Root error */}
         {errors.root && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+          <p className="text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl px-4 py-2.5">
             {errors.root.message}
           </p>
         )}

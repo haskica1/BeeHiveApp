@@ -70,22 +70,22 @@ export default function ScanPage() {
 
   if (state === 'loading') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 gap-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 dark:bg-slate-950 gap-4">
         <Loader2 className="w-10 h-10 text-honey-500 animate-spin" />
-        <p className="text-gray-500 text-sm">Opening beehive…</p>
+        <p className="text-gray-500 dark:text-slate-400 text-sm">Opening beehive…</p>
       </div>
     )
   }
 
   if (state === 'not-found') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 px-6">
-        <div className="bg-white rounded-2xl shadow-xl border border-honey-100 px-8 py-10 max-w-sm w-full text-center">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 mx-auto mb-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 dark:bg-slate-950 px-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-honey-100 dark:border-slate-800 px-8 py-10 max-w-sm w-full text-center">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-500/15 mx-auto mb-4">
             <QrCode className="w-8 h-8 text-amber-400" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Beehive Not Found</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Beehive Not Found</h1>
+          <p className="text-gray-500 dark:text-slate-400 text-sm">
             This QR code doesn't match any beehive in the system. It may have been removed.
           </p>
           <button
@@ -101,16 +101,16 @@ export default function ScanPage() {
 
   if (state === 'no-access') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 px-6">
-        <div className="bg-white rounded-2xl shadow-xl border border-honey-100 px-8 py-10 max-w-sm w-full text-center">
-          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mx-auto mb-4">
+      <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 dark:bg-slate-950 px-6">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-honey-100 dark:border-slate-800 px-8 py-10 max-w-sm w-full text-center">
+          <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/15 mx-auto mb-4">
             <Lock className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900 mb-2">Access Denied</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Access Denied</h1>
           {beehiveName && (
-            <p className="text-sm font-medium text-honey-700 mb-2">{beehiveName}</p>
+            <p className="text-sm font-medium text-honey-700 dark:text-honey-400 mb-2">{beehiveName}</p>
           )}
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 dark:text-slate-400 text-sm">
             You don't have permission to view this beehive. Please contact your administrator to request access.
           </p>
           <button
@@ -126,13 +126,13 @@ export default function ScanPage() {
 
   // error state
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 px-6">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 dark:bg-slate-950 px-6">
       <div className="bg-white rounded-2xl shadow-xl border border-honey-100 px-8 py-10 max-w-sm w-full text-center">
-        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-orange-50 mx-auto mb-4">
+        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-orange-50 dark:bg-orange-500/15 mx-auto mb-4">
           <AlertTriangle className="w-8 h-8 text-orange-400" />
         </div>
         <h1 className="text-xl font-bold text-gray-900 mb-2">Something Went Wrong</h1>
-        <p className="text-gray-500 text-sm">
+        <p className="text-gray-500 dark:text-slate-400 text-sm">
           Unable to open the beehive right now. Please check your connection and try again.
         </p>
         <button

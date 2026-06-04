@@ -10,9 +10,9 @@ import { useAssignableUsersForBeehive } from '../../core/services/queries'
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 const PRIORITY_STYLES: Record<TodoPriority, string> = {
-  [TodoPriority.Low]:    'bg-gray-100 text-gray-600',
-  [TodoPriority.Medium]: 'bg-blue-100 text-blue-700',
-  [TodoPriority.High]:   'bg-red-100 text-red-700',
+  [TodoPriority.Low]:    'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300',
+  [TodoPriority.Medium]: 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+  [TodoPriority.High]:   'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300',
 }
 
 const PRIORITY_LABELS: Record<TodoPriority, string> = {
@@ -22,11 +22,11 @@ const PRIORITY_LABELS: Record<TodoPriority, string> = {
 }
 
 function dueDateStyle(dateStr?: string, completed?: boolean): string {
-  if (!dateStr || completed) return 'text-gray-400'
+  if (!dateStr || completed) return 'text-gray-400 dark:text-slate-500'
   const d = parseISO(dateStr)
-  if (isPast(d) && !isToday(d)) return 'text-red-500 font-semibold'
-  if (isToday(d)) return 'text-orange-500 font-semibold'
-  return 'text-gray-400'
+  if (isPast(d) && !isToday(d)) return 'text-red-500 dark:text-red-400 font-semibold'
+  if (isToday(d)) return 'text-orange-500 dark:text-orange-400 font-semibold'
+  return 'text-gray-400 dark:text-slate-500'
 }
 
 // ── Inline add / edit form ────────────────────────────────────────────────────
@@ -281,14 +281,14 @@ export function TodoSection({
 
       {/* Loading */}
       {isLoading && (
-        <p className="text-sm text-gray-400 py-4 text-center">Loading tasks…</p>
+        <p className="text-sm text-gray-400 dark:text-slate-500 py-4 text-center">Loading tasks…</p>
       )}
 
       {/* Empty state */}
       {!isLoading && todos.length === 0 && !showAddForm && (
-        <div className="text-center py-8 border-dashed border-2 border-gray-200 rounded-xl">
+        <div className="text-center py-8 border-dashed border-2 border-gray-200 dark:border-slate-700 rounded-xl">
           <p className="text-2xl mb-2">📋</p>
-          <p className="text-gray-500 text-sm">No tasks yet. Add the first one!</p>
+          <p className="text-gray-500 dark:text-slate-400 text-sm">No tasks yet. Add the first one!</p>
         </div>
       )}
 
@@ -318,7 +318,7 @@ export function TodoSection({
         <div className="mt-4">
           <button
             onClick={() => setShowCompleted(v => !v)}
-            className="flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600 transition-colors mb-2"
+            className="flex items-center gap-1.5 text-sm text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors mb-2"
           >
             {showCompleted ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             {done.length} completed task{done.length !== 1 ? 's' : ''}
@@ -396,14 +396,14 @@ function TodoItem({
   }
 
   return (
-    <div className={`card flex items-start gap-3 py-3 animate-slide-up ${todo.isCompleted ? 'bg-gray-50' : ''}`}>
+    <div className={`card flex items-start gap-3 py-3 animate-slide-up ${todo.isCompleted ? 'bg-gray-50 dark:bg-slate-800/50' : ''}`}>
       {/* Checkbox */}
       <button
         onClick={onToggle}
         className={`mt-0.5 shrink-0 w-5 h-5 rounded-full border-2 flex items-center justify-center transition-colors ${
           todo.isCompleted
             ? 'bg-green-500 border-green-500 text-white'
-            : 'border-gray-300 hover:border-honey-500'
+            : 'border-gray-300 dark:border-slate-600 hover:border-honey-500 dark:hover:border-honey-400'
         }`}
         title={todo.isCompleted ? 'Mark as open' : 'Mark as done'}
       >
@@ -412,12 +412,12 @@ function TodoItem({
 
       {/* Content */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium leading-snug ${todo.isCompleted ? 'line-through text-gray-400' : 'text-gray-800'}`}>
+        <p className={`text-sm font-medium leading-snug ${todo.isCompleted ? 'line-through text-gray-400 dark:text-slate-500' : 'text-gray-800 dark:text-slate-100'}`}>
           {todo.title}
         </p>
 
         {todo.notes && (
-          <p className="text-xs text-gray-500 mt-0.5 italic">{todo.notes}</p>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 italic">{todo.notes}</p>
         )}
 
         <div className="flex flex-wrap items-center gap-2 mt-1.5">
@@ -433,14 +433,14 @@ function TodoItem({
           )}
 
           {todo.assignedToName && (
-            <span className="flex items-center gap-0.5 text-xs text-gray-500">
+            <span className="flex items-center gap-0.5 text-xs text-gray-500 dark:text-slate-400">
               <User className="w-3 h-3" />
               {todo.assignedToName}
             </span>
           )}
 
           {todo.isCompleted && todo.completedAt && (
-            <span className="text-xs text-green-500">
+            <span className="text-xs text-green-500 dark:text-green-400">
               ✓ Done {format(parseISO(todo.completedAt), 'dd MMM')}
             </span>
           )}
@@ -452,14 +452,14 @@ function TodoItem({
         <div className="flex gap-1 shrink-0">
           <button
             onClick={onEdit}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
             title="Edit"
           >
             <Pencil className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={onDelete}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+            className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
             title="Delete"
           >
             <Trash2 className="w-3.5 h-3.5" />

@@ -61,17 +61,17 @@ function DayCard({ day, isToday }: { day: DailyWeather; isToday: boolean }) {
   return (
     <div className={`rounded-xl p-3 text-center flex flex-col gap-1 border transition-all ${
       isToday
-        ? 'bg-honey-50 border-honey-300 shadow-honey'
-        : 'bg-white border-gray-100 hover:border-honey-200'
+        ? 'bg-honey-50 border-honey-300 shadow-honey dark:bg-honey-500/10 dark:border-honey-500/40 dark:shadow-none'
+        : 'bg-white border-gray-100 hover:border-honey-200 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-honey-500/40'
     }`}>
-      <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
         {isToday ? 'Today' : format(date, 'EEE')}
       </p>
-      <p className="text-[11px] text-gray-400">{format(date, 'MMM d')}</p>
+      <p className="text-[11px] text-gray-400 dark:text-slate-500">{format(date, 'MMM d')}</p>
       <span className="text-3xl my-1" title={wmoToLabel(day.weatherCode)}>
         {wmoToIcon(day.weatherCode)}
       </span>
-      <p className="text-[11px] text-gray-500 leading-tight">{wmoToLabel(day.weatherCode)}</p>
+      <p className="text-[11px] text-gray-500 dark:text-slate-400 leading-tight">{wmoToLabel(day.weatherCode)}</p>
       <div className="flex justify-center gap-2 mt-1">
         <span className="text-sm font-bold text-red-500">
           {day.maxTemp != null ? `${Math.round(day.maxTemp)}°` : '–'}
@@ -134,7 +134,7 @@ export default function ApiaryDetailPage() {
         backButton={
           <button
             onClick={() => navigate('/apiaries')}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-honey-600 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> All Apiaries
           </button>
@@ -166,6 +166,7 @@ export default function ApiaryDetailPage() {
         )}
       </div>
 
+      <div className="space-y-6">
       {/* Weather forecast */}
       <CollapsibleSection
         title="7-Day Weather Forecast"
@@ -177,10 +178,10 @@ export default function ApiaryDetailPage() {
         }
       >
         {!apiary.hasLocation ? (
-          <div className="text-center py-6 border-dashed border-2 border-gray-200 rounded-xl">
-            <MapPin className="w-8 h-8 text-gray-300 mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">No location set for this apiary.</p>
-            <Link to={`/apiaries/${apiaryId}/edit`} className="inline-flex items-center gap-1 mt-3 text-sm text-honey-600 hover:underline">
+          <div className="text-center py-6 border-dashed border-2 border-gray-200 dark:border-slate-700 rounded-xl">
+            <MapPin className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
+            <p className="text-gray-500 dark:text-slate-400 text-sm">No location set for this apiary.</p>
+            <Link to={`/apiaries/${apiaryId}/edit`} className="inline-flex items-center gap-1 mt-3 text-sm text-honey-600 dark:text-honey-400 hover:underline">
               <Pencil className="w-3.5 h-3.5" /> Add location
             </Link>
           </div>
@@ -196,7 +197,7 @@ export default function ApiaryDetailPage() {
               </div>
             </div>
             {weather.daily[0] && (
-              <div className="mt-3 bg-honey-50 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm text-gray-600">
+              <div className="mt-3 bg-honey-50 dark:bg-slate-800 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-slate-300">
                 <span className="flex items-center gap-1.5">
                   <Thermometer className="w-4 h-4 text-red-400" />
                   Today: <strong className="text-red-500">{Math.round(weather.daily[0].maxTemp ?? 0)}°C</strong>
@@ -215,12 +216,12 @@ export default function ApiaryDetailPage() {
                     Wind: <strong>{Math.round(weather.daily[0].maxWindSpeed)} km/h</strong>
                   </span>
                 )}
-                <span className="ml-auto text-xs text-gray-400">via Open-Meteo · {weather.timezone}</span>
+                <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">via Open-Meteo · {weather.timezone}</span>
               </div>
             )}
           </>
         ) : (
-          <p className="text-center py-4 text-gray-400 text-sm">Weather data unavailable.</p>
+          <p className="text-center py-4 text-gray-400 dark:text-slate-500 text-sm">Weather data unavailable.</p>
         )}
       </CollapsibleSection>
 
@@ -273,20 +274,20 @@ export default function ApiaryDetailPage() {
                   <span className="text-2xl shrink-0 mt-0.5">🏠</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-semibold text-gray-800 truncate group-hover:text-honey-700 transition-colors">
+                      <h3 className="font-semibold text-gray-800 dark:text-slate-100 truncate group-hover:text-honey-700 dark:group-hover:text-honey-400 transition-colors">
                         {beehive.name}
                       </h3>
                       {canEditDelete && (
                         <div className="flex gap-1 shrink-0" onClick={e => e.stopPropagation()}>
                           <Link
                             to={`/beehives/${beehive.id}/edit`}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                            className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                           >
                             <Pencil className="w-3.5 h-3.5" />
                           </Link>
                           <button
                             onClick={() => setDeleteTarget({ id: beehive.id, name: beehive.name })}
-                            className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
@@ -294,10 +295,10 @@ export default function ApiaryDetailPage() {
                       )}
                     </div>
                     <div className="flex flex-wrap gap-1.5 mt-1.5">
-                      <span className="badge bg-honey-100 text-honey-700">{beehive.typeName}</span>
-                      <span className="badge bg-gray-100 text-gray-600">{beehive.materialName}</span>
+                      <span className="badge bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300">{beehive.typeName}</span>
+                      <span className="badge bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">{beehive.materialName}</span>
                     </div>
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
                       📋 {beehive.inspectionCount} inspection{beehive.inspectionCount !== 1 ? 's' : ''}
                     </p>
                   </div>
@@ -307,6 +308,7 @@ export default function ApiaryDetailPage() {
           </div>
         )}
       </CollapsibleSection>
+      </div>
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
@@ -324,8 +326,8 @@ function StatCard({ icon, label, value }: { icon: string; label: string; value: 
   return (
     <div className="card text-center py-4">
       <div className="text-2xl mb-1">{icon}</div>
-      <div className="font-display text-xl font-bold text-honey-700">{value}</div>
-      <div className="text-xs text-gray-500 mt-0.5">{label}</div>
+      <div className="font-display text-xl font-bold text-honey-700 dark:text-honey-400">{value}</div>
+      <div className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">{label}</div>
     </div>
   )
 }

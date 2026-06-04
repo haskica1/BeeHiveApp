@@ -10,7 +10,8 @@
   }
 
   body {
-    @apply bg-honey-50 text-gray-800;
+    @apply bg-honey-50 text-gray-800 transition-colors duration-300
+           dark:bg-slate-950 dark:text-slate-200;
   }
 
   h1, h2, h3 {
@@ -21,7 +22,8 @@
 @layer components {
   /* Reusable card */
   .card {
-    @apply bg-white rounded-2xl shadow-card border border-honey-100 p-5;
+    @apply bg-white rounded-2xl shadow-card border border-honey-100 p-5
+           dark:bg-slate-900 dark:border-slate-800 dark:shadow-none;
   }
 
   /* Primary button */
@@ -29,6 +31,7 @@
     @apply inline-flex items-center gap-2 px-4 py-2.5 bg-honey-600 hover:bg-honey-700
            text-white font-medium rounded-xl transition-colors shadow-honey
            focus:outline-none focus:ring-2 focus:ring-honey-500 focus:ring-offset-2
+           dark:focus:ring-offset-slate-950 dark:shadow-none
            disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
@@ -36,31 +39,36 @@
   .btn-secondary {
     @apply inline-flex items-center gap-2 px-4 py-2.5 bg-white hover:bg-honey-50
            text-honey-700 font-medium rounded-xl border border-honey-300 transition-colors
-           focus:outline-none focus:ring-2 focus:ring-honey-400 focus:ring-offset-2;
+           focus:outline-none focus:ring-2 focus:ring-honey-400 focus:ring-offset-2
+           dark:bg-slate-800 dark:text-honey-300 dark:border-slate-700
+           dark:hover:bg-slate-700 dark:focus:ring-offset-slate-950;
   }
 
   /* Danger button */
   .btn-danger {
     @apply inline-flex items-center gap-2 px-4 py-2.5 bg-red-500 hover:bg-red-600
            text-white font-medium rounded-xl transition-colors
-           focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2;
+           focus:outline-none focus:ring-2 focus:ring-red-400 focus:ring-offset-2
+           dark:focus:ring-offset-slate-950;
   }
 
   /* Form input */
   .form-input {
     @apply w-full min-w-0 px-3.5 py-2.5 bg-white border border-gray-300 rounded-xl text-sm
            placeholder:text-gray-400 focus:outline-none focus:ring-2
-           focus:ring-honey-400 focus:border-honey-400 transition;
+           focus:ring-honey-400 focus:border-honey-400 transition
+           dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100
+           dark:placeholder:text-slate-500 dark:[color-scheme:dark];
   }
 
   /* Form label */
   .form-label {
-    @apply block text-sm font-medium text-gray-700 mb-1.5;
+    @apply block text-sm font-medium text-gray-700 mb-1.5 dark:text-slate-300;
   }
 
   /* Error text */
   .form-error {
-    @apply mt-1 text-xs text-red-600;
+    @apply mt-1 text-xs text-red-600 dark:text-red-400;
   }
 
   /* Badge */
@@ -72,4 +80,8 @@
 /* Honeycomb decorative background pattern */
 .bg-honeycomb {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2.33L54 49.08V17.25L28 2.33 2 17.25v31.83L28 63.67z' fill='%23fde68a' fill-opacity='0.25'/%3E%3C/svg%3E");
+}
+
+.dark .bg-honeycomb {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2.33L54 49.08V17.25L28 2.33 2 17.25v31.83L28 63.67z' fill='%23f59e0b' fill-opacity='0.12'/%3E%3C/svg%3E");
 }

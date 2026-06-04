@@ -136,19 +136,19 @@ export default function ExpenseFormPage() {
     <div className="max-w-2xl mx-auto">
       <button
         onClick={() => navigate('/expenses')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Expenses
       </button>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-honey-100 px-8 py-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-6">
           {isEdit ? 'Edit Expense' : 'New Expense'}
         </h1>
 
         {error && (
-          <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm mb-5">
+          <div className="flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             Failed to save expense. Please check your inputs and try again.
           </div>
@@ -158,20 +158,20 @@ export default function ExpenseFormPage() {
           {/* Date + Currency row */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                 Purchase Date <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
                 {...register('purchaseDate', { required: true })}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Currency</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Currency</label>
               <select
                 {...register('currency')}
-                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               >
                 {DEFAULT_CURRENCIES.map(c => (
                   <option key={c} value={c}>{c}</option>
@@ -187,20 +187,20 @@ export default function ExpenseFormPage() {
               type="text"
               placeholder="e.g. Spring supplies, local store"
               {...register('notes')}
-              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+              className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
             />
           </div>
 
           {/* Items */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
                 Items <span className="text-red-500">*</span>
               </label>
               <button
                 type="button"
                 onClick={() => append(emptyItem())}
-                className="flex items-center gap-1 text-xs text-honey-600 hover:text-honey-700 font-medium transition-colors"
+                className="flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:text-honey-700 dark:hover:text-honey-300 font-medium transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
                 Add item
@@ -210,7 +210,7 @@ export default function ExpenseFormPage() {
             {/* Column headers */}
             <div className="grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 px-1 mb-1">
               {['Product', 'Qty', 'Unit', 'Unit price', 'Total', ''].map(h => (
-                <span key={h} className="text-xs font-medium text-gray-400">{h}</span>
+                <span key={h} className="text-xs font-medium text-gray-400 dark:text-slate-500">{h}</span>
               ))}
             </div>
 
@@ -221,7 +221,7 @@ export default function ExpenseFormPage() {
                     type="text"
                     placeholder="Sugar"
                     {...register(`items.${index}.name`, { required: true })}
-                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
+                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
                   <input
                     type="number"
@@ -229,13 +229,13 @@ export default function ExpenseFormPage() {
                     min="0"
                     placeholder="25"
                     {...register(`items.${index}.quantity`, { required: true })}
-                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
+                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
                   <input
                     type="text"
                     placeholder="kg"
                     {...register(`items.${index}.unit`)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
+                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
                   <input
                     type="number"
@@ -243,7 +243,7 @@ export default function ExpenseFormPage() {
                     min="0"
                     placeholder="1.60"
                     {...register(`items.${index}.unitPrice`)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
+                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
                   <input
                     type="number"
@@ -251,13 +251,13 @@ export default function ExpenseFormPage() {
                     min="0"
                     placeholder="40.00"
                     {...register(`items.${index}.totalPrice`)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
+                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
                   <button
                     type="button"
                     onClick={() => remove(index)}
                     disabled={fields.length === 1}
-                    className="p-1.5 rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="p-1.5 rounded-lg text-gray-300 dark:text-slate-600 hover:text-red-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     aria-label="Remove item"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -268,17 +268,17 @@ export default function ExpenseFormPage() {
           </div>
 
           {/* Total */}
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100">
-            <span className="text-sm text-gray-500">Total amount</span>
+          <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
+            <span className="text-sm text-gray-500 dark:text-slate-400">Total amount</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
                 step="0.01"
                 min="0"
                 {...register('totalAmount', { required: true })}
-                className="w-28 px-3 py-2 rounded-lg border border-gray-200 text-sm font-semibold outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all text-right"
+                className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm font-semibold outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all text-right"
               />
-              <span className="text-sm font-medium text-gray-600">{watch('currency')}</span>
+              <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{watch('currency')}</span>
             </div>
           </div>
 
@@ -287,7 +287,7 @@ export default function ExpenseFormPage() {
             <button
               type="button"
               onClick={() => navigate('/expenses')}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>

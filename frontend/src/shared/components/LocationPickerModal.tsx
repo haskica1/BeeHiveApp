@@ -85,18 +85,18 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60">
       <div
-        className="relative flex flex-col w-full max-w-2xl mx-0 sm:mx-4 bg-white rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
+        className="relative flex flex-col w-full max-w-2xl mx-0 sm:mx-4 bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
         style={{ height: '85dvh', maxHeight: 640 }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-honey-100 shrink-0">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-honey-100 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-honey-600" />
-            <span className="font-semibold text-gray-800 text-sm">Pick Apiary Location</span>
+            <MapPin className="w-4 h-4 text-honey-600 dark:text-honey-400" />
+            <span className="font-semibold text-gray-800 dark:text-slate-100 text-sm">Pick Apiary Location</span>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+            className="p-1.5 rounded-full text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
             aria-label="Close"
           >
             <X className="w-5 h-5" />
@@ -104,7 +104,7 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
         </div>
 
         {/* Instruction bar */}
-        <div className="px-4 py-2 bg-honey-50 border-b border-honey-100 text-xs text-honey-800 shrink-0">
+        <div className="px-4 py-2 bg-honey-50 dark:bg-slate-800/60 border-b border-honey-100 dark:border-slate-800 text-xs text-honey-800 dark:text-honey-300 shrink-0">
           Tap anywhere on the map to place a pin.
         </div>
 
@@ -129,17 +129,17 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
             onClick={handleLocateMe}
             disabled={locating}
             title="Use my location"
-            className="absolute bottom-4 right-4 z-[1000] flex items-center justify-center w-10 h-10 rounded-full bg-white shadow-md border border-gray-200 text-gray-600 hover:text-honey-600 hover:border-honey-300 transition-colors disabled:opacity-50"
+            className="absolute bottom-4 right-4 z-[1000] flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-md border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:text-honey-600 dark:hover:text-honey-400 hover:border-honey-300 dark:hover:border-honey-500/50 transition-colors disabled:opacity-50"
           >
             <Crosshair className={`w-5 h-5 ${locating ? 'animate-pulse' : ''}`} />
           </button>
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-3 border-t border-honey-100 bg-white shrink-0 flex items-center gap-3">
-          <div className="flex-1 text-xs text-gray-500 font-mono">
+        <div className="px-4 py-3 border-t border-honey-100 dark:border-slate-800 bg-white dark:bg-slate-900 shrink-0 flex items-center gap-3">
+          <div className="flex-1 text-xs text-gray-500 dark:text-slate-400 font-mono">
             {pin
-              ? <span className="text-gray-700">{fmt(pin.lat)}, {fmt(pin.lng)}</span>
+              ? <span className="text-gray-700 dark:text-slate-300">{fmt(pin.lat)}, {fmt(pin.lng)}</span>
               : <span className="italic">No location selected</span>
             }
           </div>

@@ -97,23 +97,23 @@ export default function LoginPage() {
       </div>
 
       {/* ── Right panel — form ──────────────────────────────────────────────── */}
-      <div className="flex-1 flex items-center justify-center bg-honey-50 px-6 py-12">
+      <div className="flex-1 flex items-center justify-center bg-honey-50 dark:bg-slate-950 px-6 py-12">
         <div className="w-full max-w-md animate-fade-in">
           {/* Mobile logo */}
           <div className="lg:hidden text-center mb-8">
             <span className="text-5xl">🐝</span>
-            <h1 className="text-3xl font-bold text-honey-800 mt-2">BeeHive</h1>
+            <h1 className="text-3xl font-bold text-honey-800 dark:text-honey-300 mt-2">BeeHive</h1>
           </div>
 
-          <div className="bg-white rounded-2xl shadow-xl border border-honey-100 px-8 py-10">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-honey-100 dark:border-slate-800 px-8 py-10">
             <div className="mb-8">
-              <h2 className="text-2xl font-bold text-gray-900">Welcome back</h2>
-              <p className="text-gray-500 mt-1 text-sm">Sign in to your beekeeping workspace</p>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Welcome back</h2>
+              <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Sign in to your beekeeping workspace</p>
             </div>
 
             {/* Server error */}
             {serverError && (
-              <div className="mb-6 flex items-start gap-3 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+              <div className="mb-6 flex items-start gap-3 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
                 <span className="mt-0.5">⚠️</span>
                 <span>{serverError}</span>
               </div>
@@ -122,7 +122,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Email */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                   Email address
                 </label>
                 <input
@@ -131,10 +131,10 @@ export default function LoginPage() {
                   autoComplete="email"
                   placeholder="you@example.com"
                   className={`w-full px-4 py-3 rounded-xl border text-sm transition-all duration-200 outline-none
-                    bg-gray-50 focus:bg-white
+                    bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 dark:[color-scheme:dark]
                     ${errors.email
                       ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-                      : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
+                      : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 dark:focus:ring-honey-500/20'
                     }`}
                   {...register('email', {
                     required: 'Email is required',
@@ -148,7 +148,7 @@ export default function LoginPage() {
 
               {/* Password */}
               <div>
-                <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
                   Password
                 </label>
                 <div className="relative">
@@ -158,17 +158,17 @@ export default function LoginPage() {
                     autoComplete="current-password"
                     placeholder="••••••••"
                     className={`w-full px-4 py-3 pr-11 rounded-xl border text-sm transition-all duration-200 outline-none
-                      bg-gray-50 focus:bg-white
+                      bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 dark:[color-scheme:dark]
                       ${errors.password
                         ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-                        : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
+                        : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 dark:focus:ring-honey-500/20'
                       }`}
                     {...register('password', { required: 'Password is required' })}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
                     tabIndex={-1}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
@@ -202,27 +202,27 @@ export default function LoginPage() {
             </form>
 
             {/* Test credentials hint */}
-            <div className="mt-8 pt-6 border-t border-gray-100">
-              <p className="text-xs text-gray-400 text-center mb-3">Test accounts</p>
+            <div className="mt-8 pt-6 border-t border-gray-100 dark:border-slate-800">
+              <p className="text-xs text-gray-400 dark:text-slate-500 text-center mb-3">Test accounts</p>
               <div className="grid grid-cols-1 gap-2">
-                <div className="bg-purple-50 rounded-lg p-2.5 text-center border border-purple-100">
-                  <p className="text-xs font-medium text-purple-700">System Admin</p>
-                  <p className="text-xs text-gray-500 mt-0.5">sysadmin@beehive.com</p>
-                  <p className="text-xs text-gray-400 font-mono mt-0.5">SysAdmin123!</p>
+                <div className="bg-purple-50 dark:bg-purple-500/10 rounded-lg p-2.5 text-center border border-purple-100 dark:border-purple-500/20">
+                  <p className="text-xs font-medium text-purple-700 dark:text-purple-300">System Admin</p>
+                  <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5">sysadmin@beehive.com</p>
+                  <p className="text-xs text-gray-400 dark:text-slate-500 font-mono mt-0.5">SysAdmin123!</p>
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   {[
                     { org: 'Golden Hive Co', email: 'admin@goldenhive.com' },
                     { org: 'Mountain Bees', email: 'admin@mountainbees.com' },
                   ].map((acc) => (
-                    <div key={acc.email} className="bg-honey-50 rounded-lg p-2.5 text-center">
-                      <p className="text-xs font-medium text-honey-700">{acc.org}</p>
-                      <p className="text-xs text-gray-500 mt-0.5 truncate">{acc.email}</p>
+                    <div key={acc.email} className="bg-honey-50 dark:bg-honey-500/10 rounded-lg p-2.5 text-center">
+                      <p className="text-xs font-medium text-honey-700 dark:text-honey-300">{acc.org}</p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 truncate">{acc.email}</p>
                     </div>
                   ))}
                 </div>
               </div>
-              <p className="text-xs text-gray-400 text-center mt-2">
+              <p className="text-xs text-gray-400 dark:text-slate-500 text-center mt-2">
                 Org admin password: <span className="font-mono">Admin123!</span>
               </p>
             </div>

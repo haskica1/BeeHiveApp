@@ -71,25 +71,25 @@ export default function ApiaryListPage() {
                 <div className="flex items-center gap-2.5 min-w-0">
                   <span className="text-2xl shrink-0">🏡</span>
                   <div className="min-w-0">
-                    <h2 className="font-display text-lg font-semibold text-gray-800 truncate group-hover:text-honey-700 transition-colors">
+                    <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100 truncate group-hover:text-honey-700 dark:group-hover:text-honey-400 transition-colors">
                       {apiary.name}
                     </h2>
-                    <p className="text-xs text-gray-400">
+                    <p className="text-xs text-gray-400 dark:text-slate-500">
                       Created {format(new Date(apiary.createdAt), 'dd MMM yyyy')}
                     </p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-gray-300 group-hover:text-honey-500 shrink-0 mt-0.5 transition-colors" />
+                <ChevronRight className="w-5 h-5 text-gray-300 dark:text-slate-600 group-hover:text-honey-500 shrink-0 mt-0.5 transition-colors" />
               </div>
 
               {/* Description */}
               {apiary.description && (
-                <p className="text-sm text-gray-500 mb-3 line-clamp-2">{apiary.description}</p>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mb-3 line-clamp-2">{apiary.description}</p>
               )}
 
               {/* Stats row */}
-              <div className="flex items-center justify-between pt-3 border-t border-honey-100">
-                <span className="flex items-center gap-1.5 text-sm text-gray-600">
+              <div className="flex items-center justify-between pt-3 border-t border-honey-100 dark:border-slate-800">
+                <span className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-slate-300">
                   <span className="text-base">🐝</span>
                   <strong className="text-honey-700">{apiary.beehiveCount}</strong>
                   {apiary.beehiveCount === 1 ? ' beehive' : ' beehives'}
@@ -103,14 +103,14 @@ export default function ApiaryListPage() {
                   >
                     <Link
                       to={`/apiaries/${apiary.id}/edit`}
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                      className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                       title="Edit"
                     >
                       <Pencil className="w-4 h-4" />
                     </Link>
                     <button
                       onClick={() => setDeleteTarget({ id: apiary.id, name: apiary.name })}
-                      className="p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                       title="Delete"
                     >
                       <Trash2 className="w-4 h-4" />

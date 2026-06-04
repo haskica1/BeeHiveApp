@@ -24,8 +24,8 @@ function CustomTooltip({ active, payload, label }: {
 }) {
   if (!active || !payload?.length) return null
   return (
-    <div className="bg-white border border-honey-100 rounded-xl shadow-lg px-4 py-3 text-sm">
-      {label && <p className="font-semibold text-gray-700 mb-1">{label}</p>}
+    <div className="bg-white dark:bg-slate-800 border border-honey-100 dark:border-slate-700 rounded-xl shadow-lg px-4 py-3 text-sm">
+      {label && <p className="font-semibold text-gray-700 dark:text-slate-200 mb-1">{label}</p>}
       {payload.map((p, i) => (
         <p key={i} style={{ color: p.color ?? '#f59e0b' }} className="font-medium">
           {p.name}: {p.value != null ? p.value : '—'}
@@ -61,7 +61,7 @@ function Section({ title, icon, children }: { title: string; icon: string; child
     <div className="card mb-6">
       <div className="flex items-center gap-2 mb-5">
         <span className="text-xl">{icon}</span>
-        <h2 className="font-display text-lg font-semibold text-gray-800">{title}</h2>
+        <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">{title}</h2>
       </div>
       {children}
     </div>
@@ -90,8 +90,8 @@ function KpiCard({ icon, label, value, color }: {
 
 function EmptyChart({ message = 'Not enough data yet' }: { message?: string }) {
   return (
-    <div className="flex items-center justify-center h-48 rounded-xl border-2 border-dashed border-gray-200">
-      <p className="text-gray-400 text-sm">{message}</p>
+    <div className="flex items-center justify-center h-48 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700">
+      <p className="text-gray-400 dark:text-slate-500 text-sm">{message}</p>
     </div>
   )
 }
@@ -117,11 +117,11 @@ export default function StatsPage() {
     <div className="animate-fade-in">
       {/* Page header */}
       <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-gray-800 flex items-center gap-3">
+        <h1 className="font-display text-3xl font-bold text-gray-800 dark:text-slate-100 flex items-center gap-3">
           <BarChart2 className="w-8 h-8 text-honey-500" />
           Statistics
         </h1>
-        <p className="text-gray-500 mt-1 text-sm">Overview of your apiary activity and hive health</p>
+        <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Overview of your apiary activity and hive health</p>
       </div>
 
       {/* ── KPI Summary ──────────────────────────────────────────────────────── */}
@@ -214,7 +214,7 @@ export default function StatsPage() {
         <div className="card">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xl">🏠</span>
-            <h2 className="font-display text-lg font-semibold text-gray-800">Hive Types</h2>
+            <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Hive Types</h2>
           </div>
           {!hasHiveData ? <EmptyChart /> : (
             <ResponsiveContainer width="100%" height={200}>
@@ -245,7 +245,7 @@ export default function StatsPage() {
         <div className="card">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xl">🪵</span>
-            <h2 className="font-display text-lg font-semibold text-gray-800">Hive Materials</h2>
+            <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Hive Materials</h2>
           </div>
           {stats.beehivesByMaterial.length === 0 ? <EmptyChart /> : (
             <ResponsiveContainer width="100%" height={200}>
@@ -347,7 +347,7 @@ export default function StatsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-5">
               <span className="text-xl">🌿</span>
-              <h2 className="font-display text-lg font-semibold text-gray-800">Diet Status</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Diet Status</h2>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -380,7 +380,7 @@ export default function StatsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-5">
               <Leaf className="w-5 h-5 text-honey-500" />
-              <h2 className="font-display text-lg font-semibold text-gray-800">Food Types Used</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Food Types Used</h2>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart
@@ -423,9 +423,9 @@ export default function StatsPage() {
           <div className="flex flex-wrap gap-3 mt-4">
             {(stats.todosByPriority as PriorityStats[]).map((p) => {
               const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0
-              const color = p.priority === 'High' ? 'bg-red-100 text-red-700'
-                : p.priority === 'Medium' ? 'bg-honey-100 text-honey-700'
-                : 'bg-gray-100 text-gray-600'
+              const color = p.priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
+                : p.priority === 'Medium' ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
+                : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
               return (
                 <div key={p.priority} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium ${color}`}>
                   <CheckSquare className="w-3.5 h-3.5" />

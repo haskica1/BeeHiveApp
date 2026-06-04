@@ -74,7 +74,7 @@ export default function MemberAssignmentPage() {
 
   if (!member) {
     return (
-      <div className="text-center py-20 text-gray-500">Member not found.</div>
+      <div className="text-center py-20 text-gray-500 dark:text-slate-400">Member not found.</div>
     )
   }
 
@@ -86,27 +86,27 @@ export default function MemberAssignmentPage() {
     <div className="max-w-xl mx-auto">
       <button
         onClick={() => navigate('/members')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Members
       </button>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-honey-100 px-8 py-8 space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8 space-y-6">
         {/* Member info */}
         <div>
-          <h1 className="text-xl font-bold text-gray-900">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">
             {member.firstName} {member.lastName}
           </h1>
-          <p className="text-sm text-gray-500 mt-0.5">{member.email}</p>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{member.email}</p>
           <span className={`mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-            ${isAdminRole ? 'bg-honey-100 text-honey-700' : 'bg-gray-100 text-gray-600'}`}>
+            ${isAdminRole ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'}`}>
             {member.role}
           </span>
         </div>
 
         {error && (
-          <div className="flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+          <div className="flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             {error}
           </div>
@@ -115,7 +115,7 @@ export default function MemberAssignmentPage() {
         {/* Beehive assignments — for User role */}
         {isUserRole && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
               Assigned Hives
             </label>
             {loadingBeehives ? (
@@ -123,15 +123,15 @@ export default function MemberAssignmentPage() {
                 <Loader2 className="w-5 h-5 animate-spin text-honey-400" />
               </div>
             ) : beehives.length === 0 ? (
-              <p className="text-sm text-gray-400 py-2">
+              <p className="text-sm text-gray-400 dark:text-slate-500 py-2">
                 No hives available to assign.
               </p>
             ) : (
-              <div className="border border-gray-200 rounded-xl divide-y divide-gray-100 max-h-60 overflow-y-auto">
+              <div className="border border-gray-200 dark:border-slate-700 rounded-xl divide-y divide-gray-100 dark:divide-slate-800 max-h-60 overflow-y-auto">
                 {beehives.map((b) => (
                   <label
                     key={b.id}
-                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 cursor-pointer hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
                   >
                     <input
                       type="checkbox"
@@ -139,13 +139,13 @@ export default function MemberAssignmentPage() {
                       onChange={() => toggleBeehive(b.id)}
                       className="w-4 h-4 accent-honey-500"
                     />
-                    <span className="text-sm text-gray-800">{b.name}</span>
-                    <span className="text-xs text-gray-400 ml-auto">{b.apiaryName}</span>
+                    <span className="text-sm text-gray-800 dark:text-slate-200">{b.name}</span>
+                    <span className="text-xs text-gray-400 dark:text-slate-500 ml-auto">{b.apiaryName}</span>
                   </label>
                 ))}
               </div>
             )}
-            <p className="mt-1.5 text-xs text-gray-400">
+            <p className="mt-1.5 text-xs text-gray-400 dark:text-slate-500">
               {selectedBeehiveIds.length > 0
                 ? `${selectedBeehiveIds.length} hive${selectedBeehiveIds.length !== 1 ? 's' : ''} selected`
                 : 'No hives assigned'}
@@ -155,7 +155,7 @@ export default function MemberAssignmentPage() {
               <button
                 type="button"
                 onClick={() => navigate('/members')}
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
@@ -174,7 +174,7 @@ export default function MemberAssignmentPage() {
         {/* Apiary assignment — for Admin role, OrgAdmin only */}
         {isAdminRole && isOrgAdmin && (
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
               Assigned Apiary
             </label>
             {loadingApiaries ? (
@@ -185,7 +185,7 @@ export default function MemberAssignmentPage() {
               <select
                 value={selectedApiaryId}
                 onChange={e => setSelectedApiaryId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               >
                 <option value="">No apiary assigned</option>
                 {apiaries.map((a) => (
@@ -198,7 +198,7 @@ export default function MemberAssignmentPage() {
               <button
                 type="button"
                 onClick={() => navigate('/members')}
-                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 Cancel
               </button>
@@ -216,7 +216,7 @@ export default function MemberAssignmentPage() {
 
         {/* Admin member but caller is also Admin (not OrgAdmin) */}
         {isAdminRole && !isOrgAdmin && (
-          <div className="text-sm text-gray-500 bg-gray-50 rounded-xl px-4 py-3">
+          <div className="text-sm text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-800/60 rounded-xl px-4 py-3">
             Only Organization Admins can change apiary assignments for Admin users.
           </div>
         )}

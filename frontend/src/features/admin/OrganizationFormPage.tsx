@@ -67,36 +67,36 @@ export default function OrganizationFormPage() {
     <div className="max-w-xl mx-auto">
       <button
         onClick={() => navigate('/admin')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-6 transition-colors"
+        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />
         Back to Dashboard
       </button>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-honey-100 px-8 py-8">
-        <h1 className="text-xl font-bold text-gray-900 mb-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
+        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-6">
           {isEdit ? 'Edit Organization' : 'New Organization'}
         </h1>
 
         {errors.root && (
-          <div className="mb-5 bg-red-50 border border-red-200 text-red-700 rounded-xl px-4 py-3 text-sm">
+          <div className="mb-5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
             {errors.root.message}
           </div>
         )}
 
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
               Name <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
               placeholder="Organization name"
               className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all
-                bg-gray-50 focus:bg-white
+                bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100
                 ${errors.name
                   ? 'border-red-400 focus:ring-2 focus:ring-red-200'
-                  : 'border-gray-200 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
+                  : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
                 }`}
               {...register('name', { required: 'Name is required', maxLength: { value: 200, message: 'Max 200 characters' } })}
             />
@@ -104,12 +104,12 @@ export default function OrganizationFormPage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Description</label>
             <textarea
               rows={3}
               placeholder="Brief description (optional)"
-              className="w-full px-4 py-3 rounded-xl border border-gray-200 text-sm outline-none
-                bg-gray-50 focus:bg-white focus:border-honey-400 focus:ring-2 focus:ring-honey-100
+              className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none
+                bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100
                 transition-all resize-none"
               {...register('description', { maxLength: { value: 1000, message: 'Max 1000 characters' } })}
             />
@@ -120,8 +120,8 @@ export default function OrganizationFormPage() {
             <button
               type="button"
               onClick={() => navigate('/admin')}
-              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 text-sm font-medium text-gray-700
-                hover:bg-gray-50 transition-colors"
+              className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200
+                hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>

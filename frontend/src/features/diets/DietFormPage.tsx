@@ -140,7 +140,7 @@ export default function DietFormPage() {
         backButton={
           <Link
             to={backHref}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-honey-600 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </Link>
@@ -151,7 +151,7 @@ export default function DietFormPage() {
 
         {/* Basic info */}
         <div className="card space-y-4">
-          <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Basic Info</h3>
+          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Basic Info</h3>
 
           <div>
             <label className="form-label">Diet Name *</label>
@@ -205,7 +205,7 @@ export default function DietFormPage() {
 
         {/* Schedule */}
         <div className="card space-y-4">
-          <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Schedule</h3>
+          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Schedule</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -234,9 +234,9 @@ export default function DietFormPage() {
 
           {/* Preview panel */}
           {entryCount > 0 && (
-            <div className="flex items-start gap-3 bg-honey-50 border border-honey-200 rounded-xl p-4 text-sm">
-              <Info className="w-4 h-4 text-honey-600 shrink-0 mt-0.5" />
-              <div className="text-honey-800">
+            <div className="flex items-start gap-3 bg-honey-50 dark:bg-honey-500/10 border border-honey-200 dark:border-honey-500/30 rounded-xl p-4 text-sm">
+              <Info className="w-4 h-4 text-honey-600 dark:text-honey-400 shrink-0 mt-0.5" />
+              <div className="text-honey-800 dark:text-honey-200">
                 <span className="font-semibold">{entryCount} feeding {entryCount === 1 ? 'entry' : 'entries'}</span>
                 {' '}will be generated, every {frequency} day{frequency !== 1 ? 's' : ''} over {duration} days
                 {startDate && <span> (ends {endDate})</span>}.
@@ -247,7 +247,7 @@ export default function DietFormPage() {
 
         {/* Food */}
         <div className="card space-y-4">
-          <h3 className="font-semibold text-gray-700 text-sm uppercase tracking-wide">Food Type</h3>
+          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Food Type</h3>
 
           <div>
             <label className="form-label">Food Type *</label>

@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, QrCode, ReceiptText, Settings, Users, X } from 'lucide-react'
+import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, Moon, QrCode, ReceiptText, Settings, Sun, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
+import { useTheme } from '../../core/hooks/useTheme'
 import QrScannerModal from './QrScannerModal'
 import NotificationBell from './NotificationBell'
 
@@ -12,6 +13,7 @@ export default function Layout() {
   const [scannerOpen, setScannerOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
   const { user, logout } = useAuth()
+  const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
 
   const isSystemAdmin  = user?.role === 'SystemAdmin'
@@ -20,10 +22,10 @@ export default function Layout() {
   const canSeeExpenses = isSystemAdmin || isOrgAdmin || isAdmin
 
   const avatarClass = isSystemAdmin
-    ? 'bg-purple-100 text-purple-700'
+    ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
     : isOrgAdmin
-    ? 'bg-blue-100 text-blue-700'
-    : 'bg-honey-100 text-honey-700'
+    ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
+    : 'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300'
 
   const roleLabel = isSystemAdmin
     ? 'System Admin'
@@ -50,10 +52,10 @@ export default function Layout() {
   }, [profileOpen])
 
   return (
-    <div className="min-h-screen flex flex-col bg-honey-50">
+    <div className="min-h-screen flex flex-col bg-honey-50 dark:bg-slate-950">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white/90 backdrop-blur border-b border-honey-200 shadow-sm">
+      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-honey-200 dark:border-slate-800 shadow-sm dark:shadow-none">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
           {/* Logo */}
@@ -62,7 +64,7 @@ export default function Layout() {
             className="flex items-center gap-2 group shrink-0"
           >
             <span className="text-2xl leading-none">🐝</span>
-            <span className="font-display text-xl font-bold text-honey-800 group-hover:text-honey-600 transition-colors">
+            <span className="font-display text-xl font-bold text-honey-800 dark:text-honey-300 group-hover:text-honey-600 dark:group-hover:text-honey-400 transition-colors">
               BeeHive
             </span>
           </Link>
@@ -71,7 +73,7 @@ export default function Layout() {
           <div className="hidden sm:flex items-center gap-3">
 
             {/* Nav pill group */}
-            <nav className="flex items-center gap-0.5 bg-gray-100 rounded-xl p-1">
+            <nav className="flex items-center gap-0.5 bg-gray-100 dark:bg-slate-800 rounded-xl p-1">
               {isSystemAdmin ? (
                 <NavPill to="/admin" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
               ) : (
@@ -87,12 +89,22 @@ export default function Layout() {
               <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistics" />
               <button
                 onClick={() => setScannerOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 hover:bg-white hover:shadow-sm hover:text-honey-700 transition-all"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm hover:text-honey-700 dark:hover:text-honey-300 transition-all"
               >
                 <QrCode className="w-4 h-4" />
                 Scan
               </button>
             </nav>
+
+            {/* Dark mode toggle */}
+            <button
+              onClick={toggleTheme}
+              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              title={isDark ? 'Light mode' : 'Dark mode'}
+            >
+              {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+            </button>
 
             {/* Notification bell */}
             <NotificationBell />
@@ -114,25 +126,25 @@ export default function Layout() {
 
               {/* Dropdown */}
               {profileOpen && (
-                <div className="absolute right-0 top-11 w-56 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden animate-fade-in">
+                <div className="absolute right-0 top-11 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-fade-in">
                   {/* User info */}
-                  <div className="px-4 py-3 border-b border-gray-100">
+                  <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
                     <div className="flex items-center gap-2.5">
                       <div className={clsx('w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm shrink-0', avatarClass)}>
                         {user?.firstName[0]}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 truncate">
+                        <p className="text-sm font-semibold text-gray-800 dark:text-slate-100 truncate">
                           {user?.firstName} {user?.lastName}
                         </p>
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{roleLabel}</p>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{roleLabel}</p>
                       </div>
                     </div>
                   </div>
                   {/* Edit profile */}
                   <button
                     onClick={() => { setProfileOpen(false); navigate('/profile') }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     <Settings className="w-4 h-4" />
                     Edit Profile
@@ -140,7 +152,7 @@ export default function Layout() {
                   {/* Sign out */}
                   <button
                     onClick={() => { setProfileOpen(false); handleLogout() }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Sign out
@@ -150,19 +162,28 @@ export default function Layout() {
             </div>
           </div>
 
-          {/* ── Mobile: hamburger ──────────────────────────────────────────── */}
-          <button
-            className="sm:hidden p-2 rounded-lg text-gray-600 hover:bg-honey-100 transition-colors"
-            onClick={() => setMobileOpen(v => !v)}
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </button>
+          {/* ── Mobile: dark toggle + hamburger ─────────────────────────────── */}
+          <div className="sm:hidden flex items-center gap-1">
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+            </button>
+            <button
+              className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+              onClick={() => setMobileOpen(v => !v)}
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
+          </div>
         </div>
 
         {/* Mobile panel */}
         {mobileOpen && (
-          <div className="sm:hidden border-t border-honey-100 bg-white px-4 py-3 space-y-1 animate-fade-in">
+          <div className="sm:hidden border-t border-honey-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-1 animate-fade-in">
             {/* Nav items */}
             {isSystemAdmin ? (
               <MobileNavItem
@@ -209,36 +230,36 @@ export default function Layout() {
             />
             <button
               onClick={() => { setMobileOpen(false); setScannerOpen(true) }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-honey-50 transition-colors"
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
             >
-              <QrCode className="w-4 h-4 text-honey-600" />
+              <QrCode className="w-4 h-4 text-honey-600 dark:text-honey-400" />
               Scan
             </button>
 
             {/* User section */}
             {user && (
-              <div className="pt-2 mt-1 border-t border-honey-100 space-y-1">
-                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50">
+              <div className="pt-2 mt-1 border-t border-honey-100 dark:border-slate-800 space-y-1">
+                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-800">
                   <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm shrink-0', avatarClass)}>
                     {user.firstName[0]}
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 truncate">
+                    <p className="text-sm font-semibold text-gray-800 dark:text-slate-100 truncate">
                       {user.firstName} {user.lastName}
                     </p>
-                    <p className="text-xs text-gray-500 truncate">{roleLabel}</p>
+                    <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{roleLabel}</p>
                   </div>
                 </div>
                 <button
                   onClick={() => { setMobileOpen(false); navigate('/profile') }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 hover:bg-honey-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                 >
-                  <Settings className="w-4 h-4 text-honey-600" />
+                  <Settings className="w-4 h-4 text-honey-600 dark:text-honey-400" />
                   Edit Profile
                 </button>
                 <button
                   onClick={() => { setMobileOpen(false); handleLogout() }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
                   Sign out
@@ -255,7 +276,7 @@ export default function Layout() {
       </main>
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-honey-200 bg-white py-4 text-center text-xs text-gray-400">
+      <footer className="border-t border-honey-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-gray-400 dark:text-slate-500">
         BeeHive App © {new Date().getFullYear()} — Keeping your colonies thriving 🍯
       </footer>
 
@@ -284,8 +305,8 @@ function NavPill({ to, icon, label }: { to: string; icon: React.ReactNode; label
         clsx(
           'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
           isActive
-            ? 'bg-white text-honey-800 shadow-sm'
-            : 'text-gray-600 hover:bg-white/70 hover:text-honey-700'
+            ? 'bg-white dark:bg-slate-700 text-honey-800 dark:text-honey-300 shadow-sm'
+            : 'text-gray-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-honey-700 dark:hover:text-honey-300'
         )
       }
     >
@@ -305,11 +326,13 @@ function MobileNavItem({ to, icon, label, onClick }: { to: string; icon: React.R
       className={({ isActive }) =>
         clsx(
           'flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors',
-          isActive ? 'bg-honey-100 text-honey-800' : 'text-gray-700 hover:bg-honey-50'
+          isActive
+            ? 'bg-honey-100 dark:bg-honey-500/15 text-honey-800 dark:text-honey-300'
+            : 'text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800'
         )
       }
     >
-      <span className="text-honey-600">{icon}</span>
+      <span className="text-honey-600 dark:text-honey-400">{icon}</span>
       {label}
     </NavLink>
   )

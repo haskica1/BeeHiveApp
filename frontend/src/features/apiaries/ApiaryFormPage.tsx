@@ -66,7 +66,7 @@ export default function ApiaryFormPage() {
         backButton={
           <button
             onClick={() => navigate(isEditing ? `/apiaries/${apiaryId}` : '/apiaries')}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-honey-600 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>
@@ -120,26 +120,26 @@ export default function ApiaryFormPage() {
           <div>
             <label className="form-label flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-honey-600" />
-              Location <span className="text-gray-400 font-normal">(for weather forecast)</span>
+              Location <span className="text-gray-400 dark:text-slate-500 font-normal">(for weather forecast)</span>
             </label>
 
             {pickedLocation ? (
-              <div className="flex items-center gap-2 p-3 rounded-xl border border-honey-200 bg-honey-50">
-                <MapPin className="w-4 h-4 text-honey-600 shrink-0" />
-                <span className="flex-1 text-sm font-mono text-gray-700">
+              <div className="flex items-center gap-2 p-3 rounded-xl border border-honey-200 dark:border-slate-700 bg-honey-50 dark:bg-slate-800">
+                <MapPin className="w-4 h-4 text-honey-600 dark:text-honey-400 shrink-0" />
+                <span className="flex-1 text-sm font-mono text-gray-700 dark:text-slate-300">
                   {pickedLocation.lat.toFixed(6)}, {pickedLocation.lng.toFixed(6)}
                 </span>
                 <button
                   type="button"
                   onClick={() => setMapOpen(true)}
-                  className="text-xs text-honey-600 hover:underline font-medium"
+                  className="text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium"
                 >
                   Change
                 </button>
                 <button
                   type="button"
                   onClick={() => setPickedLocation(null)}
-                  className="p-0.5 rounded text-gray-400 hover:text-red-500 transition-colors"
+                  className="p-0.5 rounded text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                   aria-label="Remove location"
                 >
                   <X className="w-4 h-4" />
@@ -149,7 +149,7 @@ export default function ApiaryFormPage() {
               <button
                 type="button"
                 onClick={() => setMapOpen(true)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-honey-200 text-honey-600 hover:border-honey-400 hover:bg-honey-50 transition-colors text-sm font-medium"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-honey-200 dark:border-slate-700 text-honey-600 dark:text-honey-400 hover:border-honey-400 dark:hover:border-honey-500/50 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium"
               >
                 <MapPin className="w-4 h-4" />
                 Pick location on map

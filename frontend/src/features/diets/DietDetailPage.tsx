@@ -22,10 +22,10 @@ import { usePermissions } from '../../core/hooks/usePermissions'
 
 function StatusBadge({ status, statusName }: { status: DietStatus; statusName: string }) {
   const styles: Record<DietStatus, string> = {
-    [DietStatus.NotStarted]:   'bg-gray-100 text-gray-600',
-    [DietStatus.InProgress]:   'bg-blue-100 text-blue-700',
-    [DietStatus.Completed]:    'bg-green-100 text-green-700',
-    [DietStatus.StoppedEarly]: 'bg-red-100 text-red-600',
+    [DietStatus.NotStarted]:   'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300',
+    [DietStatus.InProgress]:   'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300',
+    [DietStatus.Completed]:    'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300',
+    [DietStatus.StoppedEarly]: 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300',
   }
   return (
     <span className={`badge ${styles[status]}`}>{statusName}</span>
@@ -54,12 +54,12 @@ function EntryRow({
     <div
       className={`flex items-center gap-3 py-3 px-4 rounded-xl border transition-colors ${
         done
-          ? 'bg-green-50 border-green-100'
+          ? 'bg-green-50 border-green-100 dark:bg-green-500/10 dark:border-green-500/20'
           : overdue
-          ? 'bg-red-50 border-red-100'
+          ? 'bg-red-50 border-red-100 dark:bg-red-500/10 dark:border-red-500/20'
           : today
-          ? 'bg-amber-50 border-amber-100'
-          : 'bg-white border-gray-100'
+          ? 'bg-amber-50 border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/20'
+          : 'bg-white border-gray-100 dark:bg-slate-900 dark:border-slate-800'
       }`}
     >
       {/* Checkbox / icon */}
@@ -71,8 +71,8 @@ function EntryRow({
           disabled={!canComplete || isCompleting}
           className={`shrink-0 transition-colors ${
             canComplete
-              ? 'text-gray-300 hover:text-honey-500 cursor-pointer'
-              : 'text-gray-200 cursor-not-allowed'
+              ? 'text-gray-300 dark:text-slate-600 hover:text-honey-500 dark:hover:text-honey-400 cursor-pointer'
+              : 'text-gray-200 dark:text-slate-700 cursor-not-allowed'
           }`}
           title={canComplete ? 'Mark as completed' : 'Diet is finished'}
         >
@@ -82,13 +82,13 @@ function EntryRow({
 
       {/* Date info */}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm font-medium ${done ? 'text-gray-500 line-through' : 'text-gray-800'}`}>
+        <p className={`text-sm font-medium ${done ? 'text-gray-500 dark:text-slate-500 line-through' : 'text-gray-800 dark:text-slate-100'}`}>
           {format(date, 'EEEE, dd MMM yyyy')}
-          {today && <span className="ml-2 text-xs font-semibold text-amber-600">Today</span>}
-          {overdue && <span className="ml-2 text-xs font-semibold text-red-500">Overdue</span>}
+          {today && <span className="ml-2 text-xs font-semibold text-amber-600 dark:text-amber-400">Today</span>}
+          {overdue && <span className="ml-2 text-xs font-semibold text-red-500 dark:text-red-400">Overdue</span>}
         </p>
         {done && entry.completionDate && (
-          <p className="text-xs text-gray-400 mt-0.5">
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
             Completed {format(new Date(entry.completionDate), 'dd MMM yyyy, HH:mm')}
           </p>
         )}
@@ -96,10 +96,10 @@ function EntryRow({
 
       {/* Status chip */}
       <span className={`badge shrink-0 ${
-        done ? 'bg-green-100 text-green-700' :
-        overdue ? 'bg-red-100 text-red-600' :
-        today ? 'bg-amber-100 text-amber-700' :
-        'bg-gray-100 text-gray-500'
+        done ? 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300' :
+        overdue ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300' :
+        today ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' :
+        'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-300'
       }`}>
         {done ? 'Done' : overdue ? 'Overdue' : today ? 'Today' : 'Pending'}
       </span>
@@ -128,14 +128,14 @@ function CompleteEarlyModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in">
+      <div className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-6 w-full max-w-md animate-fade-in">
         <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-full bg-red-100 dark:bg-red-500/15 flex items-center justify-center shrink-0">
             <AlertTriangle className="w-5 h-5 text-red-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-800">Stop Diet Early</h2>
-            <p className="text-sm text-gray-500">Please explain why the diet is being stopped early.</p>
+            <h2 className="font-semibold text-gray-800 dark:text-slate-100">Stop Diet Early</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Please explain why the diet is being stopped early.</p>
           </div>
         </div>
 
@@ -212,7 +212,7 @@ export default function DietDetailPage() {
         backButton={
           <button
             onClick={() => navigate(`/beehives/${diet.beehiveId}`)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-honey-600 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Beehive
           </button>
@@ -222,7 +222,7 @@ export default function DietDetailPage() {
             {canDelete && (
               <button
                 onClick={() => setShowDeleteConfirm(true)}
-                className="btn-secondary text-sm text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200"
+                className="btn-secondary text-sm text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/10 dark:border-red-500/30"
               >
                 <Trash2 className="w-4 h-4" /> Delete
               </button>
@@ -245,16 +245,16 @@ export default function DietDetailPage() {
       />
 
       {/* Summary card */}
-      <div className="card mb-6 bg-gradient-to-br from-honey-50 to-white">
+      <div className="card mb-6 bg-gradient-to-br from-honey-50 to-white dark:from-slate-800/60 dark:to-slate-900">
         <div className="flex items-center justify-between gap-4 mb-4">
           <StatusBadge status={diet.status} statusName={diet.statusName} />
-          <span className="text-sm text-gray-500">
+          <span className="text-sm text-gray-500 dark:text-slate-400">
             {diet.completedEntries} / {diet.totalEntries} feedings
           </span>
         </div>
 
         {/* Progress bar */}
-        <div className="h-2 bg-gray-100 rounded-full overflow-hidden mb-4">
+        <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-4">
           <div
             className={`h-full rounded-full transition-all duration-500 ${
               diet.status === DietStatus.Completed ? 'bg-green-400' :
@@ -277,28 +277,28 @@ export default function DietDetailPage() {
         </div>
 
         {diet.status === DietStatus.StoppedEarly && diet.earlyCompletionComment && (
-          <div className="mt-4 pt-4 border-t border-red-100 flex gap-2 text-sm text-red-700">
+          <div className="mt-4 pt-4 border-t border-red-100 dark:border-red-500/20 flex gap-2 text-sm text-red-700 dark:text-red-300">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span><strong>Stopped early:</strong> {diet.earlyCompletionComment}</span>
           </div>
         )}
         {diet.createdByName && (
-          <p className="mt-3 pt-3 border-t border-honey-100 text-xs text-gray-500 flex items-center gap-1.5">
+          <p className="mt-3 pt-3 border-t border-honey-100 dark:border-slate-800 text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
             👤 Created by {diet.createdByName}
           </p>
         )}
       </div>
 
       {/* Pending entries */}
-      <h2 className="font-display text-lg font-semibold text-gray-800 mb-3">
+      <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">
         Upcoming Feedings
         {pendingEntries.length > 0 && (
-          <span className="ml-2 text-sm font-normal text-gray-400">({pendingEntries.length})</span>
+          <span className="ml-2 text-sm font-normal text-gray-400 dark:text-slate-500">({pendingEntries.length})</span>
         )}
       </h2>
 
       {pendingEntries.length === 0 ? (
-        <div className="card text-center text-gray-400 py-8 mb-6">
+        <div className="card text-center text-gray-400 dark:text-slate-500 py-8 mb-6">
           <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-300" />
           <p className="text-sm">All feedings accounted for.</p>
         </div>
@@ -321,7 +321,7 @@ export default function DietDetailPage() {
         <div className="mb-8">
           <button
             onClick={() => setShowCompleted(v => !v)}
-            className="flex items-center gap-2 text-sm font-semibold text-gray-600 hover:text-gray-800 mb-3 transition-colors"
+            className="flex items-center gap-2 text-sm font-semibold text-gray-600 dark:text-slate-300 hover:text-gray-800 dark:hover:text-slate-100 mb-3 transition-colors"
           >
             {showCompleted
               ? <ChevronUp className="w-4 h-4" />
@@ -375,9 +375,9 @@ function InfoItem({
 }) {
   return (
     <div>
-      <div className="flex justify-center mb-1 text-honey-500">{icon}</div>
-      <div className="text-xs text-gray-500 mb-0.5">{label}</div>
-      <div className="text-sm font-semibold text-gray-800">{value}</div>
+      <div className="flex justify-center mb-1 text-honey-500 dark:text-honey-400">{icon}</div>
+      <div className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">{label}</div>
+      <div className="text-sm font-semibold text-gray-800 dark:text-slate-100">{value}</div>
     </div>
   )
 }

@@ -84,7 +84,7 @@ export default function BeehiveFormPage() {
         backButton={
           <button
             onClick={() => navigate(backUrl)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-honey-600 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
           >
             <ArrowLeft className="w-4 h-4" /> Back
           </button>

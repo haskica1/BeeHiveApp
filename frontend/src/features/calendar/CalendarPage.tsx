@@ -81,19 +81,19 @@ export default function CalendarPage() {
       {/* ── Page header ─────────────────────────────────────────────────────── */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-honey-900">Calendar</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Your tasks and feeding schedules</p>
+          <h1 className="font-display text-2xl font-bold text-honey-900 dark:text-honey-200">Calendar</h1>
+          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Your tasks and feeding schedules</p>
         </div>
         {/* Month summary pills */}
         <div className="hidden sm:flex items-center gap-2">
           {monthSummary.todos > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-honey-100 text-honey-800 text-xs font-semibold">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-honey-100 text-honey-800 dark:bg-honey-500/15 dark:text-honey-300 text-xs font-semibold">
               <CheckSquare className="w-3.5 h-3.5" />
               {monthSummary.todos} task{monthSummary.todos !== 1 ? 's' : ''}
             </span>
           )}
           {monthSummary.feedings > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-semibold">
+            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300 text-xs font-semibold">
               <Droplets className="w-3.5 h-3.5" />
               {monthSummary.feedings} feeding{monthSummary.feedings !== 1 ? 's' : ''}
             </span>
@@ -108,17 +108,17 @@ export default function CalendarPage() {
         <div className="flex items-center justify-between mb-5">
           <button
             onClick={() => setCurrentMonth(m => subMonths(m, 1))}
-            className="p-2 rounded-xl text-gray-500 hover:bg-honey-100 hover:text-honey-800 transition-colors"
+            className="p-2 rounded-xl text-gray-500 dark:text-slate-400 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-800 dark:hover:text-honey-300 transition-colors"
             aria-label="Previous month"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
-          <h2 className="font-display text-xl font-bold text-gray-800 select-none">
+          <h2 className="font-display text-xl font-bold text-gray-800 dark:text-slate-100 select-none">
             {format(currentMonth, 'MMMM yyyy')}
           </h2>
           <button
             onClick={() => setCurrentMonth(m => addMonths(m, 1))}
-            className="p-2 rounded-xl text-gray-500 hover:bg-honey-100 hover:text-honey-800 transition-colors"
+            className="p-2 rounded-xl text-gray-500 dark:text-slate-400 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-800 dark:hover:text-honey-300 transition-colors"
             aria-label="Next month"
           >
             <ChevronRightIcon className="w-5 h-5" />
@@ -128,7 +128,7 @@ export default function CalendarPage() {
         {/* Day-of-week header */}
         <div className="grid grid-cols-7 mb-2">
           {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
-            <div key={d} className="text-center text-[11px] font-bold text-gray-400 uppercase tracking-wide py-1">
+            <div key={d} className="text-center text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide py-1">
               {d}
             </div>
           ))}
@@ -158,16 +158,16 @@ export default function CalendarPage() {
                   selected
                     ? 'bg-honey-500 shadow-honey shadow-sm'
                     : todayDate
-                    ? 'bg-honey-50 ring-2 ring-honey-400 ring-inset'
-                    : 'hover:bg-honey-50',
+                    ? 'bg-honey-50 dark:bg-honey-500/15 ring-2 ring-honey-400 dark:ring-honey-500/50 ring-inset'
+                    : 'hover:bg-honey-50 dark:hover:bg-slate-800',
                 )}
               >
                 {/* Day number */}
                 <span className={clsx(
                   'text-sm font-semibold leading-none',
                   selected  ? 'text-white'       :
-                  todayDate ? 'text-honey-700'   :
-                              'text-gray-700',
+                  todayDate ? 'text-honey-700 dark:text-honey-300'   :
+                              'text-gray-700 dark:text-slate-300',
                 )}>
                   {format(day, 'd')}
                 </span>
@@ -199,18 +199,18 @@ export default function CalendarPage() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-5 mt-5 pt-4 border-t border-gray-100">
+        <div className="flex items-center gap-5 mt-5 pt-4 border-t border-gray-100 dark:border-slate-800">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-honey-500" />
-            <span className="text-xs text-gray-500">Tasks</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">Tasks</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-gray-500">Diet feedings</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">Diet feedings</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <span className="text-xs text-gray-500">Overdue</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">Overdue</span>
           </div>
         </div>
       </div>
@@ -218,12 +218,12 @@ export default function CalendarPage() {
       {/* ── Selected-day panel ────────────────────────────────────────────────── */}
       <div className="card p-4 sm:p-6 animate-fade-in">
         <div className="flex items-center gap-2 mb-4">
-          <CalendarDays className="w-4 h-4 text-honey-600" />
-          <h3 className="font-display text-base font-bold text-gray-800">
+          <CalendarDays className="w-4 h-4 text-honey-600 dark:text-honey-400" />
+          <h3 className="font-display text-base font-bold text-gray-800 dark:text-slate-100">
             {format(selectedDay, 'EEEE, MMMM d, yyyy')}
           </h3>
           {isToday(selectedDay) && (
-            <span className="text-xs font-semibold px-2 py-0.5 bg-honey-100 text-honey-700 rounded-full">
+            <span className="text-xs font-semibold px-2 py-0.5 bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300 rounded-full">
               Today
             </span>
           )}
@@ -265,7 +265,7 @@ export default function CalendarPage() {
 
 function EmptyDay() {
   return (
-    <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+    <div className="flex flex-col items-center justify-center py-10 text-gray-400 dark:text-slate-500">
       <CalendarDays className="w-10 h-10 mb-3 opacity-30" />
       <p className="text-sm font-medium">No events on this day</p>
       <p className="text-xs mt-0.5 opacity-70">Select another date to browse your schedule</p>
@@ -282,8 +282,8 @@ function SectionLabel({
   children: React.ReactNode
 }) {
   const cls = color === 'honey'
-    ? 'text-honey-700 bg-honey-50 border-honey-100'
-    : 'text-emerald-700 bg-emerald-50 border-emerald-100'
+    ? 'text-honey-700 bg-honey-50 border-honey-100 dark:text-honey-300 dark:bg-honey-500/10 dark:border-honey-500/20'
+    : 'text-emerald-700 bg-emerald-50 border-emerald-100 dark:text-emerald-300 dark:bg-emerald-500/10 dark:border-emerald-500/20'
 
   return (
     <div className={clsx('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border text-xs font-bold uppercase tracking-wide', cls)}>
@@ -298,9 +298,9 @@ function TodoCard({ todo }: { todo: CalendarTodo }) {
   const overdue = !todo.isCompleted && todo.dueDate && isPast(parseISO(todo.dueDate))
 
   const priorityConfig = {
-    [TodoPriority.High]:   { label: 'High',   cls: 'text-red-600 bg-red-50 border-red-100' },
-    [TodoPriority.Medium]: { label: 'Medium', cls: 'text-amber-600 bg-amber-50 border-amber-100' },
-    [TodoPriority.Low]:    { label: 'Low',    cls: 'text-blue-600 bg-blue-50 border-blue-100' },
+    [TodoPriority.High]:   { label: 'High',   cls: 'text-red-600 bg-red-50 border-red-100 dark:text-red-300 dark:bg-red-500/10 dark:border-red-500/20' },
+    [TodoPriority.Medium]: { label: 'Medium', cls: 'text-amber-600 bg-amber-50 border-amber-100 dark:text-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20' },
+    [TodoPriority.Low]:    { label: 'Low',    cls: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20' },
   }
   const pc = priorityConfig[todo.priority] ?? priorityConfig[TodoPriority.Medium]
 
@@ -310,14 +310,14 @@ function TodoCard({ todo }: { todo: CalendarTodo }) {
   return (
     <div className={clsx(
       'flex items-start gap-3 p-3.5 rounded-xl border transition-all',
-      todo.isCompleted  ? 'bg-gray-50 border-gray-100 opacity-60' :
-      overdue           ? 'bg-red-50 border-red-200' :
-                          'bg-white border-honey-100 hover:border-honey-200',
+      todo.isCompleted  ? 'bg-gray-50 border-gray-100 opacity-60 dark:bg-slate-800/50 dark:border-slate-800' :
+      overdue           ? 'bg-red-50 border-red-200 dark:bg-red-500/10 dark:border-red-500/20' :
+                          'bg-white border-honey-100 hover:border-honey-200 dark:bg-slate-900 dark:border-slate-800 dark:hover:border-slate-700',
     )}>
       {/* Checkbox visual */}
       <div className={clsx(
         'flex-shrink-0 mt-0.5 w-4 h-4 rounded border-2 flex items-center justify-center',
-        todo.isCompleted ? 'bg-green-500 border-green-500' : 'border-gray-300',
+        todo.isCompleted ? 'bg-green-500 border-green-500' : 'border-gray-300 dark:border-slate-600',
       )}>
         {todo.isCompleted && <span className="text-white text-[10px] font-bold">✓</span>}
       </div>
@@ -325,17 +325,17 @@ function TodoCard({ todo }: { todo: CalendarTodo }) {
       <div className="min-w-0 flex-1">
         <p className={clsx(
           'text-sm font-semibold leading-snug',
-          todo.isCompleted ? 'line-through text-gray-400' :
-          overdue          ? 'text-red-800' :
-                             'text-gray-800',
+          todo.isCompleted ? 'line-through text-gray-400 dark:text-slate-500' :
+          overdue          ? 'text-red-800 dark:text-red-300' :
+                             'text-gray-800 dark:text-slate-100',
         )}>
           {todo.title}
         </p>
 
         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
           {context && (
-            <span className="text-xs text-gray-500">
-              {contextKind}: <span className="font-medium text-gray-700">{context}</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">
+              {contextKind}: <span className="font-medium text-gray-700 dark:text-slate-300">{context}</span>
             </span>
           )}
           <span className={clsx('text-xs px-2 py-0.5 rounded-full border font-medium', pc.cls)}>
@@ -352,7 +352,7 @@ function TodoCard({ todo }: { todo: CalendarTodo }) {
         </div>
 
         {todo.notes && (
-          <p className="text-xs text-gray-400 mt-1.5 line-clamp-2 leading-relaxed">{todo.notes}</p>
+          <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">{todo.notes}</p>
         )}
       </div>
     </div>
@@ -368,34 +368,34 @@ function FeedingCard({ entry }: { entry: CalendarFeedingEntry }) {
       to={`/diets/${entry.dietId}`}
       className={clsx(
         'flex items-start gap-3 p-3.5 rounded-xl border transition-all group',
-        completed ? 'bg-gray-50 border-gray-100 opacity-60' :
-        overdue   ? 'bg-red-50 border-red-200 hover:border-red-300' :
-                    'bg-emerald-50 border-emerald-200 hover:border-emerald-300',
+        completed ? 'bg-gray-50 border-gray-100 opacity-60 dark:bg-slate-800/50 dark:border-slate-800' :
+        overdue   ? 'bg-red-50 border-red-200 hover:border-red-300 dark:bg-red-500/10 dark:border-red-500/20 dark:hover:border-red-500/40' :
+                    'bg-emerald-50 border-emerald-200 hover:border-emerald-300 dark:bg-emerald-500/10 dark:border-emerald-500/20 dark:hover:border-emerald-500/40',
       )}
     >
       <Droplets className={clsx(
         'w-4 h-4 mt-0.5 flex-shrink-0 transition-transform group-hover:scale-110',
-        completed ? 'text-gray-400' :
-        overdue   ? 'text-red-500'  :
-                    'text-emerald-600',
+        completed ? 'text-gray-400 dark:text-slate-500' :
+        overdue   ? 'text-red-500 dark:text-red-400'  :
+                    'text-emerald-600 dark:text-emerald-400',
       )} />
 
       <div className="min-w-0 flex-1">
         <p className={clsx(
           'text-sm font-semibold leading-snug',
-          completed ? 'line-through text-gray-400' :
-          overdue   ? 'text-red-800' :
-                      'text-emerald-900',
+          completed ? 'line-through text-gray-400 dark:text-slate-500' :
+          overdue   ? 'text-red-800 dark:text-red-300' :
+                      'text-emerald-900 dark:text-emerald-200',
         )}>
           {entry.dietName}
         </p>
 
         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-          <span className="text-xs text-gray-500">
-            Beehive: <span className="font-medium text-gray-700">{entry.beehiveName}</span>
+          <span className="text-xs text-gray-500 dark:text-slate-400">
+            Beehive: <span className="font-medium text-gray-700 dark:text-slate-300">{entry.beehiveName}</span>
           </span>
-          <span className="text-xs text-gray-400">·</span>
-          <span className="text-xs text-gray-500">{entry.foodTypeName}</span>
+          <span className="text-xs text-gray-400 dark:text-slate-500">·</span>
+          <span className="text-xs text-gray-500 dark:text-slate-400">{entry.foodTypeName}</span>
         </div>
 
         <div className="flex items-center gap-1.5 mt-1.5">
@@ -416,7 +416,7 @@ function FeedingCard({ entry }: { entry: CalendarFeedingEntry }) {
         </div>
       </div>
 
-      <ChevronRightIcon className="w-4 h-4 text-gray-300 group-hover:text-gray-400 flex-shrink-0 mt-0.5 transition-colors" />
+      <ChevronRightIcon className="w-4 h-4 text-gray-300 dark:text-slate-600 group-hover:text-gray-400 dark:group-hover:text-slate-500 flex-shrink-0 mt-0.5 transition-colors" />
     </Link>
   )
 }

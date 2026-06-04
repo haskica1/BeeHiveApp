@@ -50,28 +50,28 @@ export default function AdminDashboardPage() {
     <div className="space-y-10">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">System Dashboard</h1>
-        <p className="text-sm text-gray-500 mt-1">Manage all organizations and users across the platform.</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">System Dashboard</h1>
+        <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">Manage all organizations and users across the platform.</p>
       </div>
 
       {/* Stats strip */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl border border-honey-200 p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-honey-100 flex items-center justify-center">
-            <Building2 className="w-5 h-5 text-honey-700" />
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-honey-200 dark:border-slate-800 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-honey-100 dark:bg-honey-500/15 flex items-center justify-center">
+            <Building2 className="w-5 h-5 text-honey-700 dark:text-honey-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900">{organizations.length}</p>
-            <p className="text-sm text-gray-500">Organizations</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{organizations.length}</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Organizations</p>
           </div>
         </div>
-        <div className="bg-white rounded-xl border border-honey-200 p-5 flex items-center gap-4">
-          <div className="w-10 h-10 rounded-lg bg-honey-100 flex items-center justify-center">
-            <Users className="w-5 h-5 text-honey-700" />
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-honey-200 dark:border-slate-800 p-5 flex items-center gap-4">
+          <div className="w-10 h-10 rounded-lg bg-honey-100 dark:bg-honey-500/15 flex items-center justify-center">
+            <Users className="w-5 h-5 text-honey-700 dark:text-honey-400" />
           </div>
           <div>
-            <p className="text-2xl font-bold text-gray-900">{users.length}</p>
-            <p className="text-sm text-gray-500">Users</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-slate-100">{users.length}</p>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Users</p>
           </div>
         </div>
       </div>
@@ -79,7 +79,7 @@ export default function AdminDashboardPage() {
       {/* ── Organizations ───────────────────────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 flex items-center gap-2">
             <Building2 className="w-5 h-5 text-honey-600" />
             Organizations
           </h2>
@@ -93,7 +93,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {orgError && (
-          <div className="mb-3 flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+          <div className="mb-3 flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             {orgError}
           </div>
@@ -104,36 +104,36 @@ export default function AdminDashboardPage() {
             <Loader2 className="w-6 h-6 animate-spin text-honey-500" />
           </div>
         ) : organizations.length === 0 ? (
-          <div className="text-center py-10 bg-white rounded-xl border border-dashed border-honey-200">
-            <Building2 className="w-8 h-8 text-honey-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No organizations yet.</p>
+          <div className="text-center py-10 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-honey-200 dark:border-slate-700">
+            <Building2 className="w-8 h-8 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
+            <p className="text-sm text-gray-500 dark:text-slate-400">No organizations yet.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-honey-200 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-honey-200 dark:border-slate-800 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-honey-50 border-b border-honey-100">
+              <thead className="bg-honey-50 dark:bg-slate-800/60 border-b border-honey-100 dark:border-slate-800">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-slate-300">Name</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Description</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">Users</th>
-                  <th className="text-center px-4 py-3 font-medium text-gray-600">Apiaries</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-600 dark:text-slate-300">Users</th>
+                  <th className="text-center px-4 py-3 font-medium text-gray-600 dark:text-slate-300">Apiaries</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-honey-50">
+              <tbody className="divide-y divide-honey-50 dark:divide-slate-800">
                 {organizations.map((org) => (
-                  <tr key={org.id} className="hover:bg-honey-50/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-900">{org.name}</td>
-                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell max-w-xs truncate">
+                  <tr key={org.id} className="hover:bg-honey-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{org.name}</td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden md:table-cell max-w-xs truncate">
                       {org.description ?? '—'}
                     </td>
-                    <td className="px-4 py-3 text-center text-gray-700">{org.userCount}</td>
-                    <td className="px-4 py-3 text-center text-gray-700">{org.apiaryCount}</td>
+                    <td className="px-4 py-3 text-center text-gray-700 dark:text-slate-300">{org.userCount}</td>
+                    <td className="px-4 py-3 text-center text-gray-700 dark:text-slate-300">{org.apiaryCount}</td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => navigate(`/admin/organizations/${org.id}/edit`)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                          className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
@@ -141,7 +141,7 @@ export default function AdminDashboardPage() {
                         <button
                           onClick={() => handleDeleteOrg(org.id, org.name)}
                           disabled={deletingOrgId === org.id}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
                           title="Delete"
                         >
                           {deletingOrgId === org.id
@@ -161,7 +161,7 @@ export default function AdminDashboardPage() {
       {/* ── Users ────────────────────────────────────────────────────────────── */}
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-slate-100 flex items-center gap-2">
             <Users className="w-5 h-5 text-honey-600" />
             Users
           </h2>
@@ -175,7 +175,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {userError && (
-          <div className="mb-3 flex items-start gap-2 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-3 text-sm">
+          <div className="mb-3 flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
             {userError}
           </div>
@@ -186,38 +186,38 @@ export default function AdminDashboardPage() {
             <Loader2 className="w-6 h-6 animate-spin text-honey-500" />
           </div>
         ) : users.length === 0 ? (
-          <div className="text-center py-10 bg-white rounded-xl border border-dashed border-honey-200">
-            <Users className="w-8 h-8 text-honey-300 mx-auto mb-2" />
-            <p className="text-sm text-gray-500">No users yet.</p>
+          <div className="text-center py-10 bg-white dark:bg-slate-900 rounded-xl border border-dashed border-honey-200 dark:border-slate-700">
+            <Users className="w-8 h-8 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
+            <p className="text-sm text-gray-500 dark:text-slate-400">No users yet.</p>
           </div>
         ) : (
-          <div className="bg-white rounded-xl border border-honey-200 overflow-hidden">
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-honey-200 dark:border-slate-800 overflow-hidden">
             <table className="w-full text-sm">
-              <thead className="bg-honey-50 border-b border-honey-100">
+              <thead className="bg-honey-50 dark:bg-slate-800/60 border-b border-honey-100 dark:border-slate-800">
                 <tr>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Name</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-slate-300">Name</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 hidden sm:table-cell">Email</th>
-                  <th className="text-left px-4 py-3 font-medium text-gray-600">Role</th>
+                  <th className="text-left px-4 py-3 font-medium text-gray-600 dark:text-slate-300">Role</th>
                   <th className="text-left px-4 py-3 font-medium text-gray-600 hidden md:table-cell">Organization</th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
-              <tbody className="divide-y divide-honey-50">
+              <tbody className="divide-y divide-honey-50 dark:divide-slate-800">
                 {users.map((user) => (
-                  <tr key={user.id} className="hover:bg-honey-50/50 transition-colors">
-                    <td className="px-4 py-3 font-medium text-gray-900">
+                  <tr key={user.id} className="hover:bg-honey-50/50 dark:hover:bg-slate-800/50 transition-colors">
+                    <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">
                       {user.firstName} {user.lastName}
                     </td>
-                    <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">{user.email}</td>
+                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden sm:table-cell">{user.email}</td>
                     <td className="px-4 py-3">
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                         ${user.role === 'SystemAdmin'
-                          ? 'bg-purple-100 text-purple-700'
+                          ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300'
                           : user.role === 'OrgAdmin'
-                          ? 'bg-blue-100 text-blue-700'
+                          ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
                           : user.role === 'User'
-                          ? 'bg-gray-100 text-gray-600'
-                          : 'bg-honey-100 text-honey-700'
+                          ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
+                          : 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
                         }`}>
                         {user.role === 'SystemAdmin' ? 'System Admin'
                           : user.role === 'OrgAdmin' ? 'Org Admin'
@@ -225,17 +225,17 @@ export default function AdminDashboardPage() {
                           : 'Admin'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
+                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden md:table-cell">
                       {user.organizationName ?? '—'}
                       {user.apiaryName && (
-                        <span className="ml-1 text-xs text-honey-600">· {user.apiaryName}</span>
+                        <span className="ml-1 text-xs text-honey-600 dark:text-honey-400">· {user.apiaryName}</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
                         <button
                           onClick={() => navigate(`/admin/users/${user.id}/edit`)}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-honey-600 hover:bg-honey-50 transition-colors"
+                          className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
@@ -243,7 +243,7 @@ export default function AdminDashboardPage() {
                         <button
                           onClick={() => handleDeleteUser(user.id, `${user.firstName} ${user.lastName}`)}
                           disabled={deletingUserId === user.id}
-                          className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+                          className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
                           title="Delete"
                         >
                           {deletingUserId === user.id
