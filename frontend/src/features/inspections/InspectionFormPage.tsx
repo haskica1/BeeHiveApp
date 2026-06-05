@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Loader2, Mic, MicOff, X } from 'lucide-react'
+import { Loader2, Mic, MicOff, X } from 'lucide-react'
 import {
   useCreateInspection,
   useUpdateInspection,
@@ -9,7 +9,7 @@ import {
 import { inspectionService } from '../../core/services/beehiveService'
 import { useQuery } from '@tanstack/react-query'
 import { queryKeys } from '../../core/services/queries'
-import { LoadingSpinner, ErrorMessage, PageHeader } from '../../shared/components'
+import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import { HoneyLevel, HoneyLevelLabels } from '../../core/models'
 import type { CreateInspectionPayload } from '../../core/models'
 import { useVoiceInput } from './useVoiceInput'
@@ -132,16 +132,11 @@ export default function InspectionFormPage() {
 
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
-      <PageHeader
+      <FormHeader
+        icon="📋"
         title={isEditing ? 'Edit Inspection' : 'Record Inspection'}
-        backButton={
-          <button
-            onClick={() => navigate(backUrl)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Beehive
-          </button>
-        }
+        onBack={() => navigate(backUrl)}
+        backLabel="Back to Beehive"
       />
 
       <div className="card">

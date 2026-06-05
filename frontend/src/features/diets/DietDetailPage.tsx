@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
-  ArrowLeft, CheckCircle2, Circle, Clock, Pencil, Trash2,
+  ArrowLeft, CheckCircle2, Circle, Pencil, Trash2,
   CalendarDays, Utensils, AlertTriangle, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { format, isPast, isToday } from 'date-fns'
@@ -12,7 +12,7 @@ import {
   useCompleteFeedingEntry,
 } from '../../core/services/queries'
 import {
-  LoadingSpinner, ErrorMessage, ConfirmDialog, PageHeader,
+  LoadingSpinner, ErrorMessage, ConfirmDialog,
 } from '../../shared/components'
 import { DietStatus, FeedingEntryStatus } from '../../core/models'
 import type { FeedingEntry } from '../../core/models'
@@ -206,53 +206,70 @@ export default function DietDetailPage() {
 
   return (
     <div className="animate-fade-in">
-      <PageHeader
-        title={diet.name}
-        subtitle={`${diet.foodTypeName} · ${diet.reasonName}`}
-        backButton={
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
+                      bg-gradient-to-br from-honey-100 via-white to-honey-50
+                      dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none mb-6">
+        <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
+        <div className="relative p-5 sm:p-7">
           <button
             onClick={() => navigate(`/beehives/${diet.beehiveId}`)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
+            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
           >
             <ArrowLeft className="w-4 h-4" /> Back to Beehive
           </button>
-        }
-        actions={
-          <div className="flex gap-2 flex-wrap justify-end">
-            {canDelete && (
-              <button
-                onClick={() => setShowDeleteConfirm(true)}
-                className="btn-secondary text-sm text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/10 dark:border-red-500/30"
-              >
-                <Trash2 className="w-4 h-4" /> Delete
-              </button>
-            )}
-            {canManage && !isFinished && (
-              <button
-                onClick={() => setShowCompleteEarly(true)}
-                className="btn-secondary text-sm"
-              >
-                Stop Early
-              </button>
-            )}
-            {canEdit && (
-              <Link to={`/diets/${dietId}/edit`} className="btn-secondary text-sm">
-                <Pencil className="w-4 h-4" /> Edit
-              </Link>
-            )}
+
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex items-center gap-4 min-w-0">
+              <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
+                🍽️
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50 truncate">{diet.name}</h1>
+                <div className="mt-1 flex items-center gap-2 flex-wrap">
+                  <StatusBadge status={diet.status} statusName={diet.statusName} />
+                  <span className="text-sm text-gray-600 dark:text-slate-400">{diet.foodTypeName} · {diet.reasonName}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex gap-2 flex-wrap shrink-0">
+              {canDelete && (
+                <button
+                  onClick={() => setShowDeleteConfirm(true)}
+                  className="btn-secondary text-sm text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/10 dark:border-red-500/30"
+                >
+                  <Trash2 className="w-4 h-4" /> Delete
+                </button>
+              )}
+              {canManage && !isFinished && (
+                <button onClick={() => setShowCompleteEarly(true)} className="btn-secondary text-sm">Stop Early</button>
+              )}
+              {canEdit && (
+                <Link to={`/diets/${dietId}/edit`} className="btn-secondary text-sm"><Pencil className="w-4 h-4" /> Edit</Link>
+              )}
+            </div>
           </div>
-        }
-      />
-
-      {/* Summary card */}
-      <div className="card mb-6 bg-gradient-to-br from-honey-50 to-white dark:from-slate-800/60 dark:to-slate-900">
-        <div className="flex items-center justify-between gap-4 mb-4">
-          <StatusBadge status={diet.status} statusName={diet.statusName} />
-          <span className="text-sm text-gray-500 dark:text-slate-400">
-            {diet.completedEntries} / {diet.totalEntries} feedings
-          </span>
         </div>
+      </div>
 
+      {/* ── Vitals ────────────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+        <VitalCard
+          icon="📊" label="Progress" value={`${progressPct}%`} sub="complete"
+          gradient={
+            diet.status === DietStatus.StoppedEarly ? 'from-red-400 to-rose-600'
+            : diet.status === DietStatus.Completed ? 'from-emerald-400 to-green-600'
+            : 'from-honey-400 to-honey-600'
+          }
+        />
+        <VitalCard icon="✅" label="Feedings"  value={`${diet.completedEntries}/${diet.totalEntries}`} sub="completed" gradient="from-amber-400 to-orange-500" />
+        <VitalCard icon="📅" label="Duration"  value={String(diet.durationDays)} sub="days total" gradient="from-sky-400 to-blue-600" />
+        <VitalCard icon="⏱️" label="Frequency" value={String(diet.frequencyDays)} sub={`every ${diet.frequencyDays} day${diet.frequencyDays !== 1 ? 's' : ''}`} gradient="from-violet-400 to-indigo-600" />
+      </div>
+
+      {/* ── Summary card ──────────────────────────────────────────────────────── */}
+      <div className="card mb-6">
         {/* Progress bar */}
         <div className="h-2 bg-gray-100 dark:bg-slate-700 rounded-full overflow-hidden mb-4">
           <div
@@ -265,13 +282,9 @@ export default function DietDetailPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center text-sm">
+        <div className="grid grid-cols-2 gap-4 text-center text-sm">
           <InfoItem icon={<CalendarDays className="w-4 h-4" />} label="Start Date"
             value={format(new Date(diet.startDate), 'dd MMM yyyy')} />
-          <InfoItem icon={<Clock className="w-4 h-4" />} label="Duration"
-            value={`${diet.durationDays} days`} />
-          <InfoItem icon={<Clock className="w-4 h-4" />} label="Frequency"
-            value={`Every ${diet.frequencyDays} day${diet.frequencyDays !== 1 ? 's' : ''}`} />
           <InfoItem icon={<Utensils className="w-4 h-4" />} label="Food"
             value={diet.foodType === 5 && diet.customFoodType ? diet.customFoodType : diet.foodTypeName} />
         </div>
@@ -378,6 +391,23 @@ function InfoItem({
       <div className="flex justify-center mb-1 text-honey-500 dark:text-honey-400">{icon}</div>
       <div className="text-xs text-gray-500 dark:text-slate-400 mb-0.5">{label}</div>
       <div className="text-sm font-semibold text-gray-800 dark:text-slate-100">{value}</div>
+    </div>
+  )
+}
+
+function VitalCard({ icon, label, value, sub, gradient }: {
+  icon: string; label: string; value: string; sub?: string; gradient: string
+}) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
+      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
+        {icon}
+      </span>
+      <div className="relative">
+        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
+        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
+        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
+      </div>
     </div>
   )
 }

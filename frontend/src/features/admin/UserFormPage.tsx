@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import {
   useAdminUser,
   useCreateAdminUser,
@@ -10,6 +10,7 @@ import {
   useApiariesByOrganization,
   useBeehivesByOrganization,
 } from '../../core/services/adminQueries'
+import { FormHeader } from '../../shared/components'
 
 interface UserForm {
   firstName: string
@@ -128,19 +129,14 @@ export default function UserFormPage() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <button
-        onClick={() => navigate('/admin')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Dashboard
-      </button>
+      <FormHeader
+        icon="👤"
+        title={isEdit ? 'Edit User' : 'New User'}
+        onBack={() => navigate('/admin')}
+        backLabel="Back to Dashboard"
+      />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-          {isEdit ? 'Edit User' : 'New User'}
-        </h1>
-
         {errors.root && (
           <div className="mb-5 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
             {errors.root.message}

@@ -1,4 +1,4 @@
-import { AlertTriangle, Loader2, PackageOpen, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, Loader2, PackageOpen, X } from 'lucide-react'
 import { useEffect } from 'react'
 
 // ── LoadingSpinner ─────────────────────────────────────────────────────────────
@@ -136,6 +136,45 @@ export function PageHeader({ title, subtitle, actions, backButton }: PageHeaderP
         {subtitle && <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">{subtitle}</p>}
       </div>
       {actions && <div className="flex gap-2 mt-3 sm:mt-0">{actions}</div>}
+    </div>
+  )
+}
+
+// ── FormHeader (hero band for forms) ────────────────────────────────────────────
+
+interface FormHeaderProps {
+  icon: string
+  title: string
+  subtitle?: string
+  onBack: () => void
+  backLabel?: string
+  actions?: React.ReactNode
+}
+
+export function FormHeader({ icon, title, subtitle, onBack, backLabel = 'Back', actions }: FormHeaderProps) {
+  return (
+    <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
+                    bg-gradient-to-br from-honey-100 via-white to-honey-50
+                    dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none mb-6">
+      <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
+      <div className="relative p-5 sm:p-6">
+        <button
+          onClick={onBack}
+          className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-3"
+        >
+          <ArrowLeft className="w-4 h-4" /> {backLabel}
+        </button>
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-2xl shadow-honey dark:shadow-none">
+            {icon}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h1 className="font-display text-xl sm:text-2xl font-bold text-gray-900 dark:text-slate-50 truncate">{title}</h1>
+            {subtitle && <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5 truncate">{subtitle}</p>}
+          </div>
+          {actions && <div className="flex gap-2 shrink-0">{actions}</div>}
+        </div>
+      </div>
     </div>
   )
 }

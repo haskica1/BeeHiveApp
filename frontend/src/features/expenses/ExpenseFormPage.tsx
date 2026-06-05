@@ -1,10 +1,11 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { useFieldArray, useForm } from 'react-hook-form'
-import { AlertCircle, ArrowLeft, Loader2, Plus, Trash2 } from 'lucide-react'
+import { AlertCircle, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useExpense, useCreateExpense, useUpdateExpense } from '../../core/services/expenseQueries'
 import { ExpenseSource } from '../../core/models'
 import type { CreateExpenseItemPayload } from '../../core/models'
+import { FormHeader } from '../../shared/components'
 
 interface FormValues {
   purchaseDate: string
@@ -134,19 +135,14 @@ export default function ExpenseFormPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <button
-        onClick={() => navigate('/expenses')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Expenses
-      </button>
+      <FormHeader
+        icon="🧾"
+        title={isEdit ? 'Edit Expense' : 'New Expense'}
+        onBack={() => navigate('/expenses')}
+        backLabel="Back to Expenses"
+      />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
-        <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-6">
-          {isEdit ? 'Edit Expense' : 'New Expense'}
-        </h1>
-
         {error && (
           <div className="flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />

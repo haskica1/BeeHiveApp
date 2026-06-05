@@ -1,16 +1,26 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
+import clsx from 'clsx'
 import { AlertCircle, Camera, Loader2, PencilLine, Plus, ReceiptText, Trash2 } from 'lucide-react'
 import { useExpenses, useDeleteExpense } from '../../core/services/expenseQueries'
 import { ExpenseSource, ExpenseSourceLabels } from '../../core/models'
 import type { Expense } from '../../core/models'
+
+type SourceFilter = 'all' | 'manual' | 'scan'
+
+const FILTERS: { key: SourceFilter; label: string }[] = [
+  { key: 'all',    label: 'All' },
+  { key: 'manual', label: 'Manual' },
+  { key: 'scan',   label: 'Scanned' },
+]
 
 export default function ExpensesPage() {
   const navigate = useNavigate()
   const { data: expenses = [], isLoading } = useExpenses()
   const deleteExpense = useDeleteExpense()
   const [deletingId, setDeletingId] = useState<number | null>(null)
+  const [filter, setFilter] = useState<SourceFilter>('all')
 
   async function handleDelete(expense: Expense) {
     if (!confirm(`Delete expense of ${expense.totalAmount} ${expense.currency} from ${format(new Date(expense.purchaseDate), 'dd.MM.yyyy')}?`))
@@ -23,39 +33,59 @@ export default function ExpensesPage() {
     }
   }
 
+  // ── Derived vitals ──
+  const currency = expenses[0]?.currency ?? 'BAM'
   const totalSpent = expenses.reduce((sum, e) => sum + e.totalAmount, 0)
+  const avg = expenses.length ? totalSpent / expenses.length : 0
+  const thisMonthTotal = useMemo(() => {
+    const now = new Date()
+    const ym = `${now.getFullYear()}-${now.getMonth()}`
+    return expenses
+      .filter(e => { const d = new Date(e.purchaseDate); return `${d.getFullYear()}-${d.getMonth()}` === ym })
+      .reduce((s, e) => s + e.totalAmount, 0)
+  }, [expenses])
+
+  const visible = useMemo(() => {
+    if (filter === 'all') return expenses
+    if (filter === 'scan') return expenses.filter(e => e.source === ExpenseSource.ReceiptScan)
+    return expenses.filter(e => e.source !== ExpenseSource.ReceiptScan)
+  }, [expenses, filter])
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-slate-100">Expenses</h1>
-          {expenses.length > 0 && (
-            <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">
-              {expenses.length} record{expenses.length !== 1 ? 's' : ''} · Total:{' '}
-              <span className="font-semibold text-gray-700 dark:text-slate-200">
-                {totalSpent.toFixed(2)} {expenses[0]?.currency ?? 'BAM'}
-              </span>
-            </p>
-          )}
-        </div>
+    <div className="animate-fade-in space-y-6">
 
-        <div className="flex items-center gap-2">
-          <button
-            onClick={() => navigate('/expenses/scan')}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
-          >
-            <Camera className="w-4 h-4" />
-            Scan Receipt
-          </button>
-          <button
-            onClick={() => navigate('/expenses/new')}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold transition-colors"
-          >
-            <Plus className="w-4 h-4" />
-            Add Expense
-          </button>
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
+                      bg-gradient-to-br from-honey-100 via-white to-honey-50
+                      dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none">
+        <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
+              🧾
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Expenses</h1>
+              <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Track what you spend on your apiaries.</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => navigate('/expenses/scan')}
+              className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-honey-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors"
+            >
+              <Camera className="w-4 h-4" />
+              <span className="hidden sm:inline">Scan</span> Receipt
+            </button>
+            <button
+              onClick={() => navigate('/expenses/new')}
+              className="btn-primary text-sm"
+            >
+              <Plus className="w-4 h-4" />
+              Add Expense
+            </button>
+          </div>
         </div>
       </div>
 
@@ -101,19 +131,54 @@ export default function ExpensesPage() {
         </div>
       )}
 
-      {/* Expense list */}
+      {/* Content */}
       {!isLoading && expenses.length > 0 && (
-        <div className="space-y-3">
-          {expenses.map(expense => (
-            <ExpenseCard
-              key={expense.id}
-              expense={expense}
-              isDeleting={deletingId === expense.id}
-              onEdit={() => navigate(`/expenses/${expense.id}/edit`)}
-              onDelete={() => handleDelete(expense)}
-            />
-          ))}
-        </div>
+        <>
+          {/* Vitals */}
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <VitalCard icon="🧾" label="Records"    value={String(expenses.length)}   sub="expenses"             gradient="from-honey-400 to-honey-600" />
+            <VitalCard icon="💰" label="Total"      value={totalSpent.toFixed(2)}     sub={currency}             gradient="from-emerald-400 to-teal-600" />
+            <VitalCard icon="📅" label="This month" value={thisMonthTotal.toFixed(2)} sub={format(new Date(), 'MMMM')} gradient="from-sky-400 to-blue-600" />
+            <VitalCard icon="🧮" label="Average"    value={avg.toFixed(2)}            sub="per record"           gradient="from-violet-400 to-indigo-600" />
+          </div>
+
+          {/* Filter chips */}
+          <div className="flex items-center gap-0.5 bg-gray-100 dark:bg-slate-800 rounded-xl p-1 w-fit">
+            {FILTERS.map(f => (
+              <button
+                key={f.key}
+                onClick={() => setFilter(f.key)}
+                className={clsx(
+                  'px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
+                  filter === f.key
+                    ? 'bg-white dark:bg-slate-700 text-honey-800 dark:text-honey-300 shadow-sm'
+                    : 'text-gray-600 dark:text-slate-300 hover:text-honey-700 dark:hover:text-honey-300',
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Expense list */}
+          {visible.length === 0 ? (
+            <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800">
+              <p className="text-sm text-gray-500 dark:text-slate-400">No expenses in this category.</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {visible.map(expense => (
+                <ExpenseCard
+                  key={expense.id}
+                  expense={expense}
+                  isDeleting={deletingId === expense.id}
+                  onEdit={() => navigate(`/expenses/${expense.id}/edit`)}
+                  onDelete={() => handleDelete(expense)}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   )
@@ -132,7 +197,7 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
   const isReceiptScan = expense.source === ExpenseSource.ReceiptScan
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none px-5 py-4 flex items-center gap-4">
+    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none px-5 py-4 flex items-center gap-4 hover:border-honey-200 dark:hover:border-slate-700 transition-colors">
       {/* Icon */}
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
         isReceiptScan ? 'bg-blue-50 text-blue-500 dark:bg-blue-500/15 dark:text-blue-300' : 'bg-honey-50 text-honey-600 dark:bg-honey-500/15 dark:text-honey-300'
@@ -183,6 +248,25 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
             : <Trash2 className="w-4 h-4" />
           }
         </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Vitals KPI tile ────────────────────────────────────────────────────────────
+
+function VitalCard({ icon, label, value, sub, gradient }: {
+  icon: string; label: string; value: string; sub?: string; gradient: string
+}) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
+      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
+        {icon}
+      </span>
+      <div className="relative">
+        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
+        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
+        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
       </div>
     </div>
   )

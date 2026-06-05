@@ -1,9 +1,9 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useBeehive, useCreateBeehive, useUpdateBeehive } from '../../core/services/queries'
-import { LoadingSpinner, ErrorMessage, PageHeader } from '../../shared/components'
+import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import {
   BeehiveType,
   BeehiveTypeLabels,
@@ -79,16 +79,10 @@ export default function BeehiveFormPage() {
 
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
-      <PageHeader
+      <FormHeader
+        icon="🐝"
         title={isEditing ? 'Edit Beehive' : 'New Beehive'}
-        backButton={
-          <button
-            onClick={() => navigate(backUrl)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-        }
+        onBack={() => navigate(backUrl)}
       />
 
       <div className="card">

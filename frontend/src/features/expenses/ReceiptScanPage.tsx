@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { AlertCircle, ArrowLeft, Camera, CheckCircle2, Loader2, Plus, ScanLine, Trash2, Upload } from 'lucide-react'
+import { AlertCircle, Camera, CheckCircle2, Loader2, Plus, ScanLine, Trash2, Upload } from 'lucide-react'
 import { ExpenseSource } from '../../core/models'
 import type { CreateExpenseItemPayload } from '../../core/models'
+import { FormHeader } from '../../shared/components'
 
 // Tesseract.js is loaded lazily to avoid pulling the WASM bundle unless the user visits this page
 async function runOcr(imageFile: File): Promise<string> {
@@ -118,21 +119,15 @@ export default function ReceiptScanPage() {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <button
-        onClick={() => navigate('/expenses')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Expenses
-      </button>
+      <FormHeader
+        icon="📷"
+        title="Scan Receipt"
+        subtitle="Snap or upload a receipt — items are extracted automatically."
+        onBack={() => navigate('/expenses')}
+        backLabel="Back to Expenses"
+      />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8 space-y-6">
-        <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">Scan Receipt</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-1">
-            Take a photo or upload a receipt image. Items will be extracted automatically.
-          </p>
-        </div>
 
         {/* ── Phase: capture ───────────────────────────────────────────── */}
         {phase === 'capture' && (

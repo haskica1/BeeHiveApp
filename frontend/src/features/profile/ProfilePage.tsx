@@ -5,7 +5,6 @@ import { Check, Eye, EyeOff, KeyRound, Mail, User } from 'lucide-react'
 import { useAuth } from '../../core/context/AuthContext'
 import { profileService } from '../../core/services/profileService'
 import type { UpdateProfilePayload } from '../../core/services/profileService'
-import { PageHeader } from '../../shared/components'
 import clsx from 'clsx'
 
 interface ProfileForm {
@@ -107,16 +106,21 @@ export default function ProfilePage() {
 
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
-      <PageHeader title="Edit Profile" subtitle="Update your personal information and password" />
-
-      {/* Avatar display */}
-      <div className="flex items-center gap-4 mb-8 p-4 card">
-        <div className={clsx('w-16 h-16 rounded-full flex items-center justify-center font-bold text-2xl shrink-0', avatarClass)}>
-          {user?.firstName[0] ?? '?'}
-        </div>
-        <div>
-          <p className="font-semibold text-gray-800 dark:text-slate-100 text-lg">{user?.firstName} {user?.lastName}</p>
-          <p className="text-sm text-gray-500 dark:text-slate-400">{roleLabel}</p>
+      {/* ── Hero with avatar ─────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
+                      bg-gradient-to-br from-honey-100 via-white to-honey-50
+                      dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none mb-6">
+        <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex items-center gap-4">
+          <div className={clsx('w-16 h-16 rounded-2xl flex items-center justify-center font-bold text-2xl shrink-0 shadow-honey dark:shadow-none', avatarClass)}>
+            {user?.firstName[0] ?? '?'}
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50 truncate">
+              {user?.firstName} {user?.lastName}
+            </h1>
+            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">{roleLabel}</p>
+          </div>
         </div>
       </div>
 

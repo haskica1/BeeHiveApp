@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useParams, useSearchParams, Link } from 'react-router-dom'
-import { ArrowLeft, Info } from 'lucide-react'
+import { Info } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 import { useCreateDiet, useUpdateDiet, useDiet } from '../../core/services/queries'
-import { LoadingSpinner, ErrorMessage, PageHeader } from '../../shared/components'
+import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import {
   DietReason, DietReasonLabels,
   FoodType, FoodTypeLabels,
@@ -134,17 +134,11 @@ export default function DietFormPage() {
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto">
-      <PageHeader
+      <FormHeader
+        icon="🌿"
         title={isEdit ? 'Edit Diet' : 'New Diet'}
         subtitle={isEdit ? 'Update the feeding programme' : 'Create a feeding programme'}
-        backButton={
-          <Link
-            to={backHref}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </Link>
-        }
+        onBack={() => navigate(backHref)}
       />
 
       <form onSubmit={handleSubmit} className="space-y-6">

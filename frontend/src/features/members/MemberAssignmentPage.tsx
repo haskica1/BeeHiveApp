@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2, AlertCircle } from 'lucide-react'
+import { Loader2, AlertCircle } from 'lucide-react'
 import {
   useOrgMember,
   useAvailableBeehives,
@@ -9,6 +9,7 @@ import {
   useUpdateApiaryAssignment,
 } from '../../core/services/orgQueries'
 import { useAuth } from '../../core/context/AuthContext'
+import { FormHeader } from '../../shared/components'
 
 export default function MemberAssignmentPage() {
   const { id } = useParams<{ id: string }>()
@@ -84,22 +85,18 @@ export default function MemberAssignmentPage() {
 
   return (
     <div className="max-w-xl mx-auto">
-      <button
-        onClick={() => navigate('/members')}
-        className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-slate-200 mb-6 transition-colors"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Back to Members
-      </button>
+      <FormHeader
+        icon="🔗"
+        title={`${member.firstName} ${member.lastName}`}
+        subtitle={member.email}
+        onBack={() => navigate('/members')}
+        backLabel="Back to Members"
+      />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8 space-y-6">
-        {/* Member info */}
+        {/* Role */}
         <div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100">
-            {member.firstName} {member.lastName}
-          </h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">{member.email}</p>
-          <span className={`mt-2 inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
+          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
             ${isAdminRole ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'}`}>
             {member.role}
           </span>

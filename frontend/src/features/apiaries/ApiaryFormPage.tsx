@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowLeft, Loader2, MapPin, X } from 'lucide-react'
+import { Loader2, MapPin, X } from 'lucide-react'
 import { useApiary, useCreateApiary, useUpdateApiary } from '../../core/services/queries'
-import { LoadingSpinner, ErrorMessage, PageHeader } from '../../shared/components'
+import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import LocationPickerModal from '../../shared/components/LocationPickerModal'
 import type { CreateApiaryPayload } from '../../core/models'
 
@@ -61,16 +61,10 @@ export default function ApiaryFormPage() {
 
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
-      <PageHeader
+      <FormHeader
+        icon="🏡"
         title={isEditing ? 'Edit Apiary' : 'New Apiary'}
-        backButton={
-          <button
-            onClick={() => navigate(isEditing ? `/apiaries/${apiaryId}` : '/apiaries')}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-        }
+        onBack={() => navigate(isEditing ? `/apiaries/${apiaryId}` : '/apiaries')}
       />
 
       <div className="card">
