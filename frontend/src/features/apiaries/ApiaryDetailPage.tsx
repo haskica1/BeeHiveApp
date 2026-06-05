@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
 import { format, parseISO, isPast, isToday } from 'date-fns'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
@@ -112,6 +112,7 @@ export default function ApiaryDetailPage() {
   const deleteTodo = useDeleteTodo(todoKey)
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
+  const [hiveQuery, setHiveQuery] = useState('')
 
   const handleDeleteBeehive = async () => {
     if (!deleteTarget) return
@@ -151,6 +152,16 @@ export default function ApiaryDetailPage() {
     ? wmoToLabel(todayWeather.weatherCode)
     : 'Unavailable'
   const weatherIcon = todayWeather ? wmoToIcon(todayWeather.weatherCode) : '🌤️'
+
+  // ── Beehive search ──
+  const beehives = apiary.beehives ?? []
+  const hq = hiveQuery.trim().toLowerCase()
+  const filteredBeehives = hq
+    ? beehives.filter(b =>
+        b.name.toLowerCase().includes(hq) ||
+        b.typeName.toLowerCase().includes(hq) ||
+        b.materialName.toLowerCase().includes(hq))
+    : beehives
 
   return (
     <div className="animate-fade-in space-y-6">
@@ -250,7 +261,7 @@ export default function ApiaryDetailPage() {
                 : undefined
             }
           >
-            {!apiary.beehives?.length ? (
+            {beehives.length === 0 ? (
               <EmptyState
                 title="No beehives yet"
                 description="Add your first beehive to this apiary."
@@ -263,8 +274,26 @@ export default function ApiaryDetailPage() {
                 }
               />
             ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                {apiary.beehives.map((beehive: Beehive) => (
+              <>
+                {beehives.length > 1 && (
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
+                    <input
+                      value={hiveQuery}
+                      onChange={e => setHiveQuery(e.target.value)}
+                      placeholder="Search beehives…"
+                      className="form-input pl-9 py-2 text-sm w-full"
+                    />
+                  </div>
+                )}
+                {filteredBeehives.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Search className="w-7 h-7 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
+                    <p className="text-sm text-gray-500 dark:text-slate-400">No beehives match “{hiveQuery}”.</p>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {filteredBeehives.map((beehive: Beehive) => (
                   <div
                     key={beehive.id}
                     className="card hover:shadow-honey hover:-translate-y-0.5 transition-all duration-200 group cursor-pointer"
@@ -304,8 +333,10 @@ export default function ApiaryDetailPage() {
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
+                    ))}
+                  </div>
+                )}
+              </>
             )}
           </CollapsibleSection>
 
