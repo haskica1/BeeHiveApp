@@ -1,12 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Building2, Users, Plus, Pencil, Trash2, AlertCircle, Loader2, Search } from 'lucide-react'
+import { Building2, Users, Plus, Pencil, Trash2, Loader2, Search } from 'lucide-react'
 import {
   useAdminOrganizations,
   useAdminUsers,
   useDeleteOrganization,
   useDeleteAdminUser,
 } from '../../core/services/adminQueries'
+import { VitalCard, Skeleton, ConfirmDialog } from '../../shared/components'
+import { useToast } from '../../core/context/ToastContext'
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
@@ -14,11 +16,10 @@ export default function AdminDashboardPage() {
   const { data: users = [], isLoading: usersLoading } = useAdminUsers()
   const deleteOrg = useDeleteOrganization()
   const deleteUser = useDeleteAdminUser()
+  const { toast } = useToast()
 
-  const [deletingOrgId, setDeletingOrgId] = useState<number | null>(null)
-  const [deletingUserId, setDeletingUserId] = useState<number | null>(null)
-  const [orgError, setOrgError] = useState<string | null>(null)
-  const [userError, setUserError] = useState<string | null>(null)
+  const [confirmTarget, setConfirmTarget] = useState<{ kind: 'org' | 'user'; id: number; name: string } | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [orgQuery, setOrgQuery] = useState('')
   const [userQuery, setUserQuery] = useState('')
 
@@ -46,29 +47,19 @@ export default function AdminDashboardPage() {
     )
   }, [users, userQuery])
 
-  async function handleDeleteOrg(id: number, name: string) {
-    if (!confirm(`Delete organization "${name}"? This cannot be undone.`)) return
-    setOrgError(null)
-    setDeletingOrgId(id)
+  async function handleConfirmDelete() {
+    if (!confirmTarget) return
+    const { kind, id, name } = confirmTarget
+    setIsDeleting(true)
     try {
-      await deleteOrg.mutateAsync(id)
+      if (kind === 'org') await deleteOrg.mutateAsync(id)
+      else await deleteUser.mutateAsync(id)
+      toast.success(`${kind === 'org' ? 'Organization' : 'User'} “${name}” deleted.`)
+      setConfirmTarget(null)
     } catch (e: any) {
-      setOrgError(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete organization.')
+      toast.error(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete. Please try again.')
     } finally {
-      setDeletingOrgId(null)
-    }
-  }
-
-  async function handleDeleteUser(id: number, name: string) {
-    if (!confirm(`Delete user "${name}"? This cannot be undone.`)) return
-    setUserError(null)
-    setDeletingUserId(id)
-    try {
-      await deleteUser.mutateAsync(id)
-    } catch (e: any) {
-      setUserError(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete user.')
-    } finally {
-      setDeletingUserId(null)
+      setIsDeleting(false)
     }
   }
 
@@ -96,7 +87,7 @@ export default function AdminDashboardPage() {
       </div>
 
       {/* ── Vitals strip ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
         <VitalCard icon="🏢" label="Organizations" value={String(organizations.length)} sub="on the platform" gradient="from-honey-400 to-honey-600" />
         <VitalCard icon="👥" label="Users"         value={String(users.length)}         sub="total accounts"  gradient="from-amber-400 to-orange-500" />
         <VitalCard icon="🏡" label="Apiaries"      value={String(totalApiaries)}        sub="across all orgs" gradient="from-sky-400 to-blue-600" />
@@ -114,8 +105,6 @@ export default function AdminDashboardPage() {
         onAdd={() => navigate('/admin/organizations/new')}
         addLabel="Add Organization"
       >
-        {orgError && <ErrorBar message={orgError} />}
-
         {orgsLoading ? (
           <SpinnerRow />
         ) : organizations.length === 0 ? (
@@ -148,8 +137,7 @@ export default function AdminDashboardPage() {
                         <RowAction kind="edit" onClick={() => navigate(`/admin/organizations/${org.id}/edit`)} />
                         <RowAction
                           kind="delete"
-                          loading={deletingOrgId === org.id}
-                          onClick={() => handleDeleteOrg(org.id, org.name)}
+                          onClick={() => setConfirmTarget({ kind: 'org', id: org.id, name: org.name })}
                         />
                       </div>
                     </td>
@@ -172,8 +160,6 @@ export default function AdminDashboardPage() {
         onAdd={() => navigate('/admin/users/new')}
         addLabel="Add User"
       >
-        {userError && <ErrorBar message={userError} />}
-
         {usersLoading ? (
           <SpinnerRow />
         ) : users.length === 0 ? (
@@ -226,8 +212,7 @@ export default function AdminDashboardPage() {
                         <RowAction kind="edit" onClick={() => navigate(`/admin/users/${user.id}/edit`)} />
                         <RowAction
                           kind="delete"
-                          loading={deletingUserId === user.id}
-                          onClick={() => handleDeleteUser(user.id, `${user.firstName} ${user.lastName}`)}
+                          onClick={() => setConfirmTarget({ kind: 'user', id: user.id, name: `${user.firstName} ${user.lastName}` })}
                         />
                       </div>
                     </td>
@@ -238,6 +223,15 @@ export default function AdminDashboardPage() {
           </div>
         )}
       </SectionCard>
+
+      <ConfirmDialog
+        isOpen={!!confirmTarget}
+        title={`Delete ${confirmTarget?.kind === 'org' ? 'Organization' : 'User'}`}
+        message={`Delete “${confirmTarget?.name}”? This cannot be undone.`}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }
@@ -321,19 +315,11 @@ function RowAction({ kind, onClick, loading }: { kind: 'edit' | 'delete'; onClic
   )
 }
 
-function ErrorBar({ message }: { message: string }) {
-  return (
-    <div className="mx-4 mb-3 flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-lg px-4 py-3 text-sm">
-      <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-      {message}
-    </div>
-  )
-}
 
 function SpinnerRow() {
   return (
-    <div className="flex justify-center py-12">
-      <Loader2 className="w-6 h-6 animate-spin text-honey-500" />
+    <div className="p-4 space-y-2 border-t border-honey-100 dark:border-slate-800">
+      {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-11 rounded-lg" />)}
     </div>
   )
 }
@@ -358,19 +344,4 @@ function NoMatchRow({ query }: { query: string }) {
 
 // ── Vitals KPI tile ────────────────────────────────────────────────────────────
 
-function VitalCard({ icon, label, value, sub, gradient }: {
-  icon: string; label: string; value: string; sub?: string; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */

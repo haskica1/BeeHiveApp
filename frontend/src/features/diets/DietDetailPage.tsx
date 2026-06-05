@@ -12,7 +12,7 @@ import {
   useCompleteFeedingEntry,
 } from '../../core/services/queries'
 import {
-  LoadingSpinner, ErrorMessage, ConfirmDialog,
+  ErrorMessage, ConfirmDialog, VitalCard, PageSkeleton,
 } from '../../shared/components'
 import { DietStatus, FeedingEntryStatus } from '../../core/models'
 import type { FeedingEntry } from '../../core/models'
@@ -177,7 +177,7 @@ export default function DietDetailPage() {
   const [showCompleteEarly,  setShowCompleteEarly]   = useState(false)
   const [showCompleted,      setShowCompleted]       = useState(true)
 
-  if (isLoading) return <LoadingSpinner message="Loading diet…" />
+  if (isLoading) return <PageSkeleton />
   if (error)     return <ErrorMessage message={error.message} />
   if (!diet)     return null
 
@@ -254,7 +254,7 @@ export default function DietDetailPage() {
       </div>
 
       {/* ── Vitals ────────────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger mb-6">
         <VitalCard
           icon="📊" label="Progress" value={`${progressPct}%`} sub="complete"
           gradient={
@@ -395,19 +395,4 @@ function InfoItem({
   )
 }
 
-function VitalCard({ icon, label, value, sub, gradient }: {
-  icon: string; label: string; value: string; sub?: string; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */

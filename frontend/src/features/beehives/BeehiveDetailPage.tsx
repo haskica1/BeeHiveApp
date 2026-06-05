@@ -10,11 +10,12 @@ import {
   queryKeys,
 } from '../../core/services/queries'
 import {
-  LoadingSpinner,
+  PageSkeleton,
   ErrorMessage,
   EmptyState,
   ConfirmDialog,
   HoneyLevelBadge,
+  VitalCard,
 } from '../../shared/components'
 import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
@@ -105,7 +106,7 @@ export default function BeehiveDetailPage() {
     setDeleteTarget(null)
   }
 
-  if (isLoading) return <LoadingSpinner message="Loading beehive…" />
+  if (isLoading) return <PageSkeleton />
   if (error) return <ErrorMessage message={error.message} />
   if (!beehive) return null
 
@@ -196,7 +197,7 @@ export default function BeehiveDetailPage() {
       </div>
 
       {/* ── Vitals strip ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
         <VitalCard
           icon="🍯"
           label="Honey level"
@@ -380,26 +381,7 @@ export default function BeehiveDetailPage() {
 
 // ── Vitals KPI tile ────────────────────────────────────────────────────────────
 
-function VitalCard({ icon, label, value, sub, subAlert, gradient }: {
-  icon: string; label: string; value: string; sub?: string; subAlert?: boolean; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && (
-          <p className={`text-xs mt-0.5 ${subAlert ? 'font-semibold text-white' : 'opacity-80'}`}>
-            {subAlert && '⚠ '}{sub}
-          </p>
-        )}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */
 
 // ── Hive detail tile ───────────────────────────────────────────────────────────
 

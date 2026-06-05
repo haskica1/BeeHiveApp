@@ -1,16 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, Moon, QrCode, ReceiptText, Settings, Sun, Users, X } from 'lucide-react'
+import { BarChart2, CalendarDays, Home, LayoutDashboard, LogOut, Menu, Moon, QrCode, ReceiptText, Search, Settings, Sun, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
 import QrScannerModal from './QrScannerModal'
 import NotificationBell from './NotificationBell'
+import { CommandPalette } from './CommandPalette'
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [scannerOpen, setScannerOpen] = useState(false)
+  const [paletteOpen, setPaletteOpen] = useState(false)
   const profileRef = useRef<HTMLDivElement>(null)
   const { user, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
@@ -20,6 +22,7 @@ export default function Layout() {
   const isOrgAdmin     = user?.role === 'OrgAdmin'
   const isAdmin        = user?.role === 'Admin'
   const canSeeExpenses = isSystemAdmin || isOrgAdmin || isAdmin
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
 
   const avatarClass = isSystemAdmin
     ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
@@ -51,8 +54,20 @@ export default function Layout() {
     return () => document.removeEventListener('mousedown', onOutsideClick)
   }, [profileOpen])
 
+  // Open the command palette with Ctrl/Cmd+K
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        setPaletteOpen(v => !v)
+      }
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [])
+
   return (
-    <div className="min-h-screen flex flex-col bg-honey-50 dark:bg-slate-950">
+    <div className="min-h-screen flex flex-col">
 
       {/* ── Header ──────────────────────────────────────────────────────────── */}
       <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-honey-200 dark:border-slate-800 shadow-sm dark:shadow-none">
@@ -95,6 +110,19 @@ export default function Layout() {
                 Scan
               </button>
             </nav>
+
+            {/* Command palette trigger */}
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl text-sm text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+              aria-label="Open search"
+            >
+              <Search className="w-4 h-4" />
+              <span className="hidden lg:inline">Search</span>
+              <kbd className="text-[10px] font-mono bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-0.5 leading-none">
+                {isMac ? '⌘K' : 'Ctrl K'}
+              </kbd>
+            </button>
 
             {/* Dark mode toggle */}
             <button
@@ -164,6 +192,13 @@ export default function Layout() {
 
           {/* ── Mobile: dark toggle + hamburger ─────────────────────────────── */}
           <div className="sm:hidden flex items-center gap-1">
+            <button
+              onClick={() => setPaletteOpen(true)}
+              className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Search"
+            >
+              <Search className="w-5 h-5" />
+            </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
@@ -291,6 +326,9 @@ export default function Layout() {
 
       {/* ── QR Scanner Modal ────────────────────────────────────────────────── */}
       {scannerOpen && <QrScannerModal onClose={() => setScannerOpen(false)} />}
+
+      {/* ── Command palette (Ctrl/Cmd+K) ────────────────────────────────────── */}
+      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
   )
 }

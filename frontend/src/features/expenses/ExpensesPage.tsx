@@ -2,10 +2,12 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { format } from 'date-fns'
 import clsx from 'clsx'
-import { AlertCircle, Camera, Loader2, PencilLine, Plus, ReceiptText, Trash2 } from 'lucide-react'
+import { Camera, Loader2, PencilLine, Plus, ReceiptText, Trash2 } from 'lucide-react'
 import { useExpenses, useDeleteExpense } from '../../core/services/expenseQueries'
 import { ExpenseSource, ExpenseSourceLabels } from '../../core/models'
 import type { Expense } from '../../core/models'
+import { VitalCard, VitalsSkeleton, ConfirmDialog } from '../../shared/components'
+import { useToast } from '../../core/context/ToastContext'
 
 type SourceFilter = 'all' | 'manual' | 'scan'
 
@@ -19,17 +21,22 @@ export default function ExpensesPage() {
   const navigate = useNavigate()
   const { data: expenses = [], isLoading } = useExpenses()
   const deleteExpense = useDeleteExpense()
-  const [deletingId, setDeletingId] = useState<number | null>(null)
+  const { toast } = useToast()
+  const [confirmTarget, setConfirmTarget] = useState<Expense | null>(null)
+  const [isDeleting, setIsDeleting] = useState(false)
   const [filter, setFilter] = useState<SourceFilter>('all')
 
-  async function handleDelete(expense: Expense) {
-    if (!confirm(`Delete expense of ${expense.totalAmount} ${expense.currency} from ${format(new Date(expense.purchaseDate), 'dd.MM.yyyy')}?`))
-      return
-    setDeletingId(expense.id)
+  async function handleConfirmDelete() {
+    if (!confirmTarget) return
+    setIsDeleting(true)
     try {
-      await deleteExpense.mutateAsync(expense.id)
+      await deleteExpense.mutateAsync(confirmTarget.id)
+      toast.success('Expense deleted.')
+      setConfirmTarget(null)
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete expense.')
     } finally {
-      setDeletingId(null)
+      setIsDeleting(false)
     }
   }
 
@@ -90,11 +97,7 @@ export default function ExpensesPage() {
       </div>
 
       {/* Loading */}
-      {isLoading && (
-        <div className="flex justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-honey-500" />
-        </div>
-      )}
+      {isLoading && <VitalsSkeleton />}
 
       {/* Empty */}
       {!isLoading && expenses.length === 0 && (
@@ -123,19 +126,11 @@ export default function ExpensesPage() {
         </div>
       )}
 
-      {/* Error state */}
-      {deleteExpense.isError && (
-        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm">
-          <AlertCircle className="w-4 h-4 shrink-0" />
-          Failed to delete expense. Please try again.
-        </div>
-      )}
-
       {/* Content */}
       {!isLoading && expenses.length > 0 && (
         <>
           {/* Vitals */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
             <VitalCard icon="🧾" label="Records"    value={String(expenses.length)}   sub="expenses"             gradient="from-honey-400 to-honey-600" />
             <VitalCard icon="💰" label="Total"      value={totalSpent.toFixed(2)}     sub={currency}             gradient="from-emerald-400 to-teal-600" />
             <VitalCard icon="📅" label="This month" value={thisMonthTotal.toFixed(2)} sub={format(new Date(), 'MMMM')} gradient="from-sky-400 to-blue-600" />
@@ -171,15 +166,26 @@ export default function ExpensesPage() {
                 <ExpenseCard
                   key={expense.id}
                   expense={expense}
-                  isDeleting={deletingId === expense.id}
+                  isDeleting={confirmTarget?.id === expense.id && isDeleting}
                   onEdit={() => navigate(`/expenses/${expense.id}/edit`)}
-                  onDelete={() => handleDelete(expense)}
+                  onDelete={() => setConfirmTarget(expense)}
                 />
               ))}
             </div>
           )}
         </>
       )}
+
+      <ConfirmDialog
+        isOpen={!!confirmTarget}
+        title="Delete Expense"
+        message={confirmTarget
+          ? `Delete the ${confirmTarget.totalAmount.toFixed(2)} ${confirmTarget.currency} expense from ${format(new Date(confirmTarget.purchaseDate), 'dd.MM.yyyy')}? This cannot be undone.`
+          : ''}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setConfirmTarget(null)}
+        isLoading={isDeleting}
+      />
     </div>
   )
 }
@@ -255,19 +261,4 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
 
 // ── Vitals KPI tile ────────────────────────────────────────────────────────────
 
-function VitalCard({ icon, label, value, sub, gradient }: {
-  icon: string; label: string; value: string; sub?: string; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */

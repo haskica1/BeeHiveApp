@@ -106,7 +106,7 @@ export default function LoginPage() {
             Manage your apiaries, track your colonies, and keep your bees thriving — all in one hive.
           </p>
 
-          <div className="mt-10 space-y-3 text-left">
+          <div className="mt-10 space-y-3 text-left stagger">
             {FEATURES.map(f => (
               <div key={f.title} className="flex items-center gap-3 bg-white/10 backdrop-blur-md border border-white/15 rounded-2xl px-4 py-3">
                 <div className="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center text-xl shrink-0">
@@ -238,7 +238,7 @@ export default function LoginPage() {
               <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 text-center mb-3">
                 <Sparkles className="w-3.5 h-3.5" /> Tap a demo account to fill the form
               </p>
-              <div className="grid gap-2">
+              <div className="grid gap-2 stagger">
                 {DEMO_ACCOUNTS.map(acc => (
                   <button
                     key={acc.email}

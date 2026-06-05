@@ -1,8 +1,9 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Users, Pencil, Loader2, AlertCircle, Search } from 'lucide-react'
+import { Users, Pencil, AlertCircle, Search } from 'lucide-react'
 import { useOrgMembers } from '../../core/services/orgQueries'
 import { useAuth } from '../../core/context/AuthContext'
+import { VitalCard, VitalsSkeleton } from '../../shared/components'
 
 export default function MembersPage() {
   const navigate = useNavigate()
@@ -60,9 +61,7 @@ export default function MembersPage() {
       )}
 
       {isLoading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 className="w-6 h-6 animate-spin text-honey-500" />
-        </div>
+        <VitalsSkeleton />
       ) : members.length === 0 ? (
         <div className="text-center py-16 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-honey-200 dark:border-slate-700">
           <Users className="w-8 h-8 text-honey-300 dark:text-honey-500/50 mx-auto mb-2" />
@@ -71,7 +70,7 @@ export default function MembersPage() {
       ) : (
         <>
           {/* ── Vitals strip ──────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
             <VitalCard icon="👥" label="Members"  value={String(members.length)} sub="in your org"    gradient="from-honey-400 to-honey-600" />
             <VitalCard icon="🛡️" label="Admins"   value={String(adminCount)}     sub="apiary admins"  gradient="from-amber-400 to-orange-500" />
             <VitalCard icon="🧑‍🌾" label="Users"    value={String(userCount)}      sub="field workers"  gradient="from-sky-400 to-blue-600" />
@@ -166,19 +165,4 @@ export default function MembersPage() {
 
 // ── Vitals KPI tile ────────────────────────────────────────────────────────────
 
-function VitalCard({ icon, label, value, sub, gradient }: {
-  icon: string; label: string; value: string; sub?: string; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */

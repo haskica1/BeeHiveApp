@@ -1,5 +1,6 @@
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
 import { AuthProvider } from './core/context/AuthContext'
+import { ToastProvider } from './core/context/ToastContext'
 import Layout from './shared/components/Layout'
 import ProtectedRoute from './shared/components/ProtectedRoute'
 import AdminRoute from './shared/components/AdminRoute'
@@ -35,6 +36,7 @@ const EXPENSE_MANAGERS  = ['Admin', 'OrgAdmin', 'SystemAdmin']
 export default function App() {
   return (
     <AuthProvider>
+      <ToastProvider>
       <BrowserRouter>
         <Routes>
           {/* Public routes */}
@@ -115,6 +117,7 @@ export default function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
+      </ToastProvider>
     </AuthProvider>
   )
 }

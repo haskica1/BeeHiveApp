@@ -10,8 +10,22 @@
   }
 
   body {
-    @apply bg-honey-50 text-gray-800 transition-colors duration-300
-           dark:bg-slate-950 dark:text-slate-200;
+    @apply text-gray-800 transition-colors duration-300 dark:text-slate-200;
+    background-color: #fffbeb;
+    background-image:
+      radial-gradient(1100px circle at 50% -180px, rgba(251, 191, 36, 0.18), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2.33L54 49.08V17.25L28 2.33 2 17.25v31.83L28 63.67z' fill='%23fbbf24' fill-opacity='0.07'/%3E%3C/svg%3E");
+    background-repeat: no-repeat, repeat;
+    background-attachment: fixed, fixed;
+    background-position: center top, center top;
+    background-size: 100% 620px, 56px 100px;
+  }
+
+  .dark body {
+    background-color: #020617;
+    background-image:
+      radial-gradient(1100px circle at 50% -180px, rgba(245, 158, 11, 0.10), transparent 60%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2.33L54 49.08V17.25L28 2.33 2 17.25v31.83L28 63.67z' fill='%23f59e0b' fill-opacity='0.05'/%3E%3C/svg%3E");
   }
 
   h1, h2, h3 {
@@ -84,4 +98,44 @@
 
 .dark .bg-honeycomb {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66zm0-2.33L54 49.08V17.25L28 2.33 2 17.25v31.83L28 63.67z' fill='%23f59e0b' fill-opacity='0.12'/%3E%3C/svg%3E");
+}
+
+/* ── Staggered entrance for grids/lists of cards ──────────────────────────────── */
+@keyframes staggerUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.stagger > * { animation: staggerUp 0.5s ease-out both; }
+.stagger > *:nth-child(1) { animation-delay: 0.04s; }
+.stagger > *:nth-child(2) { animation-delay: 0.09s; }
+.stagger > *:nth-child(3) { animation-delay: 0.14s; }
+.stagger > *:nth-child(4) { animation-delay: 0.19s; }
+.stagger > *:nth-child(5) { animation-delay: 0.24s; }
+.stagger > *:nth-child(6) { animation-delay: 0.29s; }
+.stagger > *:nth-child(7) { animation-delay: 0.34s; }
+.stagger > *:nth-child(8) { animation-delay: 0.39s; }
+
+/* ── Skeleton shimmer ─────────────────────────────────────────────────────────── */
+@keyframes shimmer { 100% { transform: translateX(100%); } }
+.skeleton { position: relative; overflow: hidden; }
+.skeleton::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+  animation: shimmer 1.5s infinite;
+}
+.dark .skeleton::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06), transparent);
+}
+
+/* ── Respect users who prefer reduced motion ──────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body { background-attachment: scroll !important; }
 }

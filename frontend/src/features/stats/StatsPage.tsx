@@ -7,7 +7,7 @@ import {
 } from 'recharts'
 import { CheckSquare, Leaf } from 'lucide-react'
 import { useStats } from '../../core/services/queries'
-import { LoadingSpinner, ErrorMessage } from '../../shared/components'
+import { ErrorMessage, VitalCard, PageSkeleton } from '../../shared/components'
 import type { NameValue, MonthTemp, PriorityStats } from '../../core/services/statsService'
 
 // ── Colour palettes ───────────────────────────────────────────────────────────
@@ -68,23 +68,7 @@ function Section({ title, icon, children }: { title: string; icon: string; child
   )
 }
 
-// ── KPI card ───────────────────────────────────────────────────────────────────
-
-function KpiCard({ icon, label, value, gradient }: {
-  icon: string; label: string; value: number; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-      </div>
-    </div>
-  )
-}
+/* KPI cards now use the shared VitalCard (with count-up animation). */
 
 // ── Empty chart placeholder ────────────────────────────────────────────────────
 
@@ -101,7 +85,7 @@ function EmptyChart({ message = 'Not enough data yet' }: { message?: string }) {
 export default function StatsPage() {
   const { data: stats, isLoading, error } = useStats()
 
-  if (isLoading) return <LoadingSpinner message="Loading statistics…" />
+  if (isLoading) return <PageSkeleton rows={6} />
   if (error)     return <ErrorMessage message={error.message} />
   if (!stats)    return null
 
@@ -132,11 +116,11 @@ export default function StatsPage() {
       </div>
 
       {/* ── KPI Summary ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
-        <KpiCard icon="🏡" label="Apiaries"     value={stats.totalApiaries}    gradient="from-honey-400 to-honey-600" />
-        <KpiCard icon="🐝" label="Beehives"     value={stats.totalBeehives}    gradient="from-amber-400 to-orange-500" />
-        <KpiCard icon="🔍" label="Inspections"  value={stats.totalInspections} gradient="from-emerald-400 to-teal-600" />
-        <KpiCard icon="🌿" label="Active Diets" value={stats.activeDiets}      gradient="from-violet-400 to-indigo-600" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger mb-8">
+        <VitalCard icon="🏡" label="Apiaries"     value={String(stats.totalApiaries)}    gradient="from-honey-400 to-honey-600" />
+        <VitalCard icon="🐝" label="Beehives"     value={String(stats.totalBeehives)}    gradient="from-amber-400 to-orange-500" />
+        <VitalCard icon="🔍" label="Inspections"  value={String(stats.totalInspections)} gradient="from-emerald-400 to-teal-600" />
+        <VitalCard icon="🌿" label="Active Diets" value={String(stats.activeDiets)}      gradient="from-violet-400 to-indigo-600" />
       </div>
 
       {/* ── Inspections over time ─────────────────────────────────────────────── */}

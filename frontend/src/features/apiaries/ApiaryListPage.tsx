@@ -8,10 +8,11 @@ import {
   useDeleteApiary,
 } from '../../core/services/queries'
 import {
-  LoadingSpinner,
+  PageSkeleton,
   ErrorMessage,
   EmptyState,
   ConfirmDialog,
+  VitalCard,
 } from '../../shared/components'
 import type { Apiary } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
@@ -66,7 +67,7 @@ export default function ApiaryListPage() {
     setDeleteTarget(null)
   }
 
-  if (isLoading) return <LoadingSpinner message="Loading apiaries…" />
+  if (isLoading) return <PageSkeleton rows={6} />
   if (error) return <ErrorMessage message={error.message} />
 
   return (
@@ -116,7 +117,7 @@ export default function ApiaryListPage() {
       ) : (
         <>
           {/* ── Overview vitals ─────────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
             <VitalCard icon="🏡" label="Apiaries"   value={String(apiaries.length)} sub="registered" gradient="from-honey-400 to-honey-600" />
             <VitalCard icon="🐝" label="Beehives"   value={String(totalBeehives)}   sub="across all"  gradient="from-amber-400 to-orange-500" />
             <VitalCard icon="📍" label="Mapped"     value={String(mappedCount)}     sub={`of ${apiaries.length} located`} gradient="from-sky-400 to-blue-600" />
@@ -175,7 +176,7 @@ export default function ApiaryListPage() {
               </button>
             </div>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3 stagger">
               {visible.map(apiary => (
                 <ApiaryCard
                   key={apiary.id}
@@ -276,19 +277,4 @@ function ApiaryCard({ apiary, canManage, onOpen, onDelete }: {
 
 // ── Vitals KPI tile ────────────────────────────────────────────────────────────
 
-function VitalCard({ icon, label, value, sub, gradient }: {
-  icon: string; label: string; value: string; sub?: string; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */

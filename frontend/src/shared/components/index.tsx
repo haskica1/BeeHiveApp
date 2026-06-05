@@ -1,6 +1,9 @@
 import { AlertTriangle, ArrowLeft, Loader2, PackageOpen, X } from 'lucide-react'
 import { useEffect } from 'react'
 
+export { VitalCard } from './VitalCard'
+export type { VitalCardProps } from './VitalCard'
+
 // ── LoadingSpinner ─────────────────────────────────────────────────────────────
 
 export function LoadingSpinner({ message = 'Loading…' }: { message?: string }) {
@@ -9,6 +12,41 @@ export function LoadingSpinner({ message = 'Loading…' }: { message?: string })
       <Loader2 className="w-8 h-8 text-honey-500 animate-spin" />
       <p className="text-sm text-gray-500 dark:text-slate-400">{message}</p>
     </div>
+  )
+}
+
+// ── Skeleton loaders ────────────────────────────────────────────────────────────
+
+export function Skeleton({ className = '' }: { className?: string }) {
+  return <div className={`skeleton rounded-xl bg-honey-100/70 dark:bg-slate-800/80 ${className}`} />
+}
+
+/** A hero + vitals + content skeleton that mirrors the Command-Center layout. */
+export function PageSkeleton({ rows = 4 }: { rows?: number }) {
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <Skeleton className="h-24 sm:h-28 rounded-3xl" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[88px] rounded-2xl" />)}
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        {Array.from({ length: rows }).map((_, i) => <Skeleton key={i} className="h-28" />)}
+      </div>
+    </div>
+  )
+}
+
+/** Just the vitals row + content rows (for pages that render their own header). */
+export function VitalsSkeleton({ rows = 3 }: { rows?: number }) {
+  return (
+    <>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <Skeleton key={i} className="h-[88px] rounded-2xl" />)}
+      </div>
+      <div className="space-y-3">
+        {Array.from({ length: rows }).map((_, i) => <Skeleton key={i} className="h-16 rounded-2xl" />)}
+      </div>
+    </>
   )
 }
 

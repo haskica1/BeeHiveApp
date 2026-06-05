@@ -10,7 +10,7 @@ import clsx from 'clsx'
 import { useCalendarEvents } from '../../core/services/queries'
 import { FeedingEntryStatus, TodoPriority } from '../../core/models'
 import type { CalendarTodo, CalendarFeedingEntry } from '../../core/models'
-import { LoadingSpinner, ErrorMessage } from '../../shared/components'
+import { ErrorMessage, VitalCard, PageSkeleton } from '../../shared/components'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -85,7 +85,7 @@ export default function CalendarPage() {
   const selectedKey    = format(selectedDay, 'yyyy-MM-dd')
   const selectedEvents = eventsByDate.get(selectedKey) ?? { todos: [], feedings: [] }
 
-  if (isLoading) return <LoadingSpinner message="Loading calendar…" />
+  if (isLoading) return <PageSkeleton />
   if (isError)   return <ErrorMessage message="Failed to load calendar events." />
 
   return (
@@ -108,7 +108,7 @@ export default function CalendarPage() {
       </div>
 
       {/* ── Vitals strip ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
         <VitalCard icon="📋" label="Tasks"    value={String(monthSummary.todos)}    sub={format(currentMonth, 'MMMM')} gradient="from-honey-400 to-honey-600" />
         <VitalCard icon="🌿" label="Feedings" value={String(monthSummary.feedings)} sub={format(currentMonth, 'MMMM')} gradient="from-emerald-400 to-teal-600" />
         <VitalCard icon="⚠️" label="Overdue"  value={String(overdueCount)} sub={overdueCount > 0 ? 'needs attention' : 'all clear'} gradient={overdueCount > 0 ? 'from-red-400 to-rose-600' : 'from-slate-400 to-slate-500'} />
@@ -288,22 +288,7 @@ export default function CalendarPage() {
 
 // ── Helper components ──────────────────────────────────────────────────────────
 
-function VitalCard({ icon, label, value, sub, gradient }: {
-  icon: string; label: string; value: string; sub?: string; gradient: string
-}) {
-  return (
-    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
-      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
-        {icon}
-      </span>
-      <div className="relative">
-        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
-        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
-        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
-      </div>
-    </div>
-  )
-}
+/* VitalCard now lives in shared/components (with count-up animation). */
 
 function EmptyDay() {
   return (
