@@ -5,7 +5,7 @@ import {
   LineChart, Line,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts'
-import { Activity, BarChart2, CheckSquare, Leaf } from 'lucide-react'
+import { CheckSquare, Leaf } from 'lucide-react'
 import { useStats } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage } from '../../shared/components'
 import type { NameValue, MonthTemp, PriorityStats } from '../../core/services/statsService'
@@ -70,17 +70,17 @@ function Section({ title, icon, children }: { title: string; icon: string; child
 
 // ── KPI card ───────────────────────────────────────────────────────────────────
 
-function KpiCard({ icon, label, value, color }: {
-  icon: React.ReactNode; label: string; value: number; color: string
+function KpiCard({ icon, label, value, gradient }: {
+  icon: string; label: string; value: number; gradient: string
 }) {
   return (
-    <div className={`rounded-2xl p-5 flex items-center gap-4 ${color}`}>
-      <div className="w-12 h-12 rounded-xl bg-white/30 flex items-center justify-center shrink-0">
+    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
+      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
         {icon}
-      </div>
-      <div>
-        <p className="text-3xl font-bold font-display">{value}</p>
-        <p className="text-sm font-medium opacity-80 mt-0.5">{label}</p>
+      </span>
+      <div className="relative">
+        <p className="text-2xl sm:text-3xl font-bold font-display leading-none">{value}</p>
+        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
       </div>
     </div>
   )
@@ -115,41 +115,28 @@ export default function StatsPage() {
 
   return (
     <div className="animate-fade-in">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="font-display text-3xl font-bold text-gray-800 dark:text-slate-100 flex items-center gap-3">
-          <BarChart2 className="w-8 h-8 text-honey-500" />
-          Statistics
-        </h1>
-        <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Overview of your apiary activity and hive health</p>
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
+                      bg-gradient-to-br from-honey-100 via-white to-honey-50
+                      dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none mb-6">
+        <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex items-center gap-4">
+          <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
+            📊
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Statistics</h1>
+            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Overview of your apiary activity and hive health</p>
+          </div>
+        </div>
       </div>
 
       {/* ── KPI Summary ──────────────────────────────────────────────────────── */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-        <KpiCard
-          icon={<span className="text-2xl">🏡</span>}
-          label="Apiaries"
-          value={stats.totalApiaries}
-          color="bg-gradient-to-br from-honey-400 to-honey-600 text-white"
-        />
-        <KpiCard
-          icon={<span className="text-2xl">🐝</span>}
-          label="Beehives"
-          value={stats.totalBeehives}
-          color="bg-gradient-to-br from-amber-400 to-orange-500 text-white"
-        />
-        <KpiCard
-          icon={<Activity className="w-6 h-6 text-white" />}
-          label="Inspections"
-          value={stats.totalInspections}
-          color="bg-gradient-to-br from-emerald-400 to-teal-600 text-white"
-        />
-        <KpiCard
-          icon={<span className="text-2xl">🌿</span>}
-          label="Active Diets"
-          value={stats.activeDiets}
-          color="bg-gradient-to-br from-violet-400 to-indigo-600 text-white"
-        />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8">
+        <KpiCard icon="🏡" label="Apiaries"     value={stats.totalApiaries}    gradient="from-honey-400 to-honey-600" />
+        <KpiCard icon="🐝" label="Beehives"     value={stats.totalBeehives}    gradient="from-amber-400 to-orange-500" />
+        <KpiCard icon="🔍" label="Inspections"  value={stats.totalInspections} gradient="from-emerald-400 to-teal-600" />
+        <KpiCard icon="🌿" label="Active Diets" value={stats.activeDiets}      gradient="from-violet-400 to-indigo-600" />
       </div>
 
       {/* ── Inspections over time ─────────────────────────────────────────────── */}

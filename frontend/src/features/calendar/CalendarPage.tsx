@@ -69,6 +69,19 @@ export default function CalendarPage() {
     return { todos, feedings }
   }, [data, eventsByDate, currentMonth])
 
+  const overdueCount = useMemo(() => {
+    if (!data) return 0
+    const isOverdue = (dateStr: string) => { const d = parseISO(dateStr); return isPast(d) && !isToday(d) }
+    const t = data.todos.filter(td => td.dueDate && !td.isCompleted && isOverdue(td.dueDate)).length
+    const f = data.feedingEntries.filter(fe => fe.status !== FeedingEntryStatus.Completed && isOverdue(fe.scheduledDate)).length
+    return t + f
+  }, [data])
+
+  const todayCount = useMemo(() => {
+    const ev = eventsByDate.get(format(new Date(), 'yyyy-MM-dd'))
+    return (ev?.todos.length ?? 0) + (ev?.feedings.length ?? 0)
+  }, [eventsByDate])
+
   const selectedKey    = format(selectedDay, 'yyyy-MM-dd')
   const selectedEvents = eventsByDate.get(selectedKey) ?? { todos: [], feedings: [] }
 
@@ -78,28 +91,35 @@ export default function CalendarPage() {
   return (
     <div className="space-y-6 animate-fade-in">
 
-      {/* ── Page header ─────────────────────────────────────────────────────── */}
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-honey-900 dark:text-honey-200">Calendar</h1>
-          <p className="text-sm text-gray-500 dark:text-slate-400 mt-0.5">Your tasks and feeding schedules</p>
-        </div>
-        {/* Month summary pills */}
-        <div className="hidden sm:flex items-center gap-2">
-          {monthSummary.todos > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-honey-100 text-honey-800 dark:bg-honey-500/15 dark:text-honey-300 text-xs font-semibold">
-              <CheckSquare className="w-3.5 h-3.5" />
-              {monthSummary.todos} task{monthSummary.todos !== 1 ? 's' : ''}
-            </span>
-          )}
-          {monthSummary.feedings > 0 && (
-            <span className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300 text-xs font-semibold">
-              <Droplets className="w-3.5 h-3.5" />
-              {monthSummary.feedings} feeding{monthSummary.feedings !== 1 ? 's' : ''}
-            </span>
-          )}
+      {/* ── Hero ──────────────────────────────────────────────────────────────── */}
+      <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
+                      bg-gradient-to-br from-honey-100 via-white to-honey-50
+                      dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none">
+        <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
+        <div className="relative p-5 sm:p-7 flex items-center gap-4">
+          <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
+            📅
+          </div>
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Calendar</h1>
+            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Your tasks and feeding schedules at a glance</p>
+          </div>
         </div>
       </div>
+
+      {/* ── Vitals strip ──────────────────────────────────────────────────────── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <VitalCard icon="📋" label="Tasks"    value={String(monthSummary.todos)}    sub={format(currentMonth, 'MMMM')} gradient="from-honey-400 to-honey-600" />
+        <VitalCard icon="🌿" label="Feedings" value={String(monthSummary.feedings)} sub={format(currentMonth, 'MMMM')} gradient="from-emerald-400 to-teal-600" />
+        <VitalCard icon="⚠️" label="Overdue"  value={String(overdueCount)} sub={overdueCount > 0 ? 'needs attention' : 'all clear'} gradient={overdueCount > 0 ? 'from-red-400 to-rose-600' : 'from-slate-400 to-slate-500'} />
+        <VitalCard icon="📌" label="Today"    value={String(todayCount)}    sub={format(new Date(), 'EEE, MMM d')} gradient="from-sky-400 to-blue-600" />
+      </div>
+
+      {/* ── Bento: calendar + selected day ────────────────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        {/* Calendar */}
+        <div className="lg:col-span-7 xl:col-span-8">
 
       {/* ── Calendar card ────────────────────────────────────────────────────── */}
       <div className="card p-4 sm:p-6">
@@ -215,8 +235,11 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      {/* ── Selected-day panel ────────────────────────────────────────────────── */}
-      <div className="card p-4 sm:p-6 animate-fade-in">
+        </div>
+
+        {/* Selected-day panel */}
+        <div className="lg:col-span-5 xl:col-span-4">
+      <div className="card p-4 sm:p-6 animate-fade-in lg:sticky lg:top-20">
         <div className="flex items-center gap-2 mb-4">
           <CalendarDays className="w-4 h-4 text-honey-600 dark:text-honey-400" />
           <h3 className="font-display text-base font-bold text-gray-800 dark:text-slate-100">
@@ -256,12 +279,31 @@ export default function CalendarPage() {
           </div>
         )}
       </div>
+        </div>
+      </div>
 
     </div>
   )
 }
 
 // ── Helper components ──────────────────────────────────────────────────────────
+
+function VitalCard({ icon, label, value, sub, gradient }: {
+  icon: string; label: string; value: string; sub?: string; gradient: string
+}) {
+  return (
+    <div className={`relative overflow-hidden rounded-2xl p-4 sm:p-5 text-white shadow-lg bg-gradient-to-br ${gradient}`}>
+      <span className="absolute -right-2 -top-3 text-6xl opacity-20 select-none pointer-events-none leading-none">
+        {icon}
+      </span>
+      <div className="relative">
+        <p className="text-2xl sm:text-3xl font-bold font-display leading-none truncate">{value}</p>
+        <p className="text-sm font-medium opacity-95 mt-2">{label}</p>
+        {sub && <p className="text-xs mt-0.5 opacity-80">{sub}</p>}
+      </div>
+    </div>
+  )
+}
 
 function EmptyDay() {
   return (
