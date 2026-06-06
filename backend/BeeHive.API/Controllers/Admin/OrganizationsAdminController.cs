@@ -5,30 +5,27 @@ using BeeHive.Application.Features.Admin.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace BeeHive.API.Controllers;
+namespace BeeHive.API.Controllers.Admin;
 
 /// <summary>
-/// System administration endpoints — accessible only to SystemAdmin users.
-/// Provides full CRUD for organizations and users.
+/// System administration of organizations — accessible only to SystemAdmin users.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/admin/organizations")]
 [Produces("application/json")]
 [Authorize(Roles = Roles.SystemAdmin)]
-public class AdminController : ControllerBase
+public class OrganizationsAdminController : ControllerBase
 {
     private readonly IAdminService _service;
     private readonly ICurrentUser _currentUser;
 
-    public AdminController(IAdminService service, ICurrentUser currentUser)
+    public OrganizationsAdminController(IAdminService service, ICurrentUser currentUser)
     {
         _service = service;
         _currentUser = currentUser;
     }
 
-    // ── Organizations ──────────────────────────────────────────────────────────
-
-    [HttpGet("organizations")]
+    [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<AdminOrganizationDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetOrganizations()
     {
@@ -36,7 +33,7 @@ public class AdminController : ControllerBase
         return Ok(orgs);
     }
 
-    [HttpGet("organizations/{id:int}")]
+    [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(AdminOrganizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetOrganization(int id)
@@ -45,7 +42,7 @@ public class AdminController : ControllerBase
         return Ok(org);
     }
 
-    [HttpPost("organizations")]
+    [HttpPost]
     [ProducesResponseType(typeof(AdminOrganizationDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationDto dto)
@@ -54,7 +51,7 @@ public class AdminController : ControllerBase
         return CreatedAtAction(nameof(GetOrganization), new { id = created.Id }, created);
     }
 
-    [HttpPut("organizations/{id:int}")]
+    [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(AdminOrganizationDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UpdateOrganization(int id, [FromBody] UpdateOrganizationDto dto)
@@ -63,7 +60,7 @@ public class AdminController : ControllerBase
         return Ok(updated);
     }
 
-    [HttpDelete("organizations/{id:int}")]
+    [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
@@ -74,7 +71,7 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>Returns apiaries for a given organization — used when assigning Admin users.</summary>
-    [HttpGet("organizations/{id:int}/apiaries")]
+    [HttpGet("{id:int}/apiaries")]
     [ProducesResponseType(typeof(IEnumerable<AdminApiaryListItemDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetApiariesByOrganization(int id)
     {
@@ -83,58 +80,11 @@ public class AdminController : ControllerBase
     }
 
     /// <summary>Returns all beehives for a given organization — used when assigning User role beekeepers.</summary>
-    [HttpGet("organizations/{id:int}/beehives")]
+    [HttpGet("{id:int}/beehives")]
     [ProducesResponseType(typeof(IEnumerable<AdminBeehiveListItemDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBeehivesByOrganization(int id)
     {
         var beehives = await _service.GetBeehivesByOrganizationAsync(id);
         return Ok(beehives);
-    }
-
-    // ── Users ──────────────────────────────────────────────────────────────────
-
-    [HttpGet("users")]
-    [ProducesResponseType(typeof(IEnumerable<AdminUserDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetUsers()
-    {
-        var users = await _service.GetAllUsersAsync();
-        return Ok(users);
-    }
-
-    [HttpGet("users/{id:int}")]
-    [ProducesResponseType(typeof(AdminUserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetUser(int id)
-    {
-        var user = await _service.GetUserByIdAsync(id);
-        return Ok(user);
-    }
-
-    [HttpPost("users")]
-    [ProducesResponseType(typeof(AdminUserDto), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateUser([FromBody] CreateAdminUserDto dto)
-    {
-        var created = await _service.CreateUserAsync(dto);
-        return CreatedAtAction(nameof(GetUser), new { id = created.Id }, created);
-    }
-
-    [HttpPut("users/{id:int}")]
-    [ProducesResponseType(typeof(AdminUserDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateAdminUserDto dto)
-    {
-        var updated = await _service.UpdateUserAsync(id, dto);
-        return Ok(updated);
-    }
-
-    [HttpDelete("users/{id:int}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
-    public async Task<IActionResult> DeleteUser(int id)
-    {
-        await _service.DeleteUserAsync(id);
-        return NoContent();
     }
 }
