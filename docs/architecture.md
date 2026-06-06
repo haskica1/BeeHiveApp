@@ -6,25 +6,27 @@
 Browser (React PWA)
     │  HTTPS / JSON
     ▼
-BeeHive.API          ← Controllers, Middleware, JWT auth
+BeeHive.API          ← Controllers, Middleware, JWT auth, ICurrentUser
     │
-BeeHive.Application  ← Services, DTOs, Validators, AutoMapper
+BeeHive.Application  ← Services, DTOs, Validators, AutoMapper, interfaces, IAccessGuard
     │
-BeeHive.Domain       ← Entities, Enums, Interfaces
+BeeHive.Domain       ← Entities, Enums (pure — no dependencies)
+    ▲
+    ├── BeeHive.Entity         ← EF Core DbContext, Repositories, UoW, Migrations (persistence)
+    └── BeeHive.Infrastructure ← External services (email)
     │
-BeeHive.Infrastructure ← EF Core DbContext, Repositories, UoW
-    │
-SQL Server (local)
+PostgreSQL
 ```
 
 ## Dependency Rules
 
 ```
-API → Application → Domain        (allowed)
-Infrastructure → Domain           (allowed)
-API → Infrastructure              (via DI only, never direct)
-Domain → anything else            (FORBIDDEN)
-Application → Infrastructure      (FORBIDDEN — use interfaces)
+API → Application → Domain              (allowed)
+Entity → Application, Domain             (allowed — implements Application interfaces)
+Infrastructure → Application             (allowed — implements Application interfaces)
+API → Entity, Infrastructure             (via DI only, never direct)
+Domain → anything else                   (FORBIDDEN)
+Application → Entity / Infrastructure     (FORBIDDEN — depends only on its own interfaces)
 ```
 
 ## Backend Layers
@@ -35,24 +37,32 @@ Application → Infrastructure      (FORBIDDEN — use interfaces)
 - Contains enums, no logic beyond simple property rules
 - **No dependencies on other layers**
 
-### BeeHive.Infrastructure
-- `BeeHiveDbContext` — EF Core, auto-stamps `UpdatedAt` on `SaveChangesAsync`
-- `Repository<T>` — generic base with CRUD + predicate search
-- Concrete repos extend the generic with domain-specific queries
+### BeeHive.Entity (persistence)
+- `BeeHiveDbContext` — EF Core (PostgreSQL/Npgsql), auto-stamps `UpdatedAt` on `SaveChangesAsync`
+- `Repository<T>` — generic base with CRUD + predicate search; one concrete repo per aggregate (one file each)
+- One `IEntityTypeConfiguration<T>` per entity in `Configurations/`
 - `UnitOfWork` — single `SaveChangesAsync`, lazy-initialized repos
-- Database auto-migrates and seeds on startup
+- Owns EF Core Migrations; database auto-migrates and seeds on startup
+- Registered via `AddEntity(configuration)`
+
+### BeeHive.Infrastructure (external services)
+- `EmailService` (MailKit/SMTP) and other outbound integrations
+- Registered via `AddInfrastructure()`
 
 ### BeeHive.Application
-- One folder per domain feature: `Apiaries/`, `Beehives/`, `Inspections/`, `Diets/`, `Todos/`, `Auth/`, `Admin/`, `Weather/`
-- Each folder contains: `IXxxService`, `XxxService`, `XxxDto`, `XxxValidator`
-- `Common/`: `MappingProfile`, `ApplicationExceptions`, `QrCodeService`
-- Services receive `IUnitOfWork` via constructor injection
+- One folder per domain feature: `Apiaries/`, `Beehives/`, `Inspections/`, `Diets/`, `Todos/`, `Auth/`, `Admin/`, `Weather/`, …
+- One type per file: `IXxxService.cs`, `XxxService.cs`, `DTOs/<OneDtoPerFile>.cs`, `Validators/<OneValidatorPerFile>.cs`, `XxxMappingProfile.cs`
+- `Common/Interfaces/` holds repository + `IUnitOfWork` + `ICurrentUser` interfaces (interfaces live here, **not** in Domain)
+- `Common/Security/` holds `Roles` and `IAccessGuard`/`AccessGuard` — the single source of truth for tenant/resource authorization
+- `Common/Exceptions/` — `NotFoundException`, `BusinessRuleException`, `ValidationException`, `ForbiddenAccessException` (one per file)
+- Services receive `IUnitOfWork`, `ICurrentUser`, and `IAccessGuard` via constructor injection
 
 ### BeeHive.API
-- Controllers: thin — validate input → call service → return HTTP result
-- `GlobalExceptionMiddleware` — maps exceptions to Problem Details (RFC 7807)
-- JWT Bearer auth — all endpoints require `[Authorize]` except `POST /api/auth/login`
-- CORS: `localhost:5173` (Vite dev) and `localhost:4200` (Angular legacy)
+- Controllers: thin — validate input → call service → return HTTP result (no authorization logic; that lives in the service layer via `IAccessGuard`)
+- `CurrentUser` implements `ICurrentUser` from JWT claims via `IHttpContextAccessor`
+- `GlobalExceptionMiddleware` — maps exceptions to Problem Details (RFC 7807); `ForbiddenAccessException` → 403
+- JWT Bearer auth — all endpoints require `[Authorize]` except `POST /api/auth/login` and the public QR scan lookup
+- CORS: configured via `AllowedOrigins`
 
 ## Frontend Architecture
 
@@ -102,7 +112,7 @@ Organization
 
 | Setting | Location | Value |
 |---|---|---|
-| DB connection | `appsettings.json` | SQL Server, trusted auth |
+| DB connection | `appsettings.json` | PostgreSQL (Npgsql) |
 | JWT expiry | `appsettings.json` | 480 min (8h) |
 | JWT claims | `AuthService` | userId, email, role, organizationId |
 | Dev API proxy | `vite.config.ts` | `/api` → `https://localhost:62647` |

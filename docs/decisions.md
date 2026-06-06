@@ -145,3 +145,49 @@
 **Alternatives considered:**
 - Single role — no separation of platform vs. org management.
 - Fine-grained permissions — over-engineered for current user base.
+
+---
+
+## ADR-013: Dedicated `BeeHive.Entity` Persistence Project
+
+**Decision:** Move all data access (DbContext, entity configurations, repositories, UnitOfWork, migrations) into a dedicated `BeeHive.Entity` project. `BeeHive.Infrastructure` is slimmed to external services (email).
+
+**Why:** Makes the persistence boundary explicit and single-purpose. Migrations and EF Core concerns live in one clearly-named project. Infrastructure no longer mixes data access with outbound integrations.
+
+**Notes:** Migration IDs were preserved during the move, so `__EFMigrationsHistory` still matches — no database change. EF CLI now targets `--project BeeHive.Entity --startup-project BeeHive.API`.
+
+**Alternatives considered:**
+- Keep everything in `Infrastructure` — the clean-architecture default, but conflates persistence with other infrastructure.
+
+---
+
+## ADR-014: Centralized Authorization (`ICurrentUser` + `IAccessGuard`)
+
+**Decision:** All tenant/resource ownership checks live in the service layer via a single `IAccessGuard`, fed by an `ICurrentUser` abstraction over JWT claims. Controllers keep only coarse `[Authorize(Roles = …)]` gating. `ForbiddenAccessException` maps to 403.
+
+**Why:** The previous design scattered authorization across controllers with duplicated, inconsistent checks — which had allowed cross-tenant access (an OrgAdmin could read/modify another organization's data) and IDOR on by-id reads. A single source of truth fixes the holes and prevents regressions.
+
+**Alternatives considered:**
+- Per-controller checks — the original approach; error-prone and duplicated.
+- ASP.NET resource-based authorization handlers — heavier; the service-layer guard is simpler and reuses loaded entities.
+
+---
+
+## ADR-015: Role Rename for Clarity
+
+**Decision:** Rename roles `Admin → ApiaryAdmin`, `OrgAdmin → OrganizationAdmin`, `User → Beekeeper` (`SystemAdmin` unchanged). Numeric enum values are preserved (1–4).
+
+**Why:** The old names were misleading — "Admin" was actually the *narrowest* (apiary-level) role. The new names state the scope plainly.
+
+**Notes:** Breaking change to the JWT role claim string (users must re-log in); no database migration needed since persisted ints are unchanged. Frontend role checks updated in lockstep.
+
+---
+
+## ADR-016: One Type Per File
+
+**Decision:** Every public type (enum, interface, exception, service, DTO, validator, EF configuration, repository) lives in its own file. Validators are co-located per feature under `Features/<F>/Validators/`.
+
+**Why:** Faster navigation and clearer single-responsibility. Supersedes the earlier convention of grouping a feature's DTOs/validators into one file.
+
+**Alternatives considered:**
+- Grouped-per-feature files — fewer files, but harder to locate a specific type as features grow.

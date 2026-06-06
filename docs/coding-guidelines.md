@@ -17,13 +17,24 @@
 
 ### File & Folder Structure
 
+**One public type per file.** Each feature folder holds its service interface + implementation,
+its DTOs (one per file under `DTOs/`), its validators (one per file under `Validators/`), and its
+AutoMapper profile.
+
 ```
 Application/
   Apiaries/
     IApiaryService.cs
     ApiaryService.cs
-    ApiaryDto.cs          ← all DTOs for this feature
-    ApiaryValidator.cs    ← all validators for this feature
+    ApiaryMappingProfile.cs
+    DTOs/
+      ApiaryDto.cs
+      ApiaryDetailDto.cs
+      CreateApiaryDto.cs
+      UpdateApiaryDto.cs
+    Validators/
+      CreateApiaryValidator.cs
+      UpdateApiaryValidator.cs
 ```
 
 ### Async Rules
@@ -63,8 +74,8 @@ public class CreateApiaryValidator : AbstractValidator<CreateApiaryDto>
 }
 ```
 
-- Register validators via `AddFluentValidationAutoValidation()` — no manual `.Validate()` calls in controllers
-- All create/update DTOs must have a corresponding validator
+- Validators are registered via `AddValidatorsFromAssemblyContaining<…>()` and invoked explicitly in controllers (`await validator.ValidateAsync(dto)`). Auto-validation is intentionally not enabled, to keep the error-response shape stable for the frontend.
+- All create/update DTOs must have a corresponding validator, co-located under the feature's `Validators/` folder (one validator per file)
 
 ### AutoMapper
 
