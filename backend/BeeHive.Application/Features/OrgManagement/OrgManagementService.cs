@@ -11,31 +11,29 @@ namespace BeeHive.Application.Features.OrgManagement;
 
 public interface IOrgManagementService
 {
-    /// <summary>Returns all manageable members in the organization (User and Admin roles only).</summary>
-    Task<IEnumerable<OrgMemberDto>> GetMembersAsync(int orgId);
+    /// <summary>Returns all manageable members in the caller's organization (User and Admin roles only).</summary>
+    Task<IEnumerable<OrgMemberDto>> GetMembersAsync();
 
-    /// <summary>Returns a single member with their current assignments.</summary>
-    Task<OrgMemberDto> GetMemberAsync(int memberId, int orgId);
+    /// <summary>Returns a single member of the caller's organization with their current assignments.</summary>
+    Task<OrgMemberDto> GetMemberAsync(int memberId);
 
     /// <summary>
     /// Updates beehive assignments for a User-role member.
-    /// Admin callers are restricted to beehives within their own apiary.
+    /// ApiaryAdmin callers are restricted to beehives within their own apiary.
     /// </summary>
-    Task<OrgMemberDto> UpdateBeehiveAssignmentsAsync(
-        int memberId, UpdateBeehiveAssignmentsDto dto,
-        int callerOrgId, int? callerApiaryId, string callerRole);
+    Task<OrgMemberDto> UpdateBeehiveAssignmentsAsync(int memberId, UpdateBeehiveAssignmentsDto dto);
 
     /// <summary>Updates the apiary assignment for an Admin-role member. OrgAdmin only.</summary>
-    Task<OrgMemberDto> UpdateApiaryAssignmentAsync(int memberId, UpdateApiaryAssignmentDto dto, int callerOrgId);
+    Task<OrgMemberDto> UpdateApiaryAssignmentAsync(int memberId, UpdateApiaryAssignmentDto dto);
 
     /// <summary>
     /// Returns beehives available for assignment.
-    /// OrgAdmin gets all org beehives; Admin gets only their apiary's beehives.
+    /// OrgAdmin gets all org beehives; ApiaryAdmin gets only their apiary's beehives.
     /// </summary>
-    Task<IEnumerable<OrgAvailableBeehiveDto>> GetAvailableBeehivesAsync(int orgId, int? callerApiaryId);
+    Task<IEnumerable<OrgAvailableBeehiveDto>> GetAvailableBeehivesAsync();
 
-    /// <summary>Returns all apiaries in the organization for assigning to Admin users. OrgAdmin only.</summary>
-    Task<IEnumerable<OrgAvailableApiaryDto>> GetAvailableApiariesAsync(int orgId);
+    /// <summary>Returns all apiaries in the caller's organization for assigning to Admin users. OrgAdmin only.</summary>
+    Task<IEnumerable<OrgAvailableApiaryDto>> GetAvailableApiariesAsync();
 }
 
 // ── Implementation ───────────────────────────────────────────────────────────
@@ -44,15 +42,20 @@ public class OrgManagementService : IOrgManagementService
 {
     private readonly IUnitOfWork _uow;
     private readonly INotificationService _notifications;
+    private readonly ICurrentUser _currentUser;
 
-    public OrgManagementService(IUnitOfWork uow, INotificationService notifications)
+    public OrgManagementService(IUnitOfWork uow, INotificationService notifications, ICurrentUser currentUser)
     {
         _uow           = uow;
         _notifications = notifications;
+        _currentUser   = currentUser;
     }
 
-    public async Task<IEnumerable<OrgMemberDto>> GetMembersAsync(int orgId)
+    public async Task<IEnumerable<OrgMemberDto>> GetMembersAsync()
     {
+        if (_currentUser.OrganizationId is not int orgId)
+            return [];
+
         var users = await _uow.Users.GetAllWithOrganizationAsync();
         var orgUsers = users.Where(u =>
             u.OrganizationId == orgId &&
@@ -69,13 +72,15 @@ public class OrgManagementService : IOrgManagementService
         return dtos;
     }
 
-    public async Task<OrgMemberDto> GetMemberAsync(int memberId, int orgId)
+    public async Task<OrgMemberDto> GetMemberAsync(int memberId)
     {
+        var orgId = RequireOrganization();
+
         var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(memberId)
             ?? throw new NotFoundException(nameof(User), memberId);
 
         if (user.OrganizationId != orgId)
-            throw new BusinessRuleException("This member does not belong to your organization.");
+            throw new ForbiddenAccessException("This member does not belong to your organization.");
 
         if (user.Role is not (UserRole.User or UserRole.Admin))
             throw new BusinessRuleException("Only User and Admin role members can be managed here.");
@@ -83,20 +88,20 @@ public class OrgManagementService : IOrgManagementService
         return MapMember(user);
     }
 
-    public async Task<OrgMemberDto> UpdateBeehiveAssignmentsAsync(
-        int memberId, UpdateBeehiveAssignmentsDto dto,
-        int callerOrgId, int? callerApiaryId, string callerRole)
+    public async Task<OrgMemberDto> UpdateBeehiveAssignmentsAsync(int memberId, UpdateBeehiveAssignmentsDto dto)
     {
+        var orgId = RequireOrganization();
+
         var member = await _uow.Users.GetByIdWithAssignedBeehivesAsync(memberId)
             ?? throw new NotFoundException(nameof(User), memberId);
 
-        if (member.OrganizationId != callerOrgId)
-            throw new BusinessRuleException("This member does not belong to your organization.");
+        if (member.OrganizationId != orgId)
+            throw new ForbiddenAccessException("This member does not belong to your organization.");
 
         if (member.Role != UserRole.User)
             throw new BusinessRuleException("Beehive assignments can only be set for User-role members.");
 
-        // Validate each requested beehive belongs to the org (and to caller's apiary if Admin)
+        // Validate each requested beehive belongs to the org (and to caller's apiary if ApiaryAdmin)
         foreach (var beehiveId in dto.BeehiveIds)
         {
             var beehive = await _uow.Beehives.GetByIdAsync(beehiveId)
@@ -105,10 +110,11 @@ public class OrgManagementService : IOrgManagementService
             var apiary = await _uow.Apiaries.GetByIdAsync(beehive.ApiaryId)
                 ?? throw new NotFoundException(nameof(Apiary), beehive.ApiaryId);
 
-            if (apiary.OrganizationId != callerOrgId)
+            if (apiary.OrganizationId != orgId)
                 throw new BusinessRuleException($"Beehive '{beehive.Name}' does not belong to your organization.");
 
-            if (callerRole == "Admin" && callerApiaryId.HasValue && beehive.ApiaryId != callerApiaryId.Value)
+            if (_currentUser.Role == UserRole.Admin && _currentUser.ApiaryId is int callerApiaryId
+                && beehive.ApiaryId != callerApiaryId)
                 throw new BusinessRuleException($"Beehive '{beehive.Name}' is not in your apiary.");
         }
 
@@ -119,7 +125,7 @@ public class OrgManagementService : IOrgManagementService
         await _uow.Users.SetBeehiveAssignmentsAsync(memberId, dto.BeehiveIds);
         await _uow.SaveChangesAsync();
 
-        // 3) Notify member of beehive assignment changes
+        // Notify member of beehive assignment changes
         foreach (var beehiveId in newBeehiveIds.Except(oldBeehiveIds))
         {
             var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
@@ -147,14 +153,15 @@ public class OrgManagementService : IOrgManagementService
         return MapMember(updated!);
     }
 
-    public async Task<OrgMemberDto> UpdateApiaryAssignmentAsync(
-        int memberId, UpdateApiaryAssignmentDto dto, int callerOrgId)
+    public async Task<OrgMemberDto> UpdateApiaryAssignmentAsync(int memberId, UpdateApiaryAssignmentDto dto)
     {
+        var orgId = RequireOrganization();
+
         var member = await _uow.Users.GetByIdWithOrganizationAsync(memberId)
             ?? throw new NotFoundException(nameof(User), memberId);
 
-        if (member.OrganizationId != callerOrgId)
-            throw new BusinessRuleException("This member does not belong to your organization.");
+        if (member.OrganizationId != orgId)
+            throw new ForbiddenAccessException("This member does not belong to your organization.");
 
         if (member.Role != UserRole.Admin)
             throw new BusinessRuleException("Apiary assignment can only be set for Admin-role members.");
@@ -165,7 +172,7 @@ public class OrgManagementService : IOrgManagementService
             newApiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value)
                 ?? throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
 
-            if (newApiary.OrganizationId != callerOrgId)
+            if (newApiary.OrganizationId != orgId)
                 throw new BusinessRuleException("The selected apiary does not belong to your organization.");
         }
 
@@ -174,7 +181,7 @@ public class OrgManagementService : IOrgManagementService
         await _uow.Users.UpdateAsync(member);
         await _uow.SaveChangesAsync();
 
-        // 2) Notify admin of apiary assignment change
+        // Notify admin of apiary assignment change
         if (dto.ApiaryId.HasValue && dto.ApiaryId != oldApiaryId && newApiary != null)
         {
             await _notifications.NotifyAsync(
@@ -197,12 +204,16 @@ public class OrgManagementService : IOrgManagementService
         return MapMember(updated!);
     }
 
-    public async Task<IEnumerable<OrgAvailableBeehiveDto>> GetAvailableBeehivesAsync(int orgId, int? callerApiaryId)
+    public async Task<IEnumerable<OrgAvailableBeehiveDto>> GetAvailableBeehivesAsync()
     {
+        if (_currentUser.OrganizationId is not int orgId)
+            return [];
+
         var beehives = await _uow.Beehives.GetByOrganizationAsync(orgId);
 
-        if (callerApiaryId.HasValue)
-            beehives = beehives.Where(b => b.ApiaryId == callerApiaryId.Value);
+        // An ApiaryAdmin may only assign beehives from their own apiary.
+        if (_currentUser.Role == UserRole.Admin && _currentUser.ApiaryId is int callerApiaryId)
+            beehives = beehives.Where(b => b.ApiaryId == callerApiaryId);
 
         return beehives.Select(b => new OrgAvailableBeehiveDto
         {
@@ -212,11 +223,20 @@ public class OrgManagementService : IOrgManagementService
         });
     }
 
-    public async Task<IEnumerable<OrgAvailableApiaryDto>> GetAvailableApiariesAsync(int orgId)
+    public async Task<IEnumerable<OrgAvailableApiaryDto>> GetAvailableApiariesAsync()
     {
+        if (_currentUser.OrganizationId is not int orgId)
+            return [];
+
         var apiaries = await _uow.Apiaries.GetAllByOrganizationAsync(orgId);
         return apiaries.Select(a => new OrgAvailableApiaryDto { Id = a.Id, Name = a.Name });
     }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private int RequireOrganization() =>
+        _currentUser.OrganizationId
+            ?? throw new ForbiddenAccessException("You must belong to an organization to manage its members.");
 
     private static OrgMemberDto MapMember(User u) => new()
     {

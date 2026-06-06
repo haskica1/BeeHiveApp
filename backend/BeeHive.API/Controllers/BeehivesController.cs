@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Beehives;
 using BeeHive.Application.Features.Beehives.DTOs;
 using FluentValidation;
@@ -7,6 +7,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BeeHive.API.Controllers;
 
+/// <summary>
+/// Manages beehive (košnica) resources. Role-based ownership is enforced in the service layer;
+/// the controller only performs input validation and coarse role gating.
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -47,23 +51,18 @@ public class BeehivesController : ControllerBase
     /// </summary>
     [HttpGet("{id:int}/has-access")]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> HasAccess(int id)
     {
-        var userId  = GetUserId() ?? 0;
-        var role    = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var apiary  = User.FindFirstValue("apiaryId");
-
-        var hasAccess = await _service.HasAccessAsync(userId, role, apiary, id);
+        var hasAccess = await _service.CanCurrentUserAccessAsync(id);
         return Ok(new { hasAccess });
     }
 
     /// <summary>
-    /// Regenerates QR codes for all existing beehives to use the new scan URL format.
+    /// Regenerates QR codes for all existing beehives to use the current scan URL format.
     /// SystemAdmin only — run once after deploying this update.
     /// </summary>
     [HttpPost("regenerate-qr-codes")]
-    [Authorize(Roles = "SystemAdmin")]
+    [Authorize(Roles = Roles.SystemAdmin)]
     [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
     public async Task<IActionResult> RegenerateQrCodes()
     {
@@ -71,50 +70,31 @@ public class BeehivesController : ControllerBase
         return Ok(new { updated = count, message = $"QR codes regenerated for {count} beehive(s)." });
     }
 
-    /// <summary>Returns all beehives belonging to the specified apiary.
-    /// User-role accounts only see beehives assigned to them.</summary>
+    /// <summary>Returns the beehives in the apiary visible to the caller (Beekeepers see only assigned hives).</summary>
     [HttpGet("by-apiary/{apiaryId:int}")]
     [ProducesResponseType(typeof(IEnumerable<BeehiveDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByApiary(int apiaryId)
     {
         var beehives = await _service.GetByApiaryIdAsync(apiaryId);
-
-        if (User.FindFirstValue(ClaimTypes.Role) == "User")
-        {
-            var userId = GetUserId() ?? 0;
-            var assignedIds = await _service.GetAssignedBeehiveIdsAsync(userId);
-            beehives = beehives.Where(b => assignedIds.Contains(b.Id));
-        }
-
         return Ok(beehives);
     }
 
-    /// <summary>Returns a single beehive including all its inspections.
-    /// Admin and User roles are subject to access checks.</summary>
+    /// <summary>Returns a single beehive including all its inspections, scoped to the caller's access.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(BeehiveDetailDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
-        // Load first so a non-existent ID returns 404, not 403
         var beehive = await _service.GetByIdAsync(id);
-
-        var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId = GetUserId() ?? 0;
-        var apiaryIdClaim = User.FindFirstValue("apiaryId");
-
-        var hasAccess = await _service.HasAccessAsync(userId, role, apiaryIdClaim, id);
-        if (!hasAccess)
-            return Forbid();
-
         return Ok(beehive);
     }
 
-    /// <summary>Creates a new beehive within an apiary. Admin, OrgAdmin, and SystemAdmin only.</summary>
+    /// <summary>Creates a new beehive within an apiary. ApiaryAdmin, OrgAdmin, and SystemAdmin only.</summary>
     [HttpPost]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+    [Authorize(Roles = Roles.Managers)]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -124,31 +104,13 @@ public class BeehivesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        // Admin is scoped to a single apiary — reject requests targeting other apiaries
-        if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
-        {
-            var apiaryIdClaim = User.FindFirstValue("apiaryId");
-            if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != dto.ApiaryId)
-                return StatusCode(StatusCodes.Status403Forbidden, new
-                {
-                    type = "https://httpstatuses.com/403",
-                    title = "Access Denied",
-                    status = 403,
-                    errors = new Dictionary<string, string[]>
-                    {
-                        ["detail"] = ["Admin users can only create beehives in their assigned apiary."]
-                    }
-                });
-        }
-
-        var userId = GetUserId();
-        var created = await _service.CreateAsync(dto, userId);
+        var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>Updates an existing beehive. Not available to User role.</summary>
+    /// <summary>Updates an existing beehive. ApiaryAdmin, OrgAdmin, and SystemAdmin only.</summary>
     [HttpPut("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+    [Authorize(Roles = Roles.Managers)]
     [ProducesResponseType(typeof(BeehiveDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -159,85 +121,19 @@ public class BeehivesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        // Admin is scoped to a single apiary — verify the beehive belongs to it
-        if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
-        {
-            var apiaryIdClaim = User.FindFirstValue("apiaryId");
-            if (apiaryIdClaim == null) return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                type = "https://httpstatuses.com/403",
-                title = "Access Denied",
-                status = 403,
-                errors = new Dictionary<string, string[]>
-                {
-                    ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
-                }
-            });
-            var adminApiaryId = int.Parse(apiaryIdClaim);
-
-            var existing = await _service.GetByIdAsync(id);
-            if (existing.ApiaryId != adminApiaryId || dto.ApiaryId != adminApiaryId)
-                return StatusCode(StatusCodes.Status403Forbidden, new
-                {
-                    type = "https://httpstatuses.com/403",
-                    title = "Access Denied",
-                    status = 403,
-                    errors = new Dictionary<string, string[]>
-                    {
-                        ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
-                    }
-                });
-        }
-
         var updated = await _service.UpdateAsync(id, dto);
         return Ok(updated);
     }
 
-    /// <summary>Deletes a beehive and all its inspections. Not available to User role.</summary>
+    /// <summary>Deletes a beehive and all its inspections. ApiaryAdmin, OrgAdmin, and SystemAdmin only.</summary>
     [HttpDelete("{id:int}")]
-    [Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+    [Authorize(Roles = Roles.Managers)]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        // Admin is scoped to a single apiary — verify the beehive belongs to it
-        if (User.FindFirstValue(ClaimTypes.Role) == "Admin")
-        {
-            var apiaryIdClaim = User.FindFirstValue("apiaryId");
-            if (apiaryIdClaim == null) return StatusCode(StatusCodes.Status403Forbidden, new
-            {
-                type = "https://httpstatuses.com/403",
-                title = "Access Denied",
-                status = 403,
-                errors = new Dictionary<string, string[]>
-                {
-                    ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
-                }
-            });
-            var adminApiaryId = int.Parse(apiaryIdClaim);
-
-            var existing = await _service.GetByIdAsync(id);
-            if (existing.ApiaryId != adminApiaryId)
-                return StatusCode(StatusCodes.Status403Forbidden, new
-                {
-                    type = "https://httpstatuses.com/403",
-                    title = "Access Denied",
-                    status = 403,
-                    errors = new Dictionary<string, string[]>
-                    {
-                        ["detail"] = ["Admin users can only manage beehives in their assigned apiary."]
-                    }
-                });
-        }
-
         await _service.DeleteAsync(id);
         return NoContent();
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return claim != null ? int.Parse(claim) : null;
     }
 }

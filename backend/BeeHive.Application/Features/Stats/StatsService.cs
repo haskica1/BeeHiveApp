@@ -6,20 +6,29 @@ namespace BeeHive.Application.Features.Stats;
 
 public interface IStatsService
 {
-    Task<StatsDto> GetStatsAsync(int? organizationId);
+    /// <summary>Returns aggregate statistics scoped to the current caller's organization
+    /// (platform-wide for SystemAdmin).</summary>
+    Task<StatsDto> GetStatsAsync();
 }
 
 public class StatsService : IStatsService
 {
     private readonly IUnitOfWork _uow;
+    private readonly ICurrentUser _currentUser;
 
-    public StatsService(IUnitOfWork uow)
+    public StatsService(IUnitOfWork uow, ICurrentUser currentUser)
     {
         _uow = uow;
+        _currentUser = currentUser;
     }
 
-    public async Task<StatsDto> GetStatsAsync(int? organizationId)
+    public async Task<StatsDto> GetStatsAsync()
     {
+        // SystemAdmin sees platform-wide stats; everyone else is scoped to their organization.
+        int? organizationId = _currentUser.Role == UserRole.SystemAdmin
+            ? null
+            : _currentUser.OrganizationId;
+
         // ── Fetch base data ────────────────────────────────────────────────────
 
         var apiaries = organizationId.HasValue

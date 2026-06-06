@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Behaviors;
 using BeeHive.Application.Common.Mappings;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Apiaries;
@@ -32,6 +33,9 @@ public static class DependencyInjection
 
         // FluentValidation — registers all validators in this assembly
         services.AddValidatorsFromAssemblyContaining<CreateApiaryValidator>();
+
+        // Cross-cutting authorization — single source of truth for tenant/resource access
+        services.AddScoped<IAccessGuard, AccessGuard>();
 
         // Application services
         services.AddScoped<INotificationService, NotificationService>();

@@ -6,21 +6,28 @@ namespace BeeHive.Application.Features.Calendar;
 
 public interface ICalendarService
 {
-    Task<CalendarEventsDto> GetCalendarEventsAsync(string role, int? userId, int? orgId, int? apiaryId);
+    /// <summary>Returns calendar events (todos with due dates + diet feeding entries) visible to the current caller.</summary>
+    Task<CalendarEventsDto> GetCalendarEventsAsync();
 }
 
 public class CalendarService : ICalendarService
 {
     private readonly IUnitOfWork _uow;
+    private readonly ICurrentUser _currentUser;
 
-    public CalendarService(IUnitOfWork uow)
+    public CalendarService(IUnitOfWork uow, ICurrentUser currentUser)
     {
         _uow = uow;
+        _currentUser = currentUser;
     }
 
-    public async Task<CalendarEventsDto> GetCalendarEventsAsync(
-        string role, int? userId, int? orgId, int? apiaryId)
+    public async Task<CalendarEventsDto> GetCalendarEventsAsync()
     {
+        var role     = _currentUser.Role;
+        var userId   = _currentUser.UserId;
+        var orgId    = _currentUser.OrganizationId;
+        var apiaryId = _currentUser.ApiaryId;
+
         // ── Step 1: Resolve accessible IDs and name lookup dictionaries ───────────
 
         HashSet<int> accessibleApiaryIds;
@@ -28,7 +35,7 @@ public class CalendarService : ICalendarService
         Dictionary<int, string> beehiveNames;
         Dictionary<int, string> apiaryNames;
 
-        if (role == "SystemAdmin")
+        if (role == UserRole.SystemAdmin)
         {
             var allBeehives = (await _uow.Beehives.GetAllAsync()).ToList();
             var allApiaries = (await _uow.Apiaries.GetAllAsync()).ToList();
@@ -37,7 +44,7 @@ public class CalendarService : ICalendarService
             beehiveNames = allBeehives.ToDictionary(b => b.Id, b => b.Name);
             apiaryNames  = allApiaries.ToDictionary(a => a.Id, a => a.Name);
         }
-        else if (role == "OrgAdmin" && orgId.HasValue)
+        else if (role == UserRole.OrgAdmin && orgId.HasValue)
         {
             var beehives = (await _uow.Beehives.GetByOrganizationAsync(orgId.Value)).ToList();
             var apiaries = (await _uow.Apiaries.GetAllByOrganizationAsync(orgId.Value)).ToList();
@@ -46,7 +53,7 @@ public class CalendarService : ICalendarService
             beehiveNames = beehives.ToDictionary(b => b.Id, b => b.Name);
             apiaryNames  = apiaries.ToDictionary(a => a.Id, a => a.Name);
         }
-        else if (role == "Admin" && apiaryId.HasValue)
+        else if (role == UserRole.Admin && apiaryId.HasValue)
         {
             var beehives = (await _uow.Beehives.GetByApiaryIdAsync(apiaryId.Value)).ToList();
             var apiary   = await _uow.Apiaries.GetByIdAsync(apiaryId.Value);
@@ -57,7 +64,7 @@ public class CalendarService : ICalendarService
                 ? new Dictionary<int, string> { { apiary.Id, apiary.Name } }
                 : new Dictionary<int, string>();
         }
-        else if (role == "User" && userId.HasValue)
+        else if (role == UserRole.User && userId.HasValue)
         {
             var user        = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId.Value);
             var assignedIds = user?.AssignedBeehives?.Select(ub => ub.BeehiveId).ToHashSet()
@@ -86,7 +93,7 @@ public class CalendarService : ICalendarService
 
         List<BeeHive.Domain.Entities.Todo> todos;
 
-        if (role == "User" && userId.HasValue)
+        if (role == UserRole.User && userId.HasValue)
         {
             todos = (await _uow.Todos.FindAsync(t => t.AssignedToId == userId.Value)).ToList();
         }

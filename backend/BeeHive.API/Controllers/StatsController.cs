@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using BeeHive.Application.Features.Stats;
 using BeeHive.Application.Features.Stats.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -19,21 +18,12 @@ public class StatsController : ControllerBase
         _service = service;
     }
 
+    /// <summary>Returns aggregate statistics scoped to the caller's organization.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(StatsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStats()
     {
-        var role = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-
-        int? organizationId = null;
-        if (role != "SystemAdmin")
-        {
-            var orgClaim = User.FindFirstValue("organizationId");
-            if (int.TryParse(orgClaim, out var orgId))
-                organizationId = orgId;
-        }
-
-        var result = await _service.GetStatsAsync(organizationId);
+        var result = await _service.GetStatsAsync();
         return Ok(result);
     }
 }

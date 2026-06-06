@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Notifications;
 using BeeHive.Application.Features.Todos.DTOs;
 using BeeHive.Domain.Entities;
@@ -19,12 +20,10 @@ public interface ITodoService
     Task<IEnumerable<TodoDto>> GetByApiaryIdAsync(int apiaryId);
     Task<IEnumerable<TodoDto>> GetByBeehiveIdAsync(int beehiveId);
     Task<TodoDto> GetByIdAsync(int id);
-    Task<TodoDto> CreateAsync(CreateTodoDto dto, int? createdById);
+    Task<TodoDto> CreateAsync(CreateTodoDto dto);
     Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
     Task DeleteAsync(int id);
-    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersAsync(string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId);
-    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId, string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId);
-    Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
+    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId);
 }
 
 // ── Implementation ────────────────────────────────────────────────────────────
@@ -34,18 +33,29 @@ public class TodoService : ITodoService
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
     private readonly INotificationService _notifications;
+    private readonly ICurrentUser _currentUser;
+    private readonly IAccessGuard _access;
 
-    public TodoService(IUnitOfWork uow, IMapper mapper, INotificationService notifications)
+    public TodoService(
+        IUnitOfWork uow,
+        IMapper mapper,
+        INotificationService notifications,
+        ICurrentUser currentUser,
+        IAccessGuard access)
     {
         _uow           = uow;
         _mapper        = mapper;
         _notifications = notifications;
+        _currentUser   = currentUser;
+        _access        = access;
     }
 
     public async Task<IEnumerable<TodoDto>> GetByApiaryIdAsync(int apiaryId)
     {
         if (!await _uow.Apiaries.ExistsAsync(apiaryId))
             throw new NotFoundException(nameof(Apiary), apiaryId);
+
+        await EnsureCanViewApiaryAsync(apiaryId);
 
         var todos = await _uow.Todos.GetByApiaryIdAsync(apiaryId);
         return _mapper.Map<IEnumerable<TodoDto>>(todos);
@@ -56,6 +66,8 @@ public class TodoService : ITodoService
         if (!await _uow.Beehives.ExistsAsync(beehiveId))
             throw new NotFoundException(nameof(Beehive), beehiveId);
 
+        await _access.EnsureCanAccessBeehiveAsync(beehiveId);
+
         var todos = await _uow.Todos.GetByBeehiveIdAsync(beehiveId);
         return _mapper.Map<IEnumerable<TodoDto>>(todos);
     }
@@ -65,29 +77,39 @@ public class TodoService : ITodoService
         var todo = await _uow.Todos.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Todo), id);
 
+        await EnsureCanAccessTodoAsync(todo);
+
         return _mapper.Map<TodoDto>(todo);
     }
 
-    public async Task<TodoDto> CreateAsync(CreateTodoDto dto, int? createdById)
+    public async Task<TodoDto> CreateAsync(CreateTodoDto dto)
     {
-        if (dto.ApiaryId.HasValue && !await _uow.Apiaries.ExistsAsync(dto.ApiaryId.Value))
-            throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
+        if (dto.ApiaryId.HasValue)
+        {
+            if (!await _uow.Apiaries.ExistsAsync(dto.ApiaryId.Value))
+                throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
+            // Creating an apiary-level todo is a management action.
+            await _access.EnsureCanManageApiaryAsync(dto.ApiaryId.Value);
+        }
 
-        if (dto.BeehiveId.HasValue && !await _uow.Beehives.ExistsAsync(dto.BeehiveId.Value))
-            throw new NotFoundException(nameof(Beehive), dto.BeehiveId.Value);
+        if (dto.BeehiveId.HasValue)
+        {
+            if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId.Value))
+                throw new NotFoundException(nameof(Beehive), dto.BeehiveId.Value);
+            await _access.EnsureCanAccessBeehiveAsync(dto.BeehiveId.Value);
+        }
 
         var todo = _mapper.Map<Todo>(dto);
-        todo.CreatedById = createdById;
+        todo.CreatedById = _currentUser.UserId;
 
         await _uow.Todos.AddAsync(todo);
         await _uow.SaveChangesAsync();
 
         var created = await _uow.Todos.GetByIdWithUsersAsync(todo.Id);
 
-        // 6) Todo creation notifications
-        if (createdById.HasValue)
+        if (_currentUser.UserId is int creatorId)
         {
-            var creator = await _uow.Users.GetByIdWithOrganizationAsync(createdById.Value);
+            var creator = await _uow.Users.GetByIdWithOrganizationAsync(creatorId);
             if (creator != null)
                 await SendTodoCreatedNotificationsAsync(created!, creator);
         }
@@ -99,6 +121,8 @@ public class TodoService : ITodoService
     {
         var todo = await _uow.Todos.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Todo), id);
+
+        await EnsureCanManageTodoAsync(todo);
 
         _mapper.Map(dto, todo);
 
@@ -116,50 +140,33 @@ public class TodoService : ITodoService
         return _mapper.Map<TodoDto>(updated!);
     }
 
-    public async Task<IEnumerable<AssignableUserDto>> GetAssignableUsersAsync(
-        string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId)
+    public async Task DeleteAsync(int id)
     {
-        IEnumerable<User> users;
+        var todo = await _uow.Todos.GetByIdAsync(id)
+            ?? throw new NotFoundException(nameof(Todo), id);
 
-        if (callerRole == nameof(UserRole.SystemAdmin) || callerRole == nameof(UserRole.OrgAdmin))
-        {
-            users = callerOrgId.HasValue
-                ? await _uow.Users.FindAsync(u => u.OrganizationId == callerOrgId)
-                : Enumerable.Empty<User>();
-        }
-        else if (callerRole == nameof(UserRole.Admin))
-        {
-            users = callerApiaryId.HasValue
-                ? await _uow.Users.FindAsync(u => u.ApiaryId == callerApiaryId)
-                : Enumerable.Empty<User>();
-        }
-        else
-        {
-            users = callerUserId.HasValue
-                ? await _uow.Users.FindAsync(u => u.Id == callerUserId)
-                : Enumerable.Empty<User>();
-        }
+        await EnsureCanManageTodoAsync(todo);
 
-        return users
-            .OrderBy(u => u.LastName)
-            .ThenBy(u => u.FirstName)
-            .Select(u => new AssignableUserDto(u.Id, $"{u.FirstName} {u.LastName}"));
+        await _uow.Todos.DeleteAsync(todo);
+        await _uow.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(
-        int beehiveId, string callerRole, int? callerUserId, int? callerOrgId, int? callerApiaryId)
+    public async Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId)
     {
-        var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
-        if (beehive == null)
-            throw new NotFoundException(nameof(Beehive), beehiveId);
+        var beehive = await _uow.Beehives.GetByIdAsync(beehiveId)
+            ?? throw new NotFoundException(nameof(Beehive), beehiveId);
+
+        await _access.EnsureCanAccessBeehiveAsync(beehiveId);
 
         var results = new HashSet<User>();
 
+        // ApiaryAdmins responsible for the beehive's apiary…
         var admins = await _uow.Users.FindAsync(u =>
             u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
         foreach (var admin in admins)
             results.Add(admin);
 
+        // …plus the Beekeepers assigned to the beehive.
         var beehiveUsers = await _uow.Users.FindAsync(u =>
             u.AssignedBeehives.Any(ub => ub.BeehiveId == beehiveId));
         foreach (var user in beehiveUsers)
@@ -171,17 +178,39 @@ public class TodoService : ITodoService
             .Select(u => new AssignableUserDto(u.Id, $"{u.FirstName} {u.LastName}"));
     }
 
-    public async Task DeleteAsync(int id)
-    {
-        var todo = await _uow.Todos.GetByIdAsync(id)
-            ?? throw new NotFoundException(nameof(Todo), id);
+    // ── Authorization helpers ─────────────────────────────────────────────────
 
-        await _uow.Todos.DeleteAsync(todo);
-        await _uow.SaveChangesAsync();
+    /// <summary>View access to an apiary: managers within scope, or a Beekeeper assigned to it.</summary>
+    private async Task EnsureCanViewApiaryAsync(int apiaryId)
+    {
+        if (_currentUser.Role == UserRole.User)
+        {
+            var assigned = await _access.GetAssignedApiaryIdsAsync();
+            if (!assigned.Contains(apiaryId))
+                throw new ForbiddenAccessException();
+            return;
+        }
+
+        await _access.EnsureCanManageApiaryAsync(apiaryId);
     }
 
-    public Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
-        _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId);
+    /// <summary>View access to a todo, based on whether it targets an apiary or a beehive.</summary>
+    private async Task EnsureCanAccessTodoAsync(Todo todo)
+    {
+        if (todo.ApiaryId.HasValue)
+            await EnsureCanViewApiaryAsync(todo.ApiaryId.Value);
+        else if (todo.BeehiveId.HasValue)
+            await _access.EnsureCanAccessBeehiveAsync(todo.BeehiveId.Value);
+    }
+
+    /// <summary>Manage access to a todo: apiary todos require management; hive todos follow hive access.</summary>
+    private async Task EnsureCanManageTodoAsync(Todo todo)
+    {
+        if (todo.ApiaryId.HasValue)
+            await _access.EnsureCanManageApiaryAsync(todo.ApiaryId.Value);
+        else if (todo.BeehiveId.HasValue)
+            await _access.EnsureCanAccessBeehiveAsync(todo.BeehiveId.Value);
+    }
 
     // ── Notification helpers ──────────────────────────────────────────────────
 

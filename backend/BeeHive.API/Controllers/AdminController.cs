@@ -1,4 +1,5 @@
-using System.Security.Claims;
+using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Admin;
 using BeeHive.Application.Features.Admin.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -13,14 +14,16 @@ namespace BeeHive.API.Controllers;
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-[Authorize(Roles = "SystemAdmin")]
+[Authorize(Roles = Roles.SystemAdmin)]
 public class AdminController : ControllerBase
 {
     private readonly IAdminService _service;
+    private readonly ICurrentUser _currentUser;
 
-    public AdminController(IAdminService service)
+    public AdminController(IAdminService service, ICurrentUser currentUser)
     {
         _service = service;
+        _currentUser = currentUser;
     }
 
     // ── Organizations ──────────────────────────────────────────────────────────
@@ -47,8 +50,7 @@ public class AdminController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationDto dto)
     {
-        var userId = GetUserId();
-        var created = await _service.CreateOrganizationAsync(dto, userId);
+        var created = await _service.CreateOrganizationAsync(dto, _currentUser.UserId);
         return CreatedAtAction(nameof(GetOrganization), new { id = created.Id }, created);
     }
 
@@ -134,11 +136,5 @@ public class AdminController : ControllerBase
     {
         await _service.DeleteUserAsync(id);
         return NoContent();
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return claim != null ? int.Parse(claim) : null;
     }
 }

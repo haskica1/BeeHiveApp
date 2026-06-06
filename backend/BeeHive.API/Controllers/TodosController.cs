@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using BeeHive.Application.Features.Todos;
 using BeeHive.Application.Features.Todos.DTOs;
 using FluentValidation;
@@ -7,6 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace BeeHive.API.Controllers;
 
+/// <summary>
+/// Manages to-do items attached to an apiary or a beehive. Access is enforced in the service layer:
+/// apiary todos require management rights; hive todos follow hive access (managers or assigned Beekeeper).
+/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
@@ -30,6 +33,7 @@ public class TodosController : ControllerBase
     /// <summary>Returns all to-do items for the given apiary, open items first.</summary>
     [HttpGet("by-apiary/{apiaryId:int}")]
     [ProducesResponseType(typeof(IEnumerable<TodoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByApiary(int apiaryId)
     {
@@ -40,6 +44,7 @@ public class TodosController : ControllerBase
     /// <summary>Returns all to-do items for the given beehive, open items first.</summary>
     [HttpGet("by-beehive/{beehiveId:int}")]
     [ProducesResponseType(typeof(IEnumerable<TodoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetByBeehive(int beehiveId)
     {
@@ -50,6 +55,7 @@ public class TodosController : ControllerBase
     /// <summary>Returns a single to-do item by ID.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
@@ -57,11 +63,7 @@ public class TodosController : ControllerBase
         return Ok(todo);
     }
 
-    /// <summary>
-    /// Creates a new to-do item.
-    /// Apiary todos: OrgAdmin and SystemAdmin only.
-    /// Hive todos: Admin, OrgAdmin, SystemAdmin, or User assigned to that hive.
-    /// </summary>
+    /// <summary>Creates a new to-do item for an apiary or a beehive the caller can manage/access.</summary>
     [HttpPost]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -72,53 +74,11 @@ public class TodosController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var role   = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId = GetUserId();
-
-        if (dto.ApiaryId.HasValue)
-        {
-            if (role == "OrgAdmin" || role == "SystemAdmin")
-            {
-                // Allowed — no further scope check needed for these roles
-            }
-            else if (role == "Admin")
-            {
-                // Admin may only manage todos for their assigned apiary
-                var apiaryIdClaim = User.FindFirstValue("apiaryId");
-                if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != dto.ApiaryId.Value)
-                    return Forbid();
-            }
-            else
-            {
-                return Forbid();
-            }
-        }
-        else if (dto.BeehiveId.HasValue)
-        {
-            if (role == "User")
-            {
-                if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, dto.BeehiveId.Value))
-                    return Forbid();
-            }
-            else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
-            {
-                return Forbid();
-            }
-        }
-        else
-        {
-            return BadRequest(new { message = "Either ApiaryId or BeehiveId must be provided." });
-        }
-
-        var created = await _service.CreateAsync(dto, userId);
+        var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
-    /// <summary>
-    /// Updates a to-do item.
-    /// Apiary todos: OrgAdmin and SystemAdmin only.
-    /// Hive todos: Admin, OrgAdmin, SystemAdmin, or User assigned to that hive.
-    /// </summary>
+    /// <summary>Updates a to-do item.</summary>
     [HttpPut("{id:int}")]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -130,127 +90,29 @@ public class TodosController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var role   = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId = GetUserId();
-
-        var existing = await _service.GetByIdAsync(id);
-
-        if (existing.ApiaryId.HasValue)
-        {
-            if (role == "OrgAdmin" || role == "SystemAdmin")
-            {
-                // Allowed
-            }
-            else if (role == "Admin")
-            {
-                var apiaryIdClaim = User.FindFirstValue("apiaryId");
-                if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != existing.ApiaryId.Value)
-                    return Forbid();
-            }
-            else
-            {
-                return Forbid();
-            }
-        }
-        else if (existing.BeehiveId.HasValue)
-        {
-            if (role == "User")
-            {
-                if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, existing.BeehiveId.Value))
-                    return Forbid();
-            }
-            else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
-            {
-                return Forbid();
-            }
-        }
-
         var updated = await _service.UpdateAsync(id, dto);
         return Ok(updated);
     }
 
-    /// <summary>
-    /// Deletes a to-do item.
-    /// Apiary todos: OrgAdmin and SystemAdmin only.
-    /// Hive todos: Admin, OrgAdmin, SystemAdmin, or User assigned to that hive.
-    /// </summary>
+    /// <summary>Deletes a to-do item.</summary>
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        var role   = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId = GetUserId();
-
-        var existing = await _service.GetByIdAsync(id);
-
-        if (existing.ApiaryId.HasValue)
-        {
-            if (role == "OrgAdmin" || role == "SystemAdmin")
-            {
-                // Allowed
-            }
-            else if (role == "Admin")
-            {
-                var apiaryIdClaim = User.FindFirstValue("apiaryId");
-                if (apiaryIdClaim == null || int.Parse(apiaryIdClaim) != existing.ApiaryId.Value)
-                    return Forbid();
-            }
-            else
-            {
-                return Forbid();
-            }
-        }
-        else if (existing.BeehiveId.HasValue)
-        {
-            if (role == "User")
-            {
-                if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, existing.BeehiveId.Value))
-                    return Forbid();
-            }
-            else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
-            {
-                return Forbid();
-            }
-        }
-
         await _service.DeleteAsync(id);
         return NoContent();
     }
 
-    /// <summary>Returns users that can be assigned a todo for a beehive, filtered by the caller's role.</summary>
+    /// <summary>Returns users that can be assigned a todo for a beehive the caller can access.</summary>
     [HttpGet("assignable-users/{beehiveId:int}")]
     [ProducesResponseType(typeof(IEnumerable<AssignableUserDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAssignableUsersForBeehive(int beehiveId)
     {
-        var role          = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId        = GetUserId();
-        var orgIdClaim    = User.FindFirstValue("organizationId");
-        var orgId         = orgIdClaim != null ? int.Parse(orgIdClaim) : (int?)null;
-        var apiaryIdClaim = User.FindFirstValue("apiaryId");
-        var apiaryId      = apiaryIdClaim != null ? int.Parse(apiaryIdClaim) : (int?)null;
-
-        // Authorization: ensure caller can access this beehive
-        if (role == "User")
-        {
-            if (userId == null || !await _service.IsUserAssignedToBeehiveAsync(userId.Value, beehiveId))
-                return Forbid();
-        }
-        else if (role != "Admin" && role != "OrgAdmin" && role != "SystemAdmin")
-        {
-            return Forbid();
-        }
-
-        var users = await _service.GetAssignableUsersForBeehiveAsync(beehiveId, role, userId, orgId, apiaryId);
+        var users = await _service.GetAssignableUsersForBeehiveAsync(beehiveId);
         return Ok(users);
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return claim != null ? int.Parse(claim) : null;
     }
 }

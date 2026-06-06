@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Diets.DTOs;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
@@ -13,7 +14,7 @@ public interface IDietService
 {
     Task<IEnumerable<DietDto>> GetByBeehiveIdAsync(int beehiveId);
     Task<DietDetailDto> GetByIdAsync(int id);
-    Task<DietDetailDto> CreateAsync(CreateDietDto dto, int? createdById);
+    Task<DietDetailDto> CreateAsync(CreateDietDto dto);
     Task<DietDetailDto> UpdateAsync(int id, UpdateDietDto dto);
     Task DeleteAsync(int id);
     Task<DietDetailDto> CompleteEarlyAsync(int id, CompleteEarlyDto dto);
@@ -26,11 +27,15 @@ public class DietService : IDietService
 {
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
+    private readonly ICurrentUser _currentUser;
+    private readonly IAccessGuard _access;
 
-    public DietService(IUnitOfWork uow, IMapper mapper)
+    public DietService(IUnitOfWork uow, IMapper mapper, ICurrentUser currentUser, IAccessGuard access)
     {
-        _uow    = uow;
-        _mapper = mapper;
+        _uow         = uow;
+        _mapper      = mapper;
+        _currentUser = currentUser;
+        _access      = access;
     }
 
     // ── Queries ───────────────────────────────────────────────────────────────
@@ -39,6 +44,8 @@ public class DietService : IDietService
     {
         if (!await _uow.Beehives.ExistsAsync(beehiveId))
             throw new NotFoundException(nameof(Beehive), beehiveId);
+
+        await _access.EnsureCanAccessBeehiveAsync(beehiveId);
 
         var diets = await _uow.Diets.GetByBeehiveIdAsync(beehiveId);
 
@@ -50,15 +57,19 @@ public class DietService : IDietService
         var diet = await _uow.Diets.GetWithEntriesAsync(id)
             ?? throw new NotFoundException(nameof(Diet), id);
 
+        await _access.EnsureCanAccessBeehiveAsync(diet.BeehiveId);
+
         return MapToDietDetailDto(diet);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public async Task<DietDetailDto> CreateAsync(CreateDietDto dto, int? createdById)
+    public async Task<DietDetailDto> CreateAsync(CreateDietDto dto)
     {
         if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId))
             throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
+
+        await _access.EnsureCanAccessBeehiveAsync(dto.BeehiveId);
 
         var diet = new Diet
         {
@@ -72,7 +83,7 @@ public class DietService : IDietService
             CustomFoodType = dto.CustomFoodType,
             BeehiveId    = dto.BeehiveId,
             Status       = CalculateInitialStatus(dto.StartDate),
-            CreatedById  = createdById,
+            CreatedById  = _currentUser.UserId,
         };
 
         diet.FeedingEntries = GenerateEntries(diet.StartDate, dto.DurationDays, dto.FrequencyDays);
@@ -90,6 +101,8 @@ public class DietService : IDietService
     {
         var diet = await _uow.Diets.GetWithEntriesAsync(id)
             ?? throw new NotFoundException(nameof(Diet), id);
+
+        await _access.EnsureCanAccessBeehiveAsync(diet.BeehiveId);
 
         if (diet.Status == DietStatus.Completed || diet.Status == DietStatus.StoppedEarly)
             throw new BusinessRuleException("A completed or stopped diet cannot be updated.");
@@ -124,6 +137,8 @@ public class DietService : IDietService
         var diet = await _uow.Diets.GetWithEntriesAsync(id)
             ?? throw new NotFoundException(nameof(Diet), id);
 
+        await _access.EnsureCanAccessBeehiveAsync(diet.BeehiveId);
+
         var today = DateTime.UtcNow.Date;
         var hasCompletedEntries = diet.FeedingEntries.Any(e => e.Status == FeedingEntryStatus.Completed);
         var hasStarted = diet.StartDate.Date <= today;
@@ -140,6 +155,8 @@ public class DietService : IDietService
     {
         var diet = await _uow.Diets.GetWithEntriesAsync(id)
             ?? throw new NotFoundException(nameof(Diet), id);
+
+        await _access.EnsureCanAccessBeehiveAsync(diet.BeehiveId);
 
         if (diet.Status == DietStatus.Completed || diet.Status == DietStatus.StoppedEarly)
             throw new BusinessRuleException("Diet is already finished.");
@@ -163,6 +180,8 @@ public class DietService : IDietService
     {
         var diet = await _uow.Diets.GetWithEntriesAsync(dietId)
             ?? throw new NotFoundException(nameof(Diet), dietId);
+
+        await _access.EnsureCanAccessBeehiveAsync(diet.BeehiveId);
 
         if (diet.Status == DietStatus.Completed || diet.Status == DietStatus.StoppedEarly)
             throw new BusinessRuleException("Cannot mark feedings on a finished diet.");

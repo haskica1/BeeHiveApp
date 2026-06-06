@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using BeeHive.Application.Features.Calendar;
 using BeeHive.Application.Features.Calendar.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -24,18 +23,7 @@ public class CalendarController : ControllerBase
     [ProducesResponseType(typeof(CalendarEventsDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetEvents()
     {
-        var role     = User.FindFirstValue(ClaimTypes.Role) ?? string.Empty;
-        var userId   = ParseClaim(ClaimTypes.NameIdentifier);
-        var orgId    = ParseClaim("organizationId");
-        var apiaryId = ParseClaim("apiaryId");
-
-        var result = await _service.GetCalendarEventsAsync(role, userId, orgId, apiaryId);
+        var result = await _service.GetCalendarEventsAsync();
         return Ok(result);
-    }
-
-    private int? ParseClaim(string name)
-    {
-        var value = User.FindFirstValue(name);
-        return value != null && int.TryParse(value, out var id) ? id : null;
     }
 }

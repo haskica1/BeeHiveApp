@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Expenses;
 using BeeHive.Application.Features.Expenses.DTOs;
 using FluentValidation;
@@ -8,14 +8,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace BeeHive.API.Controllers;
 
 /// <summary>
-/// Manages expense records for an organization.
-/// Accessible to Admin, OrgAdmin, and SystemAdmin roles.
-/// All expenses are scoped to the caller's organization.
+/// Manages expense records for an organization. Every operation is scoped to the caller's
+/// organization in the service layer. Accessible to ApiaryAdmin, OrgAdmin, and SystemAdmin roles.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
 [Produces("application/json")]
-[Authorize(Roles = "Admin,OrgAdmin,SystemAdmin")]
+[Authorize(Roles = Roles.Managers)]
 public class ExpensesController : ControllerBase
 {
     private readonly IExpenseService _service;
@@ -37,10 +36,7 @@ public class ExpensesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ExpenseDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAll()
     {
-        var orgId = GetOrgId();
-        if (orgId is null) return Ok(Array.Empty<ExpenseDto>());
-
-        var expenses = await _service.GetByOrganizationAsync(orgId.Value);
+        var expenses = await _service.GetAllForCurrentOrganizationAsync();
         return Ok(expenses);
     }
 
@@ -50,8 +46,7 @@ public class ExpensesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetById(int id)
     {
-        var orgId = GetOrgId() ?? 0;
-        var expense = await _service.GetByIdAsync(id, orgId);
+        var expense = await _service.GetByIdAsync(id);
         return Ok(expense);
     }
 
@@ -65,10 +60,7 @@ public class ExpensesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var orgId = GetOrgId() ?? 0;
-        var userId = GetUserId();
-
-        var created = await _service.CreateAsync(dto, orgId, userId);
+        var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
     }
 
@@ -83,8 +75,7 @@ public class ExpensesController : ControllerBase
         if (!validation.IsValid)
             return BadRequest(validation.ToDictionary());
 
-        var orgId = GetOrgId() ?? 0;
-        var updated = await _service.UpdateAsync(id, dto, orgId);
+        var updated = await _service.UpdateAsync(id, dto);
         return Ok(updated);
     }
 
@@ -94,20 +85,7 @@ public class ExpensesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> Delete(int id)
     {
-        var orgId = GetOrgId() ?? 0;
-        await _service.DeleteAsync(id, orgId);
+        await _service.DeleteAsync(id);
         return NoContent();
-    }
-
-    private int? GetOrgId()
-    {
-        var claim = User.FindFirstValue("organizationId");
-        return claim != null ? int.Parse(claim) : null;
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return claim != null ? int.Parse(claim) : null;
     }
 }

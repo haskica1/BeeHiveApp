@@ -58,6 +58,11 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddApplication();
 builder.Services.AddInfrastructure(builder.Configuration);
 
+// Current-user abstraction — resolves the authenticated caller from JWT claims for the
+// Application layer's authorization (see ICurrentUser / IAccessGuard).
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<BeeHive.Application.Common.Interfaces.ICurrentUser, BeeHive.API.Security.CurrentUser>();
+
 // Weather service — typed HttpClient targeting Open-Meteo (free, no API key needed)
 builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
 {

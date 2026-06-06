@@ -1,36 +1,45 @@
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Profile.DTOs;
+using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Features.Profile;
 
 public interface IProfileService
 {
-    Task<ProfileResponseDto> GetProfileAsync(int userId);
-    Task<ProfileResponseDto> UpdateProfileAsync(int userId, UpdateProfileDto dto);
+    Task<ProfileResponseDto> GetProfileAsync();
+    Task<ProfileResponseDto> UpdateProfileAsync(UpdateProfileDto dto);
 }
 
 public class ProfileService : IProfileService
 {
     private readonly IUnitOfWork _uow;
+    private readonly ICurrentUser _currentUser;
 
-    public ProfileService(IUnitOfWork uow)
+    public ProfileService(IUnitOfWork uow, ICurrentUser currentUser)
     {
         _uow = uow;
+        _currentUser = currentUser;
     }
 
-    public async Task<ProfileResponseDto> GetProfileAsync(int userId)
+    public async Task<ProfileResponseDto> GetProfileAsync()
     {
+        var userId = _currentUser.UserId
+            ?? throw new ForbiddenAccessException();
+
         var user = await _uow.Users.GetByIdAsync(userId)
-            ?? throw new NotFoundException("User", userId);
+            ?? throw new NotFoundException(nameof(User), userId);
 
         return new ProfileResponseDto(user.FirstName, user.LastName, user.Email);
     }
 
-    public async Task<ProfileResponseDto> UpdateProfileAsync(int userId, UpdateProfileDto dto)
+    public async Task<ProfileResponseDto> UpdateProfileAsync(UpdateProfileDto dto)
     {
+        var userId = _currentUser.UserId
+            ?? throw new ForbiddenAccessException();
+
         var user = await _uow.Users.GetByIdAsync(userId)
-            ?? throw new NotFoundException("User", userId);
+            ?? throw new NotFoundException(nameof(User), userId);
 
         // Email uniqueness check
         var newEmail = dto.Email.Trim().ToLower();

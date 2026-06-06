@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using BeeHive.Application.Features.Profile;
 using BeeHive.Application.Features.Profile.DTOs;
 using Microsoft.AspNetCore.Authorization;
@@ -19,22 +18,22 @@ public class ProfileController : ControllerBase
         _service = service;
     }
 
+    /// <summary>Returns the current user's profile.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(ProfileResponseDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetProfile()
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _service.GetProfileAsync(userId);
+        var result = await _service.GetProfileAsync();
         return Ok(result);
     }
 
+    /// <summary>Updates the current user's profile (name, email, optional password change).</summary>
     [HttpPut]
     [ProducesResponseType(typeof(ProfileResponseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
     public async Task<IActionResult> UpdateProfile([FromBody] UpdateProfileDto dto)
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var result = await _service.UpdateProfileAsync(userId, dto);
+        var result = await _service.UpdateProfileAsync(dto);
         return Ok(result);
     }
 }

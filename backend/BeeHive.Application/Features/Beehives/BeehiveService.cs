@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Beehives.DTOs;
 using BeeHive.Application.Features.Notifications;
@@ -17,22 +18,15 @@ public interface IBeehiveService
 {
     Task<IEnumerable<BeehiveDto>> GetByApiaryIdAsync(int apiaryId);
     Task<BeehiveDetailDto> GetByIdAsync(int id);
-    Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto, int? createdById);
+    Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto);
     Task<BeehiveDto> UpdateAsync(int id, UpdateBeehiveDto dto);
     Task DeleteAsync(int id);
-    Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId);
-
-    /// <summary>Returns the set of beehive IDs assigned to the given user.</summary>
-    Task<HashSet<int>> GetAssignedBeehiveIdsAsync(int userId);
-
-    /// <summary>Returns the set of apiary IDs that contain at least one beehive assigned to the given user.</summary>
-    Task<HashSet<int>> GetAssignedApiaryIdsAsync(int userId);
 
     /// <summary>Public scan lookup — resolves a uniqueId to the minimal beehive info needed for redirect.</summary>
     Task<BeehiveScanDto?> GetScanInfoAsync(Guid uniqueId);
 
-    /// <summary>Checks whether the given user has access to view the beehive based on their role.</summary>
-    Task<bool> HasAccessAsync(int userId, string role, string? apiaryIdClaim, int beehiveId);
+    /// <summary>Returns whether the current caller can view the beehive (used by the scan flow).</summary>
+    Task<bool> CanCurrentUserAccessAsync(int beehiveId);
 
     /// <summary>Regenerates QR codes for all beehives using the current scan URL format. Returns count updated.</summary>
     Task<int> RegenerateAllQrCodesAsync();
@@ -46,6 +40,8 @@ public class BeehiveService : IBeehiveService
     private readonly IMapper _mapper;
     private readonly IQrCodeService _qr;
     private readonly INotificationService _notifications;
+    private readonly ICurrentUser _currentUser;
+    private readonly IAccessGuard _access;
     private readonly ILogger<BeehiveService> _logger;
     private readonly string _frontendUrl;
 
@@ -54,6 +50,8 @@ public class BeehiveService : IBeehiveService
         IMapper mapper,
         IQrCodeService qr,
         INotificationService notifications,
+        ICurrentUser currentUser,
+        IAccessGuard access,
         ILogger<BeehiveService> logger,
         IConfiguration config)
     {
@@ -61,6 +59,8 @@ public class BeehiveService : IBeehiveService
         _mapper        = mapper;
         _qr            = qr;
         _notifications = notifications;
+        _currentUser   = currentUser;
+        _access        = access;
         _logger        = logger;
         _frontendUrl   = config["FrontendUrl"] ?? "https://bee-hive-app.vercel.app";
     }
@@ -71,6 +71,17 @@ public class BeehiveService : IBeehiveService
             throw new NotFoundException(nameof(Apiary), apiaryId);
 
         var beehives = await _uow.Beehives.GetByApiaryIdAsync(apiaryId);
+
+        // A Beekeeper only sees the beehives assigned to them within the apiary.
+        if (_currentUser.Role == UserRole.User)
+        {
+            var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
+            beehives = beehives.Where(b => assignedIds.Contains(b.Id)).ToList();
+            return _mapper.Map<IEnumerable<BeehiveDto>>(beehives);
+        }
+
+        // Managers must own the apiary.
+        await _access.EnsureCanManageApiaryAsync(apiaryId);
         return _mapper.Map<IEnumerable<BeehiveDto>>(beehives);
     }
 
@@ -79,16 +90,20 @@ public class BeehiveService : IBeehiveService
         var beehive = await _uow.Beehives.GetWithInspectionsAsync(id)
             ?? throw new NotFoundException(nameof(Beehive), id);
 
+        await _access.EnsureCanAccessBeehiveAsync(id);
+
         return _mapper.Map<BeehiveDetailDto>(beehive);
     }
 
-    public async Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto, int? createdById)
+    public async Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto)
     {
         if (!await _uow.Apiaries.ExistsAsync(dto.ApiaryId))
             throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
 
+        await _access.EnsureCanManageApiaryAsync(dto.ApiaryId);
+
         var beehive = _mapper.Map<Beehive>(dto);
-        beehive.CreatedById = createdById;
+        beehive.CreatedById  = _currentUser.UserId;
         beehive.UniqueId     = Guid.NewGuid();
         beehive.QrCodeBase64 = _qr.GeneratePngBase64($"{_frontendUrl}/scan/{beehive.UniqueId}");
 
@@ -97,10 +112,10 @@ public class BeehiveService : IBeehiveService
 
         var saved = await _uow.Beehives.GetWithInspectionsAsync(beehive.Id) ?? beehive;
 
-        // 5) Beehive creation notifications — notify the creator's superior
-        if (createdById.HasValue)
+        // Notify the creator's superior about the new beehive.
+        if (_currentUser.UserId is int creatorId)
         {
-            var creator = await _uow.Users.GetByIdWithOrganizationAsync(createdById.Value);
+            var creator = await _uow.Users.GetByIdWithOrganizationAsync(creatorId);
             if (creator != null)
                 await SendBeehiveCreatedNotificationsAsync(saved, creator);
         }
@@ -113,8 +128,15 @@ public class BeehiveService : IBeehiveService
         var beehive = await _uow.Beehives.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Beehive), id);
 
+        // Must be able to manage the beehive's current apiary…
+        await _access.EnsureCanManageApiaryAsync(beehive.ApiaryId);
+
         if (!await _uow.Apiaries.ExistsAsync(dto.ApiaryId))
             throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
+
+        // …and the target apiary, in case the beehive is being moved.
+        if (dto.ApiaryId != beehive.ApiaryId)
+            await _access.EnsureCanManageApiaryAsync(dto.ApiaryId);
 
         _mapper.Map(dto, beehive);
         beehive.UpdatedAt = DateTime.UtcNow;
@@ -130,25 +152,10 @@ public class BeehiveService : IBeehiveService
         var beehive = await _uow.Beehives.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Beehive), id);
 
+        await _access.EnsureCanManageApiaryAsync(beehive.ApiaryId);
+
         await _uow.Beehives.DeleteAsync(beehive);
         await _uow.SaveChangesAsync();
-    }
-
-    public Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
-        _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId);
-
-    public async Task<HashSet<int>> GetAssignedBeehiveIdsAsync(int userId)
-    {
-        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId);
-        if (user is null) return [];
-        return user.AssignedBeehives.Select(ub => ub.BeehiveId).ToHashSet();
-    }
-
-    public async Task<HashSet<int>> GetAssignedApiaryIdsAsync(int userId)
-    {
-        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId);
-        if (user is null) return [];
-        return user.AssignedBeehives.Select(ub => ub.Beehive.ApiaryId).ToHashSet();
     }
 
     public async Task<BeehiveScanDto?> GetScanInfoAsync(Guid uniqueId)
@@ -158,17 +165,8 @@ public class BeehiveService : IBeehiveService
         return new BeehiveScanDto { Id = beehive.Id, Name = beehive.Name, ApiaryId = beehive.ApiaryId };
     }
 
-    public async Task<bool> HasAccessAsync(int userId, string role, string? apiaryIdClaim, int beehiveId)
-    {
-        return role switch
-        {
-            "SystemAdmin" or "OrgAdmin" => true,
-            "Admin" when apiaryIdClaim != null && int.TryParse(apiaryIdClaim, out var adminApiaryId) =>
-                await _uow.Beehives.GetByIdAsync(beehiveId) is { } b && b.ApiaryId == adminApiaryId,
-            "User" => await _uow.Users.IsUserAssignedToBeehiveAsync(userId, beehiveId),
-            _ => false,
-        };
-    }
+    public Task<bool> CanCurrentUserAccessAsync(int beehiveId) =>
+        _access.CanAccessBeehiveAsync(beehiveId);
 
     public async Task<int> RegenerateAllQrCodesAsync()
     {
@@ -195,17 +193,11 @@ public class BeehiveService : IBeehiveService
             return;
         }
 
-        _logger.LogInformation(
-            "SendBeehiveCreatedNotifications: beehive={BeehiveId} creator={CreatorId} role={Role} apiary.OrgId={OrgId}",
-            beehive.Id, creator.Id, creator.Role, apiary.OrganizationId);
-
         if (creator.Role == UserRole.Admin)
         {
             // Use apiary.OrganizationId (more reliable than creator.OrganizationId)
             var orgAdmins = await _uow.Users.FindAsync(u =>
                 u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
-
-            _logger.LogInformation("SendBeehiveCreatedNotifications: Admin path — found {Count} OrgAdmins to notify", orgAdmins.Count());
 
             foreach (var orgAdmin in orgAdmins)
             {
@@ -222,8 +214,6 @@ public class BeehiveService : IBeehiveService
             var admins = await _uow.Users.FindAsync(u =>
                 u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
 
-            _logger.LogInformation("SendBeehiveCreatedNotifications: OrgAdmin path — found {Count} Admins to notify", admins.Count());
-
             foreach (var admin in admins)
             {
                 await _notifications.NotifyAsync(
@@ -238,8 +228,6 @@ public class BeehiveService : IBeehiveService
         {
             var orgAdmins = await _uow.Users.FindAsync(u =>
                 u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
-
-            _logger.LogInformation("SendBeehiveCreatedNotifications: SystemAdmin path — found {Count} OrgAdmins to notify", orgAdmins.Count());
 
             foreach (var orgAdmin in orgAdmins)
             {

@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Notifications;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,21 +15,22 @@ public class NotificationsController : ControllerBase
 {
     private readonly INotificationService _service;
     private readonly IEmailService _email;
+    private readonly ICurrentUser _currentUser;
 
-    public NotificationsController(INotificationService service, IEmailService email)
+    public NotificationsController(INotificationService service, IEmailService email, ICurrentUser currentUser)
     {
-        _service = service;
-        _email   = email;
+        _service     = service;
+        _email       = email;
+        _currentUser = currentUser;
     }
 
     /// <summary>Returns all notifications for the current user, plus unread count.</summary>
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var userId = GetUserId();
-        if (userId == null) return Unauthorized();
+        if (_currentUser.UserId is not int userId) return Unauthorized();
 
-        var result = await _service.GetForUserAsync(userId.Value);
+        var result = await _service.GetForUserAsync(userId);
         return Ok(result);
     }
 
@@ -36,10 +38,9 @@ public class NotificationsController : ControllerBase
     [HttpPatch("mark-all-read")]
     public async Task<IActionResult> MarkAllRead()
     {
-        var userId = GetUserId();
-        if (userId == null) return Unauthorized();
+        if (_currentUser.UserId is not int userId) return Unauthorized();
 
-        await _service.MarkAllAsReadAsync(userId.Value);
+        await _service.MarkAllAsReadAsync(userId);
         return NoContent();
     }
 
@@ -47,45 +48,28 @@ public class NotificationsController : ControllerBase
     [HttpPatch("{id:int}/read")]
     public async Task<IActionResult> MarkRead(int id)
     {
-        var userId = GetUserId();
-        if (userId == null) return Unauthorized();
+        if (_currentUser.UserId is not int userId) return Unauthorized();
 
-        await _service.MarkAsReadAsync(id, userId.Value);
+        await _service.MarkAsReadAsync(id, userId);
         return NoContent();
     }
 
     /// <summary>Sends a test email to the current user's address. SystemAdmin only.</summary>
     [HttpPost("test-email")]
-    [Authorize(Roles = "SystemAdmin")]
+    [Authorize(Roles = Roles.SystemAdmin)]
     public async Task<IActionResult> TestEmail()
     {
-        var userId = GetUserId();
-        if (userId == null) return Unauthorized();
-
         var emailClaim = User.FindFirstValue(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Email)
                       ?? User.FindFirstValue(ClaimTypes.Email);
         if (string.IsNullOrEmpty(emailClaim))
             return BadRequest("Could not determine email from token.");
 
-        try
-        {
-            await _email.SendAsync(
-                emailClaim,
-                "Test User",
-                "BeeHive — SMTP Test",
-                "<h2>✅ SMTP is working!</h2><p>If you received this, email delivery is configured correctly.</p>");
+        await _email.SendAsync(
+            emailClaim,
+            "Test User",
+            "BeeHive — SMTP Test",
+            "<h2>✅ SMTP is working!</h2><p>If you received this, email delivery is configured correctly.</p>");
 
-            return Ok(new { message = $"Test email sent to {emailClaim}." });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = ex.Message, detail = ex.InnerException?.Message });
-        }
-    }
-
-    private int? GetUserId()
-    {
-        var claim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        return int.TryParse(claim, out var id) ? id : null;
+        return Ok(new { message = $"Test email sent to {emailClaim}." });
     }
 }

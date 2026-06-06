@@ -45,6 +45,11 @@ public class GlobalExceptionMiddleware
                 "Resource Not Found",
                 new Dictionary<string, string[]> { ["detail"] = [nfe.Message] }
             ),
+            ForbiddenAccessException fae => (
+                HttpStatusCode.Forbidden,
+                "Access Denied",
+                new Dictionary<string, string[]> { ["detail"] = [fae.Message] }
+            ),
             ValidationException ve => (
                 HttpStatusCode.BadRequest,
                 "Validation Failed",

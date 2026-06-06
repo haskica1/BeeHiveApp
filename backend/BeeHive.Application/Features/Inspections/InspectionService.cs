@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Inspections.DTOs;
 using BeeHive.Domain.Entities;
 
@@ -23,17 +24,21 @@ public class InspectionService : IInspectionService
 {
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
+    private readonly IAccessGuard _access;
 
-    public InspectionService(IUnitOfWork uow, IMapper mapper)
+    public InspectionService(IUnitOfWork uow, IMapper mapper, IAccessGuard access)
     {
         _uow = uow;
         _mapper = mapper;
+        _access = access;
     }
 
     public async Task<IEnumerable<InspectionDto>> GetByBeehiveIdAsync(int beehiveId)
     {
         if (!await _uow.Beehives.ExistsAsync(beehiveId))
             throw new NotFoundException(nameof(Beehive), beehiveId);
+
+        await _access.EnsureCanAccessBeehiveAsync(beehiveId);
 
         var inspections = await _uow.Inspections.GetByBeehiveIdAsync(beehiveId);
         return _mapper.Map<IEnumerable<InspectionDto>>(inspections);
@@ -44,6 +49,8 @@ public class InspectionService : IInspectionService
         var inspection = await _uow.Inspections.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Inspection), id);
 
+        await _access.EnsureCanAccessBeehiveAsync(inspection.BeehiveId);
+
         return _mapper.Map<InspectionDto>(inspection);
     }
 
@@ -51,6 +58,8 @@ public class InspectionService : IInspectionService
     {
         if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId))
             throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
+
+        await _access.EnsureCanAccessBeehiveAsync(dto.BeehiveId);
 
         var inspection = _mapper.Map<Inspection>(dto);
         await _uow.Inspections.AddAsync(inspection);
@@ -64,8 +73,14 @@ public class InspectionService : IInspectionService
         var inspection = await _uow.Inspections.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Inspection), id);
 
+        await _access.EnsureCanAccessBeehiveAsync(inspection.BeehiveId);
+
         if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId))
             throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
+
+        // Guard the target beehive too, in case the inspection is being moved.
+        if (dto.BeehiveId != inspection.BeehiveId)
+            await _access.EnsureCanAccessBeehiveAsync(dto.BeehiveId);
 
         _mapper.Map(dto, inspection);
         inspection.UpdatedAt = DateTime.UtcNow;
@@ -80,6 +95,8 @@ public class InspectionService : IInspectionService
     {
         var inspection = await _uow.Inspections.GetByIdAsync(id)
             ?? throw new NotFoundException(nameof(Inspection), id);
+
+        await _access.EnsureCanAccessBeehiveAsync(inspection.BeehiveId);
 
         await _uow.Inspections.DeleteAsync(inspection);
         await _uow.SaveChangesAsync();
