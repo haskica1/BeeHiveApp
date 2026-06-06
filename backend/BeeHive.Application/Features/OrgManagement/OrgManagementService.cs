@@ -28,12 +28,12 @@ public class OrgManagementService : IOrgManagementService
         var users = await _uow.Users.GetAllWithOrganizationAsync();
         var orgUsers = users.Where(u =>
             u.OrganizationId == orgId &&
-            u.Role is UserRole.User or UserRole.Admin);
+            u.Role is UserRole.Beekeeper or UserRole.ApiaryAdmin);
 
         var dtos = new List<OrgMemberDto>();
         foreach (var u in orgUsers)
         {
-            var withBeehives = u.Role == UserRole.User
+            var withBeehives = u.Role == UserRole.Beekeeper
                 ? await _uow.Users.GetByIdWithAssignedBeehivesAsync(u.Id)
                 : u;
             dtos.Add(MapMember(withBeehives ?? u));
@@ -51,7 +51,7 @@ public class OrgManagementService : IOrgManagementService
         if (user.OrganizationId != orgId)
             throw new ForbiddenAccessException("This member does not belong to your organization.");
 
-        if (user.Role is not (UserRole.User or UserRole.Admin))
+        if (user.Role is not (UserRole.Beekeeper or UserRole.ApiaryAdmin))
             throw new BusinessRuleException("Only User and Admin role members can be managed here.");
 
         return MapMember(user);
@@ -67,7 +67,7 @@ public class OrgManagementService : IOrgManagementService
         if (member.OrganizationId != orgId)
             throw new ForbiddenAccessException("This member does not belong to your organization.");
 
-        if (member.Role != UserRole.User)
+        if (member.Role != UserRole.Beekeeper)
             throw new BusinessRuleException("Beehive assignments can only be set for User-role members.");
 
         // Validate each requested beehive belongs to the org (and to caller's apiary if ApiaryAdmin)
@@ -82,7 +82,7 @@ public class OrgManagementService : IOrgManagementService
             if (apiary.OrganizationId != orgId)
                 throw new BusinessRuleException($"Beehive '{beehive.Name}' does not belong to your organization.");
 
-            if (_currentUser.Role == UserRole.Admin && _currentUser.ApiaryId is int callerApiaryId
+            if (_currentUser.Role == UserRole.ApiaryAdmin && _currentUser.ApiaryId is int callerApiaryId
                 && beehive.ApiaryId != callerApiaryId)
                 throw new BusinessRuleException($"Beehive '{beehive.Name}' is not in your apiary.");
         }
@@ -132,7 +132,7 @@ public class OrgManagementService : IOrgManagementService
         if (member.OrganizationId != orgId)
             throw new ForbiddenAccessException("This member does not belong to your organization.");
 
-        if (member.Role != UserRole.Admin)
+        if (member.Role != UserRole.ApiaryAdmin)
             throw new BusinessRuleException("Apiary assignment can only be set for Admin-role members.");
 
         Apiary? newApiary = null;
@@ -181,7 +181,7 @@ public class OrgManagementService : IOrgManagementService
         var beehives = await _uow.Beehives.GetByOrganizationAsync(orgId);
 
         // An ApiaryAdmin may only assign beehives from their own apiary.
-        if (_currentUser.Role == UserRole.Admin && _currentUser.ApiaryId is int callerApiaryId)
+        if (_currentUser.Role == UserRole.ApiaryAdmin && _currentUser.ApiaryId is int callerApiaryId)
             beehives = beehives.Where(b => b.ApiaryId == callerApiaryId);
 
         return beehives.Select(b => new OrgAvailableBeehiveDto

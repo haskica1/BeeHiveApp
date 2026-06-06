@@ -51,7 +51,7 @@ public class BeehiveService : IBeehiveService
         var beehives = await _uow.Beehives.GetByApiaryIdAsync(apiaryId);
 
         // A Beekeeper only sees the beehives assigned to them within the apiary.
-        if (_currentUser.Role == UserRole.User)
+        if (_currentUser.Role == UserRole.Beekeeper)
         {
             var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
             beehives = beehives.Where(b => assignedIds.Contains(b.Id)).ToList();
@@ -171,11 +171,11 @@ public class BeehiveService : IBeehiveService
             return;
         }
 
-        if (creator.Role == UserRole.Admin)
+        if (creator.Role == UserRole.ApiaryAdmin)
         {
             // Use apiary.OrganizationId (more reliable than creator.OrganizationId)
             var orgAdmins = await _uow.Users.FindAsync(u =>
-                u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
+                u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrganizationAdmin);
 
             foreach (var orgAdmin in orgAdmins)
             {
@@ -187,10 +187,10 @@ public class BeehiveService : IBeehiveService
                     beehive.Id, nameof(Beehive));
             }
         }
-        else if (creator.Role == UserRole.OrgAdmin)
+        else if (creator.Role == UserRole.OrganizationAdmin)
         {
             var admins = await _uow.Users.FindAsync(u =>
-                u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
+                u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.ApiaryAdmin);
 
             foreach (var admin in admins)
             {
@@ -205,7 +205,7 @@ public class BeehiveService : IBeehiveService
         else if (creator.Role == UserRole.SystemAdmin)
         {
             var orgAdmins = await _uow.Users.FindAsync(u =>
-                u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrgAdmin);
+                u.OrganizationId == apiary.OrganizationId && u.Role == UserRole.OrganizationAdmin);
 
             foreach (var orgAdmin in orgAdmins)
             {

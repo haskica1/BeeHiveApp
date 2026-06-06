@@ -10,13 +10,13 @@ namespace BeeHive.Application.Common.Security;
 public static class Roles
 {
     public const string SystemAdmin = nameof(UserRole.SystemAdmin);
-    public const string OrgAdmin    = nameof(UserRole.OrgAdmin);
-    public const string Admin       = nameof(UserRole.Admin);
-    public const string User        = nameof(UserRole.User);
+    public const string OrganizationAdmin = nameof(UserRole.OrganizationAdmin);
+    public const string ApiaryAdmin = nameof(UserRole.ApiaryAdmin);
+    public const string Beekeeper = nameof(UserRole.Beekeeper);
 
     /// <summary>Apiary-level managers and above (excludes plain beekeepers).</summary>
-    public const string Managers = Admin + "," + OrgAdmin + "," + SystemAdmin;
+    public const string Managers = ApiaryAdmin + "," + OrganizationAdmin + "," + SystemAdmin;
 
     /// <summary>Organization-level managers and above.</summary>
-    public const string OrgManagers = OrgAdmin + "," + SystemAdmin;
+    public const string OrgManagers = OrganizationAdmin + "," + SystemAdmin;
 }

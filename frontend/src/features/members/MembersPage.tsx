@@ -11,13 +11,13 @@ export default function MembersPage() {
   const { data: members = [], isLoading, error } = useOrgMembers()
   const [query, setQuery] = useState('')
 
-  const isOrgAdmin = user?.role === 'OrgAdmin'
+  const isOrgAdmin = user?.role === 'OrganizationAdmin'
 
   // ── Derived vitals ──
-  const adminCount = members.filter(m => m.role === 'Admin').length
-  const userCount  = members.filter(m => m.role === 'User').length
+  const adminCount = members.filter(m => m.role === 'ApiaryAdmin').length
+  const userCount  = members.filter(m => m.role === 'Beekeeper').length
   const assignedCount = members.filter(m =>
-    m.role === 'Admin' ? !!m.apiaryName : m.assignedBeehiveNames.length > 0,
+    m.role === 'ApiaryAdmin' ? !!m.apiaryName : m.assignedBeehiveNames.length > 0,
   ).length
 
   const filtered = useMemo(() => {
@@ -122,12 +122,12 @@ export default function MembersPage() {
                         <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden sm:table-cell">{member.email}</td>
                         <td className="px-4 py-3">
                           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
-                            ${member.role === 'Admin' ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'}`}>
+                            ${member.role === 'ApiaryAdmin' ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'}`}>
                             {member.role}
                           </span>
                         </td>
                         <td className="px-4 py-3 hidden md:table-cell">
-                          {member.role === 'Admin' ? (
+                          {member.role === 'ApiaryAdmin' ? (
                             <span className="text-gray-500 dark:text-slate-400 text-xs">
                               {member.apiaryName
                                 ? <span className="text-honey-700 dark:text-honey-400 font-medium">{member.apiaryName}</span>

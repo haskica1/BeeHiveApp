@@ -19,8 +19,8 @@ export default function Layout() {
   const navigate = useNavigate()
 
   const isSystemAdmin  = user?.role === 'SystemAdmin'
-  const isOrgAdmin     = user?.role === 'OrgAdmin'
-  const isAdmin        = user?.role === 'Admin'
+  const isOrgAdmin     = user?.role === 'OrganizationAdmin'
+  const isAdmin        = user?.role === 'ApiaryAdmin'
   const canSeeExpenses = isSystemAdmin || isOrgAdmin || isAdmin
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
 

@@ -5,9 +5,9 @@ export function usePermissions() {
   const role = user?.role
 
   const isSystemAdmin = role === 'SystemAdmin'
-  const isOrgAdmin    = role === 'OrgAdmin'
-  const isAdmin       = role === 'Admin'
-  const isUser        = role === 'User'
+  const isOrgAdmin    = role === 'OrganizationAdmin'
+  const isAdmin       = role === 'ApiaryAdmin'
+  const isUser        = role === 'Beekeeper'
 
   return {
     // SystemAdmin only

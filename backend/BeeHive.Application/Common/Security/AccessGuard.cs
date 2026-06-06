@@ -31,9 +31,9 @@ public sealed class AccessGuard : IAccessGuard
         {
             case UserRole.SystemAdmin:
                 return;
-            case UserRole.OrgAdmin when _user.OrganizationId == organizationId:
+            case UserRole.OrganizationAdmin when _user.OrganizationId == organizationId:
                 return;
-            case UserRole.Admin when _user.ApiaryId == apiaryId:
+            case UserRole.ApiaryAdmin when _user.ApiaryId == apiaryId:
                 return;
             default:
                 throw new ForbiddenAccessException();
@@ -45,7 +45,7 @@ public sealed class AccessGuard : IAccessGuard
         if (_user.Role == UserRole.SystemAdmin) return;
 
         // An ApiaryAdmin is bound to a single apiary id, so no lookup is needed.
-        if (_user.Role == UserRole.Admin)
+        if (_user.Role == UserRole.ApiaryAdmin)
         {
             if (_user.ApiaryId == apiaryId) return;
             throw new ForbiddenAccessException();
@@ -69,17 +69,17 @@ public sealed class AccessGuard : IAccessGuard
             case UserRole.SystemAdmin:
                 return true;
 
-            case UserRole.User:
+            case UserRole.Beekeeper:
                 return _user.UserId is int beekeeperId
                     && await _uow.Users.IsUserAssignedToBeehiveAsync(beekeeperId, beehiveId);
 
-            case UserRole.Admin:
+            case UserRole.ApiaryAdmin:
             {
                 var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
                 return beehive is not null && _user.ApiaryId == beehive.ApiaryId;
             }
 
-            case UserRole.OrgAdmin:
+            case UserRole.OrganizationAdmin:
             {
                 var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
                 if (beehive is null) return false;

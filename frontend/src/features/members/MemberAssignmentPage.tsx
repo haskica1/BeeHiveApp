@@ -17,7 +17,7 @@ export default function MemberAssignmentPage() {
   const navigate = useNavigate()
   const { user } = useAuth()
 
-  const isOrgAdmin = user?.role === 'OrgAdmin'
+  const isOrgAdmin = user?.role === 'OrganizationAdmin'
 
   const { data: member, isLoading: loadingMember } = useOrgMember(memberId)
   const { data: beehives = [], isLoading: loadingBeehives } = useAvailableBeehives()
@@ -79,8 +79,8 @@ export default function MemberAssignmentPage() {
     )
   }
 
-  const isUserRole = member.role === 'User'
-  const isAdminRole = member.role === 'Admin'
+  const isUserRole = member.role === 'Beekeeper'
+  const isAdminRole = member.role === 'ApiaryAdmin'
   const isSaving = updateBeehives.isPending || updateApiary.isPending
 
   return (

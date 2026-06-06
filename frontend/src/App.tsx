@@ -28,10 +28,10 @@ import ProfilePage from './features/profile/ProfilePage'
 import StatsPage from './features/stats/StatsPage'
 import CalendarPage from './features/calendar/CalendarPage'
 
-const APIARY_MANAGERS   = ['OrgAdmin', 'SystemAdmin']
-const HIVE_MANAGERS     = ['Admin', 'OrgAdmin', 'SystemAdmin']
-const MEMBER_MANAGERS   = ['OrgAdmin', 'Admin']
-const EXPENSE_MANAGERS  = ['Admin', 'OrgAdmin', 'SystemAdmin']
+const APIARY_MANAGERS   = ['OrganizationAdmin', 'SystemAdmin']
+const HIVE_MANAGERS     = ['ApiaryAdmin', 'OrganizationAdmin', 'SystemAdmin']
+const MEMBER_MANAGERS   = ['OrganizationAdmin', 'ApiaryAdmin']
+const EXPENSE_MANAGERS  = ['ApiaryAdmin', 'OrganizationAdmin', 'SystemAdmin']
 
 export default function App() {
   return (

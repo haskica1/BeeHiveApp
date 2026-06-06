@@ -15,7 +15,7 @@ public static class DatabaseInitializer
         // Fix any Admin users that were seeded without an ApiaryId (e.g. from an older
         // version of this seeder). Assign the first apiary in their organisation.
         var adminsWithoutApiary = await context.Users
-            .Where(u => u.Role == UserRole.Admin && u.ApiaryId == null && u.OrganizationId != null)
+            .Where(u => u.Role == UserRole.ApiaryAdmin && u.ApiaryId == null && u.OrganizationId != null)
             .ToListAsync();
 
         bool anyFixed = false;
@@ -91,7 +91,7 @@ public static class DatabaseInitializer
                 LastName       = "Goldsworth",
                 Email          = "admin@goldenhive.com",
                 PasswordHash   = Hash("Admin123!"),
-                Role           = UserRole.Admin,
+                Role           = UserRole.ApiaryAdmin,
                 OrganizationId = goldenHive.Id,
                 ApiaryId       = goldenHiveApiaryId,
                 CreatedAt      = DateTime.UtcNow
@@ -103,7 +103,7 @@ public static class DatabaseInitializer
                 LastName       = "Holt",
                 Email          = "admin2@goldenhive.com",
                 PasswordHash   = Hash("Admin123!"),
-                Role           = UserRole.Admin,
+                Role           = UserRole.ApiaryAdmin,
                 OrganizationId = goldenHive.Id,
                 ApiaryId       = goldenHiveApiaryId,
                 CreatedAt      = DateTime.UtcNow
@@ -118,7 +118,7 @@ public static class DatabaseInitializer
                 LastName       = "Bianchi",
                 Email          = "admin@mountainbees.com",
                 PasswordHash   = Hash("Admin123!"),
-                Role           = UserRole.Admin,
+                Role           = UserRole.ApiaryAdmin,
                 OrganizationId = mountainBees.Id,
                 ApiaryId       = mountainBeesApiaryId,
                 CreatedAt      = DateTime.UtcNow
@@ -130,7 +130,7 @@ public static class DatabaseInitializer
                 LastName       = "Horvat",
                 Email          = "admin2@mountainbees.com",
                 PasswordHash   = Hash("Admin123!"),
-                Role           = UserRole.Admin,
+                Role           = UserRole.ApiaryAdmin,
                 OrganizationId = mountainBees.Id,
                 ApiaryId       = mountainBeesApiaryId,
                 CreatedAt      = DateTime.UtcNow
@@ -148,7 +148,7 @@ public static class DatabaseInitializer
                 LastName       = "Keeper",
                 Email          = "orgadmin@goldenhive.com",
                 PasswordHash   = Hash("OrgAdmin123!"),
-                Role           = UserRole.OrgAdmin,
+                Role           = UserRole.OrganizationAdmin,
                 OrganizationId = goldenHive.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -159,7 +159,7 @@ public static class DatabaseInitializer
                 LastName       = "Fields",
                 Email          = "orgadmin2@goldenhive.com",
                 PasswordHash   = Hash("OrgAdmin123!"),
-                Role           = UserRole.OrgAdmin,
+                Role           = UserRole.OrganizationAdmin,
                 OrganizationId = goldenHive.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -173,7 +173,7 @@ public static class DatabaseInitializer
                 LastName       = "Petrović",
                 Email          = "orgadmin@mountainbees.com",
                 PasswordHash   = Hash("OrgAdmin123!"),
-                Role           = UserRole.OrgAdmin,
+                Role           = UserRole.OrganizationAdmin,
                 OrganizationId = mountainBees.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -184,7 +184,7 @@ public static class DatabaseInitializer
                 LastName       = "Novak",
                 Email          = "orgadmin2@mountainbees.com",
                 PasswordHash   = Hash("OrgAdmin123!"),
-                Role           = UserRole.OrgAdmin,
+                Role           = UserRole.OrganizationAdmin,
                 OrganizationId = mountainBees.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -201,7 +201,7 @@ public static class DatabaseInitializer
                 LastName       = "Meadows",
                 Email          = "user1@goldenhive.com",
                 PasswordHash   = Hash("User123!"),
-                Role           = UserRole.User,
+                Role           = UserRole.Beekeeper,
                 OrganizationId = goldenHive.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -212,7 +212,7 @@ public static class DatabaseInitializer
                 LastName       = "Bloom",
                 Email          = "user2@goldenhive.com",
                 PasswordHash   = Hash("User123!"),
-                Role           = UserRole.User,
+                Role           = UserRole.Beekeeper,
                 OrganizationId = goldenHive.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -226,7 +226,7 @@ public static class DatabaseInitializer
                 LastName       = "Petrov",
                 Email          = "user1@mountainbees.com",
                 PasswordHash   = Hash("User123!"),
-                Role           = UserRole.User,
+                Role           = UserRole.Beekeeper,
                 OrganizationId = mountainBees.Id,
                 CreatedAt      = DateTime.UtcNow
             });
@@ -237,7 +237,7 @@ public static class DatabaseInitializer
                 LastName       = "Kovač",
                 Email          = "user2@mountainbees.com",
                 PasswordHash   = Hash("User123!"),
-                Role           = UserRole.User,
+                Role           = UserRole.Beekeeper,
                 OrganizationId = mountainBees.Id,
                 CreatedAt      = DateTime.UtcNow
             });

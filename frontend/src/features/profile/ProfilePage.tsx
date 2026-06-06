@@ -92,15 +92,15 @@ export default function ProfilePage() {
 
   const avatarClass = user?.role === 'SystemAdmin'
     ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
-    : user?.role === 'OrgAdmin'
+    : user?.role === 'OrganizationAdmin'
     ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-300'
     : 'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300'
 
   const roleLabel = user?.role === 'SystemAdmin'
     ? 'System Admin'
-    : user?.role === 'OrgAdmin'
+    : user?.role === 'OrganizationAdmin'
     ? `Org Admin · ${user?.organizationName}`
-    : user?.role === 'Admin'
+    : user?.role === 'ApiaryAdmin'
     ? `Admin · ${user?.organizationName}`
     : user?.organizationName ?? ''
 

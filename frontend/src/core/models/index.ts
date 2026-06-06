@@ -1,10 +1,10 @@
 // ── User / Auth ───────────────────────────────────────────────────────────────
 
 export enum UserRole {
-  Admin       = 'Admin',
-  SystemAdmin = 'SystemAdmin',
-  OrgAdmin    = 'OrgAdmin',
-  User        = 'User',
+  ApiaryAdmin       = 'ApiaryAdmin',
+  SystemAdmin       = 'SystemAdmin',
+  OrganizationAdmin = 'OrganizationAdmin',
+  Beekeeper         = 'Beekeeper',
 }
 
 // ── Enums ─────────────────────────────────────────────────────────────────────

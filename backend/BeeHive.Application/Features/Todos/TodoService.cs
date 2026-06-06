@@ -147,7 +147,7 @@ public class TodoService : ITodoService
 
         // ApiaryAdmins responsible for the beehive's apiary…
         var admins = await _uow.Users.FindAsync(u =>
-            u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.Admin);
+            u.ApiaryId == beehive.ApiaryId && u.Role == UserRole.ApiaryAdmin);
         foreach (var admin in admins)
             results.Add(admin);
 
@@ -168,7 +168,7 @@ public class TodoService : ITodoService
     /// <summary>View access to an apiary: managers within scope, or a Beekeeper assigned to it.</summary>
     private async Task EnsureCanViewApiaryAsync(int apiaryId)
     {
-        if (_currentUser.Role == UserRole.User)
+        if (_currentUser.Role == UserRole.Beekeeper)
         {
             var assigned = await _access.GetAssignedApiaryIdsAsync();
             if (!assigned.Contains(apiaryId))
@@ -213,10 +213,10 @@ public class TodoService : ITodoService
         var context = apiary != null ? $" in apiary '{apiary.Name}'" : string.Empty;
 
         // Notify creator's superior (same cascading rule as beehive creation)
-        if (creator.Role == UserRole.Admin)
+        if (creator.Role == UserRole.ApiaryAdmin)
         {
             var orgAdmins = await _uow.Users.FindAsync(u =>
-                u.OrganizationId == creator.OrganizationId && u.Role == UserRole.OrgAdmin);
+                u.OrganizationId == creator.OrganizationId && u.Role == UserRole.OrganizationAdmin);
 
             foreach (var orgAdmin in orgAdmins)
             {
@@ -229,10 +229,10 @@ public class TodoService : ITodoService
                     todo.Id, nameof(Todo));
             }
         }
-        else if (creator.Role == UserRole.OrgAdmin && apiaryId.HasValue)
+        else if (creator.Role == UserRole.OrganizationAdmin && apiaryId.HasValue)
         {
             var admins = await _uow.Users.FindAsync(u =>
-                u.ApiaryId == apiaryId.Value && u.Role == UserRole.Admin);
+                u.ApiaryId == apiaryId.Value && u.Role == UserRole.ApiaryAdmin);
 
             foreach (var admin in admins)
             {

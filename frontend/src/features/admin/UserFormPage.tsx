@@ -42,7 +42,7 @@ export default function UserFormPage() {
     watch,
     setError,
     formState: { errors, isSubmitting },
-  } = useForm<UserForm>({ defaultValues: { role: 'OrgAdmin' } })
+  } = useForm<UserForm>({ defaultValues: { role: 'OrganizationAdmin' } })
 
   const selectedRole = watch('role')
   const selectedOrgId = watch('organizationId')
@@ -52,8 +52,8 @@ export default function UserFormPage() {
   const { data: beehives = [] } = useBeehivesByOrganization(orgIdNumber)
 
   const needsOrg    = selectedRole !== 'SystemAdmin'
-  const needsApiary = selectedRole === 'Admin'
-  const needsHives  = selectedRole === 'User'
+  const needsApiary = selectedRole === 'ApiaryAdmin'
+  const needsHives  = selectedRole === 'Beekeeper'
 
   useEffect(() => {
     if (existing) {
@@ -213,15 +213,15 @@ export default function UserFormPage() {
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               {...register('role', { required: 'Role is required' })}
             >
-              <option value="OrgAdmin">Org Admin</option>
-              <option value="Admin">Admin</option>
-              <option value="User">User</option>
+              <option value="OrganizationAdmin">Org Admin</option>
+              <option value="ApiaryAdmin">Admin</option>
+              <option value="Beekeeper">User</option>
               <option value="SystemAdmin">System Admin</option>
             </select>
             <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-              {selectedRole === 'OrgAdmin' && 'Can manage all apiaries, hives, diets, inspections, and todos within the org.'}
-              {selectedRole === 'Admin' && 'Scoped to one apiary — can manage hives, diets, inspections, and hive todos.'}
-              {selectedRole === 'User' && 'Can create inspections, manage todos on assigned hives, and view diets.'}
+              {selectedRole === 'OrganizationAdmin' && 'Can manage all apiaries, hives, diets, inspections, and todos within the org.'}
+              {selectedRole === 'ApiaryAdmin' && 'Scoped to one apiary — can manage hives, diets, inspections, and hive todos.'}
+              {selectedRole === 'Beekeeper' && 'Can create inspections, manage todos on assigned hives, and view diets.'}
               {selectedRole === 'SystemAdmin' && 'Full platform access — no org required.'}
             </p>
           </div>

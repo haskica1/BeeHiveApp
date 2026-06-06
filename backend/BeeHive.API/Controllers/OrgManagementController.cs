@@ -14,7 +14,7 @@ namespace BeeHive.API.Controllers;
 [ApiController]
 [Route("api/org")]
 [Produces("application/json")]
-[Authorize(Roles = Roles.OrgAdmin + "," + Roles.Admin)]
+[Authorize(Roles = Roles.OrganizationAdmin + "," + Roles.ApiaryAdmin)]
 public class OrgManagementController : ControllerBase
 {
     private readonly IOrgManagementService _service;
@@ -61,7 +61,7 @@ public class OrgManagementController : ControllerBase
 
     /// <summary>Updates the apiary assignment for an Admin-role member. OrgAdmin only.</summary>
     [HttpPut("members/{id:int}/apiary-assignment")]
-    [Authorize(Roles = Roles.OrgAdmin)]
+    [Authorize(Roles = Roles.OrganizationAdmin)]
     [ProducesResponseType(typeof(OrgMemberDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
@@ -86,7 +86,7 @@ public class OrgManagementController : ControllerBase
 
     /// <summary>Returns all apiaries in the organization for assigning to Admin users. OrgAdmin only.</summary>
     [HttpGet("available-apiaries")]
-    [Authorize(Roles = Roles.OrgAdmin)]
+    [Authorize(Roles = Roles.OrganizationAdmin)]
     [ProducesResponseType(typeof(IEnumerable<OrgAvailableApiaryDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAvailableApiaries()
     {

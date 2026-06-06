@@ -30,7 +30,7 @@ public class AuthService : IAuthService
 
         var token = GenerateToken(user.Id, user.Email, user.Role.ToString(), user.OrganizationId, user.ApiaryId);
 
-        IReadOnlyList<int> assignedBeehiveIds = user.Role == Domain.Enums.UserRole.User
+        IReadOnlyList<int> assignedBeehiveIds = user.Role == Domain.Enums.UserRole.Beekeeper
             ? (await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id))
                 ?.AssignedBeehives.Select(ub => ub.BeehiveId).ToList()
               ?? []

@@ -104,7 +104,7 @@ public class AdminService : IAdminService
         var dtos = new List<AdminUserDto>();
         foreach (var u in users)
         {
-            var withBeehives = u.Role == UserRole.User
+            var withBeehives = u.Role == UserRole.Beekeeper
                 ? await _uow.Users.GetByIdWithAssignedBeehivesAsync(u.Id)
                 : u;
             dtos.Add(MapUser(withBeehives ?? u));
@@ -162,7 +162,7 @@ public class AdminService : IAdminService
         await _uow.Users.AddAsync(user);
         await _uow.SaveChangesAsync();
 
-        if (role == UserRole.User && dto.AssignedBeehiveIds.Count > 0)
+        if (role == UserRole.Beekeeper && dto.AssignedBeehiveIds.Count > 0)
         {
             await _uow.Users.SetBeehiveAssignmentsAsync(user.Id, dto.AssignedBeehiveIds);
             await _uow.SaveChangesAsync();
@@ -181,7 +181,7 @@ public class AdminService : IAdminService
             NotificationType.AccountCreated);
 
         // 1) OrgAdmin assigned to an organisation
-        if (role == UserRole.OrgAdmin && dto.OrganizationId.HasValue)
+        if (role == UserRole.OrganizationAdmin && dto.OrganizationId.HasValue)
         {
             var org = await _uow.Organizations.GetWithDetailsAsync(dto.OrganizationId.Value);
             await _notifications.NotifyAsync(
@@ -193,7 +193,7 @@ public class AdminService : IAdminService
         }
 
         // 2) Admin assigned to an apiary
-        if (role == UserRole.Admin && dto.ApiaryId.HasValue && apiary != null)
+        if (role == UserRole.ApiaryAdmin && dto.ApiaryId.HasValue && apiary != null)
         {
             await _notifications.NotifyAsync(
                 user.Id,
@@ -204,7 +204,7 @@ public class AdminService : IAdminService
         }
 
         // 3) User assigned to beehives
-        if (role == UserRole.User && dto.AssignedBeehiveIds.Count > 0)
+        if (role == UserRole.Beekeeper && dto.AssignedBeehiveIds.Count > 0)
         {
             foreach (var beehiveId in dto.AssignedBeehiveIds)
             {
@@ -272,7 +272,7 @@ public class AdminService : IAdminService
 
         await _uow.Users.UpdateAsync(user);
 
-        var newBeehiveIds = role == UserRole.User ? dto.AssignedBeehiveIds : new List<int>();
+        var newBeehiveIds = role == UserRole.Beekeeper ? dto.AssignedBeehiveIds : new List<int>();
         await _uow.Users.SetBeehiveAssignmentsAsync(id, newBeehiveIds);
         await _uow.SaveChangesAsync();
 
@@ -281,7 +281,7 @@ public class AdminService : IAdminService
         // ── Notifications for detected changes ────────────────────────────────
 
         // 1) Org assignment for OrgAdmin
-        if (role == UserRole.OrgAdmin)
+        if (role == UserRole.OrganizationAdmin)
         {
             if (dto.OrganizationId.HasValue && dto.OrganizationId != oldOrgId)
             {
@@ -302,7 +302,7 @@ public class AdminService : IAdminService
                     NotificationType.OrganizationUnassigned);
             }
         }
-        else if (oldRole == UserRole.OrgAdmin && oldOrgId.HasValue)
+        else if (oldRole == UserRole.OrganizationAdmin && oldOrgId.HasValue)
         {
             // Role changed away from OrgAdmin
             await _notifications.NotifyAsync(
@@ -313,7 +313,7 @@ public class AdminService : IAdminService
         }
 
         // 2) Apiary assignment for Admin
-        if (role == UserRole.Admin)
+        if (role == UserRole.ApiaryAdmin)
         {
             if (dto.ApiaryId.HasValue && dto.ApiaryId != oldApiaryId && newApiary != null)
             {
@@ -333,7 +333,7 @@ public class AdminService : IAdminService
                     NotificationType.ApiaryUnassigned);
             }
         }
-        else if (oldRole == UserRole.Admin && oldApiaryId.HasValue)
+        else if (oldRole == UserRole.ApiaryAdmin && oldApiaryId.HasValue)
         {
             await _notifications.NotifyAsync(
                 user.Id,
@@ -343,7 +343,7 @@ public class AdminService : IAdminService
         }
 
         // 3) Beehive assignment for User
-        if (role == UserRole.User)
+        if (role == UserRole.Beekeeper)
         {
             var newSet = newBeehiveIds.ToHashSet();
             var added   = newSet.Except(oldBeehiveIds).ToList();
@@ -372,7 +372,7 @@ public class AdminService : IAdminService
                     beehiveId, nameof(Beehive));
             }
         }
-        else if (oldRole == UserRole.User && oldBeehiveIds.Count > 0)
+        else if (oldRole == UserRole.Beekeeper && oldBeehiveIds.Count > 0)
         {
             // Role changed away from User — all beehive assignments removed
             foreach (var beehiveId in oldBeehiveIds)
@@ -421,10 +421,10 @@ public class AdminService : IAdminService
         if (organizationId == null)
             throw new BusinessRuleException("Non-SystemAdmin users must belong to an organization.");
 
-        if (role == UserRole.Admin && apiaryId == null)
+        if (role == UserRole.ApiaryAdmin && apiaryId == null)
             throw new BusinessRuleException("Admin users must be assigned to a specific apiary.");
 
-        if (role != UserRole.Admin && apiaryId != null)
+        if (role != UserRole.ApiaryAdmin && apiaryId != null)
             throw new BusinessRuleException("Only Admin users can be assigned to a specific apiary.");
     }
 

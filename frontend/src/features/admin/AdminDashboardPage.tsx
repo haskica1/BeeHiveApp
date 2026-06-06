@@ -25,7 +25,7 @@ export default function AdminDashboardPage() {
 
   // ── Derived vitals ──
   const totalApiaries = organizations.reduce((s, o) => s + o.apiaryCount, 0)
-  const adminCount = users.filter(u => u.role !== 'User').length
+  const adminCount = users.filter(u => u.role !== 'Beekeeper').length
 
   // ── Filtered lists ──
   const filteredOrgs = useMemo(() => {
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
     try {
       if (kind === 'org') await deleteOrg.mutateAsync(id)
       else await deleteUser.mutateAsync(id)
-      toast.success(`${kind === 'org' ? 'Organization' : 'User'} “${name}” deleted.`)
+      toast.success(`${kind === 'org' ? 'Organization' : 'Beekeeper'} “${name}” deleted.`)
       setConfirmTarget(null)
     } catch (e: any) {
       toast.error(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete. Please try again.')
@@ -189,16 +189,16 @@ export default function AdminDashboardPage() {
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
                         ${user.role === 'SystemAdmin'
                           ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/15 dark:text-purple-300'
-                          : user.role === 'OrgAdmin'
+                          : user.role === 'OrganizationAdmin'
                           ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-300'
-                          : user.role === 'User'
+                          : user.role === 'Beekeeper'
                           ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
                           : 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
                         }`}>
                         {user.role === 'SystemAdmin' ? 'System Admin'
-                          : user.role === 'OrgAdmin' ? 'Org Admin'
-                          : user.role === 'User' ? 'User'
-                          : 'Admin'}
+                          : user.role === 'OrganizationAdmin' ? 'Org Admin'
+                          : user.role === 'Beekeeper' ? 'Beekeeper'
+                          : 'ApiaryAdmin'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden md:table-cell">
@@ -226,7 +226,7 @@ export default function AdminDashboardPage() {
 
       <ConfirmDialog
         isOpen={!!confirmTarget}
-        title={`Delete ${confirmTarget?.kind === 'org' ? 'Organization' : 'User'}`}
+        title={`Delete ${confirmTarget?.kind === 'org' ? 'Organization' : 'Beekeeper'}`}
         message={`Delete “${confirmTarget?.name}”? This cannot be undone.`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmTarget(null)}

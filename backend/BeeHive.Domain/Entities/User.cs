@@ -9,7 +9,7 @@ public class User : BaseEntity
     public string LastName { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
-    public UserRole Role { get; set; } = UserRole.Admin;
+    public UserRole Role { get; set; } = UserRole.ApiaryAdmin;
 
     public int? OrganizationId { get; set; }
     public Organization? Organization { get; set; }

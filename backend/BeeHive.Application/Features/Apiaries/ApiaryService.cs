@@ -34,14 +34,14 @@ public class ApiaryService : IApiaryService
         switch (_currentUser.Role)
         {
             // An ApiaryAdmin only sees their assigned apiary.
-            case UserRole.Admin:
+            case UserRole.ApiaryAdmin:
                 apiaries = _currentUser.ApiaryId is int apiaryId
                     ? apiaries.Where(a => a.Id == apiaryId)
                     : [];
                 break;
 
             // A Beekeeper only sees apiaries that contain a beehive assigned to them.
-            case UserRole.User:
+            case UserRole.Beekeeper:
                 var assignedApiaryIds = await _access.GetAssignedApiaryIdsAsync();
                 apiaries = apiaries.Where(a => assignedApiaryIds.Contains(a.Id));
                 break;
@@ -57,7 +57,7 @@ public class ApiaryService : IApiaryService
             ?? throw new NotFoundException(nameof(Apiary), id);
 
         // A Beekeeper may view an apiary only through the beehives assigned to them.
-        if (_currentUser.Role == UserRole.User)
+        if (_currentUser.Role == UserRole.Beekeeper)
         {
             var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
             var dto = _mapper.Map<ApiaryDetailDto>(apiary);
