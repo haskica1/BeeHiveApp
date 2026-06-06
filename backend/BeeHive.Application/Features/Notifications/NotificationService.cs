@@ -6,25 +6,6 @@ using Microsoft.Extensions.Logging;
 
 namespace BeeHive.Application.Features.Notifications;
 
-// ── Interface ─────────────────────────────────────────────────────────────────
-
-public interface INotificationService
-{
-    Task NotifyAsync(
-        int userId,
-        string title,
-        string message,
-        NotificationType type,
-        int? relatedEntityId = null,
-        string? relatedEntityType = null);
-
-    Task<NotificationListDto> GetForUserAsync(int userId);
-    Task MarkAllAsReadAsync(int userId);
-    Task MarkAsReadAsync(int notificationId, int userId);
-}
-
-// ── Implementation ────────────────────────────────────────────────────────────
-
 public class NotificationService : INotificationService
 {
     private readonly IUnitOfWork _uow;

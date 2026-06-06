@@ -6,19 +6,6 @@ using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Features.Expenses;
 
-// ── Interface ────────────────────────────────────────────────────────────────
-
-public interface IExpenseService
-{
-    Task<IEnumerable<ExpenseDto>> GetAllForCurrentOrganizationAsync();
-    Task<ExpenseDetailDto> GetByIdAsync(int id);
-    Task<ExpenseDetailDto> CreateAsync(CreateExpenseDto dto);
-    Task<ExpenseDetailDto> UpdateAsync(int id, UpdateExpenseDto dto);
-    Task DeleteAsync(int id);
-}
-
-// ── Implementation ───────────────────────────────────────────────────────────
-
 public class ExpenseService : IExpenseService
 {
     private readonly IUnitOfWork _uow;

@@ -1,0 +1,14 @@
+using BeeHive.Application.Features.Todos.DTOs;
+
+namespace BeeHive.Application.Features.Todos;
+
+public interface ITodoService
+{
+    Task<IEnumerable<TodoDto>> GetByApiaryIdAsync(int apiaryId);
+    Task<IEnumerable<TodoDto>> GetByBeehiveIdAsync(int beehiveId);
+    Task<TodoDto> GetByIdAsync(int id);
+    Task<TodoDto> CreateAsync(CreateTodoDto dto);
+    Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
+    Task DeleteAsync(int id);
+    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId);
+}

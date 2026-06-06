@@ -24,15 +24,6 @@ public class DailyWeatherDto
     public double? PrecipitationProbability { get; set; }
 }
 
-// ── Interface ─────────────────────────────────────────────────────────────────
-
-public interface IWeatherService
-{
-    Task<WeatherForecastDto> GetForecastAsync(double latitude, double longitude);
-}
-
-// ── Implementation ────────────────────────────────────────────────────────────
-
 public class WeatherService : IWeatherService
 {
     private readonly HttpClient _http;

@@ -8,15 +8,6 @@ using Microsoft.Extensions.Configuration;
 
 namespace BeeHive.Application.Features.Inspections;
 
-// ── Interface ─────────────────────────────────────────────────────────────────
-
-public interface IVoiceParsingService
-{
-    Task<ParseVoiceResult> ParseAsync(Stream audioStream, string fileName);
-}
-
-// ── Implementation ────────────────────────────────────────────────────────────
-
 public class VoiceParsingService : IVoiceParsingService
 {
     private readonly HttpClient _http;

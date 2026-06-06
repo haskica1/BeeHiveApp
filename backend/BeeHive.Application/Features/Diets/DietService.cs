@@ -8,21 +8,6 @@ using BeeHive.Domain.Enums;
 
 namespace BeeHive.Application.Features.Diets;
 
-// ── Interface ─────────────────────────────────────────────────────────────────
-
-public interface IDietService
-{
-    Task<IEnumerable<DietDto>> GetByBeehiveIdAsync(int beehiveId);
-    Task<DietDetailDto> GetByIdAsync(int id);
-    Task<DietDetailDto> CreateAsync(CreateDietDto dto);
-    Task<DietDetailDto> UpdateAsync(int id, UpdateDietDto dto);
-    Task DeleteAsync(int id);
-    Task<DietDetailDto> CompleteEarlyAsync(int id, CompleteEarlyDto dto);
-    Task<FeedingEntryDto> CompleteFeedingEntryAsync(int dietId, int entryId);
-}
-
-// ── Implementation ────────────────────────────────────────────────────────────
-
 public class DietService : IDietService
 {
     private readonly IUnitOfWork _uow;

@@ -9,11 +9,6 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace BeeHive.Application.Features.Auth;
 
-public interface IAuthService
-{
-    Task<LoginResponseDto> LoginAsync(LoginDto dto);
-}
-
 public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _uow;

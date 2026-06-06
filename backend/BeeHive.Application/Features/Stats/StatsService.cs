@@ -4,13 +4,6 @@ using BeeHive.Domain.Enums;
 
 namespace BeeHive.Application.Features.Stats;
 
-public interface IStatsService
-{
-    /// <summary>Returns aggregate statistics scoped to the current caller's organization
-    /// (platform-wide for SystemAdmin).</summary>
-    Task<StatsDto> GetStatsAsync();
-}
-
 public class StatsService : IStatsService
 {
     private readonly IUnitOfWork _uow;

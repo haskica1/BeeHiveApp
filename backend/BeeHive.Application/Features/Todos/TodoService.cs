@@ -13,21 +13,6 @@ namespace BeeHive.Application.Features.Todos;
 
 public record AssignableUserDto(int Id, string FullName);
 
-// ── Interface ─────────────────────────────────────────────────────────────────
-
-public interface ITodoService
-{
-    Task<IEnumerable<TodoDto>> GetByApiaryIdAsync(int apiaryId);
-    Task<IEnumerable<TodoDto>> GetByBeehiveIdAsync(int beehiveId);
-    Task<TodoDto> GetByIdAsync(int id);
-    Task<TodoDto> CreateAsync(CreateTodoDto dto);
-    Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
-    Task DeleteAsync(int id);
-    Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId);
-}
-
-// ── Implementation ────────────────────────────────────────────────────────────
-
 public class TodoService : ITodoService
 {
     private readonly IUnitOfWork _uow;

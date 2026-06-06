@@ -12,28 +12,6 @@ using Microsoft.Extensions.Logging;
 
 namespace BeeHive.Application.Features.Beehives;
 
-// ── Interface ────────────────────────────────────────────────────────────────
-
-public interface IBeehiveService
-{
-    Task<IEnumerable<BeehiveDto>> GetByApiaryIdAsync(int apiaryId);
-    Task<BeehiveDetailDto> GetByIdAsync(int id);
-    Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto);
-    Task<BeehiveDto> UpdateAsync(int id, UpdateBeehiveDto dto);
-    Task DeleteAsync(int id);
-
-    /// <summary>Public scan lookup — resolves a uniqueId to the minimal beehive info needed for redirect.</summary>
-    Task<BeehiveScanDto?> GetScanInfoAsync(Guid uniqueId);
-
-    /// <summary>Returns whether the current caller can view the beehive (used by the scan flow).</summary>
-    Task<bool> CanCurrentUserAccessAsync(int beehiveId);
-
-    /// <summary>Regenerates QR codes for all beehives using the current scan URL format. Returns count updated.</summary>
-    Task<int> RegenerateAllQrCodesAsync();
-}
-
-// ── Implementation ───────────────────────────────────────────────────────────
-
 public class BeehiveService : IBeehiveService
 {
     private readonly IUnitOfWork _uow;

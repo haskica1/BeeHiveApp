@@ -5,12 +5,6 @@ using BeeHive.Domain.Entities;
 
 namespace BeeHive.Application.Features.Profile;
 
-public interface IProfileService
-{
-    Task<ProfileResponseDto> GetProfileAsync();
-    Task<ProfileResponseDto> UpdateProfileAsync(UpdateProfileDto dto);
-}
-
 public class ProfileService : IProfileService
 {
     private readonly IUnitOfWork _uow;
