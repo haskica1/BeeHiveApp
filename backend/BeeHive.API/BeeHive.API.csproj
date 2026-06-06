@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\BeeHive.Application\BeeHive.Application.csproj" />
+    <ProjectReference Include="..\BeeHive.Entity\BeeHive.Entity.csproj" />
     <ProjectReference Include="..\BeeHive.Infrastructure\BeeHive.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

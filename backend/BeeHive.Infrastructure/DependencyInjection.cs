@@ -1,30 +1,18 @@
 using BeeHive.Application.Common.Interfaces;
-using BeeHive.Infrastructure.Data;
 using BeeHive.Infrastructure.Email;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace BeeHive.Infrastructure;
 
 /// <summary>
-/// Registers all Infrastructure-layer services (EF Core, repositories, UoW).
+/// Registers Infrastructure-layer services — external integrations such as email delivery.
+/// Persistence lives in the <c>BeeHive.Entity</c> project (see <c>AddEntity</c>).
 /// </summary>
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
     {
-        services.AddDbContext<BeeHiveDbContext>(options =>
-            options.UseNpgsql(
-                configuration.GetConnectionString("DefaultConnection"),
-                npgsql => npgsql.MigrationsAssembly(typeof(BeeHiveDbContext).Assembly.FullName)
-            ));
-
-        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddSingleton<IEmailService, EmailService>();
-
         return services;
     }
 }

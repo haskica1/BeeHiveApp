@@ -6,6 +6,7 @@ WORKDIR /src
 # (only re-runs when a .csproj changes, not on every code edit)
 COPY BeeHive.Domain/BeeHive.Domain.csproj                 BeeHive.Domain/
 COPY BeeHive.Application/BeeHive.Application.csproj       BeeHive.Application/
+COPY BeeHive.Entity/BeeHive.Entity.csproj                 BeeHive.Entity/
 COPY BeeHive.Infrastructure/BeeHive.Infrastructure.csproj BeeHive.Infrastructure/
 COPY BeeHive.API/BeeHive.API.csproj                       BeeHive.API/
 

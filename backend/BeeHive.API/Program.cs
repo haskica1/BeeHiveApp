@@ -3,9 +3,9 @@ using BeeHive.API.Middleware;
 using BeeHive.Application;
 using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Weather;
+using BeeHive.Entity;
+using BeeHive.Entity.Seed;
 using BeeHive.Infrastructure;
-using BeeHive.Infrastructure.Data;
-using BeeHive.Infrastructure.Data.Seed;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -54,9 +54,10 @@ builder.Services.AddSwaggerGen(c =>
         c.IncludeXmlComments(xmlPath);
 });
 
-// Register Application and Infrastructure layers via extension methods
+// Register Application, persistence (Entity), and Infrastructure layers via extension methods
 builder.Services.AddApplication();
-builder.Services.AddInfrastructure(builder.Configuration);
+builder.Services.AddEntity(builder.Configuration);
+builder.Services.AddInfrastructure();
 
 // Current-user abstraction — resolves the authenticated caller from JWT claims for the
 // Application layer's authorization (see ICurrentUser / IAccessGuard).

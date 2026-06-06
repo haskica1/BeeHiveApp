@@ -1,0 +1,54 @@
+using BeeHive.Application.Common.Interfaces;
+using BeeHive.Domain.Entities;
+using Microsoft.EntityFrameworkCore;
+
+namespace BeeHive.Entity.Repositories;
+
+public class UserRepository : Repository<User>, IUserRepository
+{
+    public UserRepository(BeeHiveDbContext context) : base(context) { }
+
+    public async Task<User?> GetByEmailAsync(string email) =>
+        await _context.Users
+            .Include(u => u.Organization)
+            .Include(u => u.Apiary)
+            .FirstOrDefaultAsync(u => u.Email == email.ToLower());
+
+    public async Task<IEnumerable<User>> GetAllWithOrganizationAsync() =>
+        await _context.Users
+            .AsNoTracking()
+            .Include(u => u.Organization)
+            .Include(u => u.Apiary)
+            .OrderBy(u => u.LastName)
+            .ThenBy(u => u.FirstName)
+            .ToListAsync();
+
+    public async Task<User?> GetByIdWithOrganizationAsync(int id) =>
+        await _context.Users
+            .Include(u => u.Organization)
+            .Include(u => u.Apiary)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+    public async Task<User?> GetByIdWithAssignedBeehivesAsync(int id) =>
+        await _context.Users
+            .Include(u => u.Organization)
+            .Include(u => u.Apiary)
+            .Include(u => u.AssignedBeehives).ThenInclude(ub => ub.Beehive)
+            .FirstOrDefaultAsync(u => u.Id == id);
+
+    public async Task<bool> IsUserAssignedToBeehiveAsync(int userId, int beehiveId) =>
+        await _context.UserBeehives
+            .AnyAsync(ub => ub.UserId == userId && ub.BeehiveId == beehiveId);
+
+    public async Task SetBeehiveAssignmentsAsync(int userId, IEnumerable<int> beehiveIds)
+    {
+        var existing = await _context.UserBeehives
+            .Where(ub => ub.UserId == userId)
+            .ToListAsync();
+
+        _context.UserBeehives.RemoveRange(existing);
+
+        foreach (var beehiveId in beehiveIds)
+            await _context.UserBeehives.AddAsync(new UserBeehive { UserId = userId, BeehiveId = beehiveId });
+    }
+}
