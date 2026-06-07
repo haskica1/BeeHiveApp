@@ -280,6 +280,9 @@ export default function BeehiveDetailPage() {
             onDelete={id => deleteTodo.mutateAsync(id)}
             isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
           />
+
+          {/* Feeding programmes */}
+          <DietSection beehiveId={beehiveId} />
         </div>
 
         {/* Sidebar */}
@@ -320,8 +323,6 @@ export default function BeehiveDetailPage() {
             )}
           </div>
 
-          {/* Feeding programmes */}
-          <DietSection beehiveId={beehiveId} />
         </div>
       </div>
 

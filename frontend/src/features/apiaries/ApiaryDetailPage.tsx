@@ -342,6 +342,20 @@ export default function ApiaryDetailPage() {
             )}
           </CollapsibleSection>
 
+          {/* To-do list */}
+          <TodoSection
+            todos={todos}
+            isLoading={todosLoading}
+            apiaryId={apiaryId}
+            assignableUsers={assignableUsers}
+            canCreate={canManageApiaryTodos}
+            canManage={canManageApiaryTodos}
+            onCreate={p => createTodo.mutateAsync(p)}
+            onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
+            onDelete={id => deleteTodo.mutateAsync(id)}
+            isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
+          />
+
           {/* Weather forecast */}
           <CollapsibleSection
             title="7-Day Weather Forecast"
@@ -451,19 +465,6 @@ export default function ApiaryDetailPage() {
             )}
           </div>
 
-          {/* To-do list */}
-          <TodoSection
-            todos={todos}
-            isLoading={todosLoading}
-            apiaryId={apiaryId}
-            assignableUsers={assignableUsers}
-            canCreate={canManageApiaryTodos}
-            canManage={canManageApiaryTodos}
-            onCreate={p => createTodo.mutateAsync(p)}
-            onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
-            onDelete={id => deleteTodo.mutateAsync(id)}
-            isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
-          />
         </div>
       </div>
 
