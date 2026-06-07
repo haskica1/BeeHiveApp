@@ -44,16 +44,19 @@ public class NotificationService : INotificationService
         var users = await _uow.Users.FindAsync(u => u.Id == userId);
         var user  = users.FirstOrDefault();
 
-        if (user == null)
-        {
-            _logger.LogWarning("NotifyAsync: user {UserId} not found — skipping email", userId);
-            return;
-        }
-
-        _logger.LogInformation("NotifyAsync: sending email to {Email} for [{Type}] {Title}", user.Email, type, title);
-
-        await _email.SendAsync(user.Email, $"{user.FirstName} {user.LastName}",
-            $"BeeHive — {title}", BuildEmailHtml($"{user.FirstName} {user.LastName}", title, message));
+        // TODO: email delivery disabled temporarily — SMTP causes request timeouts.
+        // Re-enable once a background job or fire-and-forget strategy is in place.
+        //
+        // if (user == null)
+        // {
+        //     _logger.LogWarning("NotifyAsync: user {UserId} not found — skipping email", userId);
+        //     return;
+        // }
+        //
+        // _logger.LogInformation("NotifyAsync: sending email to {Email} for [{Type}] {Title}", user.Email, type, title);
+        //
+        // await _email.SendAsync(user.Email, $"{user.FirstName} {user.LastName}",
+        //     $"BeeHive — {title}", BuildEmailHtml($"{user.FirstName} {user.LastName}", title, message));
     }
 
     public async Task<NotificationListDto> GetForUserAsync(int userId)
