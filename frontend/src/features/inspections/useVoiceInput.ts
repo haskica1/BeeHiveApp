@@ -1,25 +1,82 @@
 import { useState, useRef, useCallback } from 'react'
 
-export type VoiceInputState = 'idle' | 'recording' | 'error'
+export type VoiceInputState = 'idle' | 'recording' | 'done' | 'error'
 
 interface UseVoiceInputReturn {
   state: VoiceInputState
+  liveTranscript: string
   errorMessage: string | null
   startRecording: () => Promise<void>
   stopRecording: () => Promise<Blob>
+  resetTranscript: () => void
   reset: () => void
 }
 
 export function useVoiceInput(): UseVoiceInputReturn {
-  const [state, setState]               = useState<VoiceInputState>('idle')
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [state, setState]                   = useState<VoiceInputState>('idle')
+  const [liveTranscript, setLiveTranscript] = useState('')
+  const [errorMessage, setErrorMessage]     = useState<string | null>(null)
 
-  const recorderRef = useRef<MediaRecorder | null>(null)
-  const streamRef   = useRef<MediaStream | null>(null)
-  const chunksRef   = useRef<Blob[]>([])
+  const recorderRef    = useRef<MediaRecorder | null>(null)
+  const streamRef      = useRef<MediaStream | null>(null)
+  const chunksRef      = useRef<Blob[]>([])
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const recognitionRef = useRef<any>(null)
+  const isRecordingRef = useRef(false)
+  const finalTextRef   = useRef('')
+
+  // ── Speech recognition helpers ────────────────────────────────────────────
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  function buildRecognition(): any | null {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
+    if (!SR) return null
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const rec: any = new SR()
+    rec.continuous     = true
+    rec.interimResults = true
+    rec.lang           = 'bs-BA'   // Bosnian; browser may fall back to hr/sr
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (event: any) => {
+      let interim = ''
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const t = event.results[i][0].transcript
+        if (event.results[i].isFinal) {
+          finalTextRef.current += t + ' '
+        } else {
+          interim += t
+        }
+      }
+      setLiveTranscript(finalTextRef.current + interim)
+    }
+
+    // Chrome stops recognition after silence — restart while still recording
+    rec.onend = () => {
+      if (isRecordingRef.current) {
+        try { rec.start() } catch { /* already starting */ }
+      }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onerror = (e: any) => {
+      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+        // non-fatal — audio recording continues unaffected
+        console.warn('SpeechRecognition error:', e.error)
+      }
+    }
+
+    return rec
+  }
+
+  // ── Public API ────────────────────────────────────────────────────────────
 
   const startRecording = useCallback(async () => {
     setErrorMessage(null)
+    finalTextRef.current = ''
+    setLiveTranscript('')
 
     let stream: MediaStream
     try {
@@ -43,10 +100,23 @@ export function useVoiceInput(): UseVoiceInputReturn {
     recorder.ondataavailable = (e) => { if (e.data.size > 0) chunksRef.current.push(e.data) }
     recorderRef.current = recorder
     recorder.start(250)
+
+    isRecordingRef.current = true
+    const rec = buildRecognition()
+    if (rec) {
+      recognitionRef.current = rec
+      try { rec.start() } catch { /* ignore */ }
+    }
+
     setState('recording')
   }, [])
 
   const stopRecording = useCallback((): Promise<Blob> => {
+    isRecordingRef.current = false
+
+    try { recognitionRef.current?.stop() } catch { /* ignore */ }
+    recognitionRef.current = null
+
     return new Promise((resolve) => {
       const recorder = recorderRef.current
       if (!recorder) { resolve(new Blob()); return }
@@ -54,6 +124,7 @@ export function useVoiceInput(): UseVoiceInputReturn {
       recorder.onstop = () => {
         const blob = new Blob(chunksRef.current, { type: recorder.mimeType || 'audio/webm' })
         streamRef.current?.getTracks().forEach(t => t.stop())
+        setState('done')
         resolve(blob)
       }
 
@@ -61,15 +132,27 @@ export function useVoiceInput(): UseVoiceInputReturn {
     })
   }, [])
 
-  const reset = useCallback(() => {
-    recorderRef.current?.stop()
-    streamRef.current?.getTracks().forEach(t => t.stop())
-    recorderRef.current = null
-    streamRef.current   = null
-    chunksRef.current   = []
+  const resetTranscript = useCallback(() => {
+    finalTextRef.current = ''
+    setLiveTranscript('')
     setErrorMessage(null)
     setState('idle')
   }, [])
 
-  return { state, errorMessage, startRecording, stopRecording, reset }
+  const reset = useCallback(() => {
+    isRecordingRef.current = false
+    try { recognitionRef.current?.stop() } catch { /* ignore */ }
+    recorderRef.current?.stop()
+    streamRef.current?.getTracks().forEach(t => t.stop())
+    recorderRef.current    = null
+    streamRef.current      = null
+    recognitionRef.current = null
+    chunksRef.current      = []
+    finalTextRef.current   = ''
+    setLiveTranscript('')
+    setErrorMessage(null)
+    setState('idle')
+  }, [])
+
+  return { state, liveTranscript, errorMessage, startRecording, stopRecording, resetTranscript, reset }
 }

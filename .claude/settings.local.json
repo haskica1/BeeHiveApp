@@ -46,7 +46,9 @@
       "Bash(Get-ChildItem -Path \"c:\\\\Users\\\\asimh\\\\source\\\\BeeHiveApp\" -Recurse -Directory)",
       "Bash(Select-Object FullName)",
       "PowerShell(Get-ChildItem \"$env:APPDATA\\\\npm\\\\\" -ErrorAction SilentlyContinue | Select-Object -First 5)",
-      "Bash(npm run *)"
+      "Bash(npm run *)",
+      "Bash(echo \"TSC_DONE_EXIT_$?\")",
+      "PowerShell(npx tsc -p frontend\\\\tsconfig.json --noEmit; Write-Output \"EXIT_$LASTEXITCODE\")"
     ]
   }
 }
