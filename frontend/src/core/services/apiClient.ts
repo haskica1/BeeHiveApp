@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosError, type InternalAxiosRequestConfig } from 'axios'
 import { authService } from './authService'
 
 /**
@@ -14,7 +14,7 @@ const apiClient = axios.create({
   timeout: 10_000,
 })
 
-// Attach JWT token from localStorage on every request
+// Attach JWT access token from localStorage on every request
 apiClient.interceptors.request.use((config) => {
   const token = authService.getToken()
   if (token) {
@@ -23,13 +23,45 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
-// Normalise errors; redirect to /login on 401
+// Single-flight refresh: concurrent 401s share one /auth/refresh call so the
+// rotating refresh token is only spent once.
+let refreshPromise: Promise<string | null> | null = null
+function refreshOnce(): Promise<string | null> {
+  refreshPromise ??= authService.refresh().finally(() => { refreshPromise = null })
+  return refreshPromise
+}
+
+function hardLogout(): void {
+  authService.logout()
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login'
+  }
+}
+
+// On 401: try to rotate the refresh token once and replay the request; otherwise sign out.
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (error.response?.status === 401) {
-      authService.logout()
-      window.location.href = '/login'
+  async (error: AxiosError<{ title?: string; message?: string }>) => {
+    const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
+    const status = error.response?.status
+
+    if (status === 401 && original && !original._retry && authService.getRefreshToken()) {
+      original._retry = true
+      try {
+        const newToken = await refreshOnce()
+        if (newToken) {
+          original.headers.Authorization = `Bearer ${newToken}`
+          return apiClient(original)
+        }
+      } catch {
+        // refresh failed — fall through to logout
+      }
+      hardLogout()
+      return Promise.reject(new Error('Your session has expired. Please sign in again.'))
+    }
+
+    if (status === 401) {
+      hardLogout()
     }
 
     const message =
