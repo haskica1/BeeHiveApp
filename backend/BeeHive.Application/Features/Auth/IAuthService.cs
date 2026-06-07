@@ -4,5 +4,15 @@ namespace BeeHive.Application.Features.Auth;
 
 public interface IAuthService
 {
+    /// <summary>Validates credentials and issues an access token + a new refresh token.</summary>
     Task<LoginResponseDto> LoginAsync(LoginDto dto);
+
+    /// <summary>
+    /// Rotates a valid refresh token: revokes it and issues a fresh access + refresh token pair.
+    /// Reuse of an already-rotated token revokes the user's whole active token set.
+    /// </summary>
+    Task<LoginResponseDto> RefreshAsync(string refreshToken);
+
+    /// <summary>Revokes the given refresh token (idempotent — no error if unknown/already revoked).</summary>
+    Task LogoutAsync(string refreshToken);
 }

@@ -45,6 +45,11 @@ public class GlobalExceptionMiddleware
                 "Resource Not Found",
                 new Dictionary<string, string[]> { ["detail"] = [nfe.Message] }
             ),
+            UnauthorizedException ue => (
+                HttpStatusCode.Unauthorized,
+                "Unauthorized",
+                new Dictionary<string, string[]> { ["detail"] = [ue.Message] }
+            ),
             ForbiddenAccessException fae => (
                 HttpStatusCode.Forbidden,
                 "Access Denied",

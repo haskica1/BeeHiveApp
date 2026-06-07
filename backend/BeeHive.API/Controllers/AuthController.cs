@@ -30,4 +30,30 @@ public class AuthController : ControllerBase
         var result = await _authService.LoginAsync(dto);
         return Ok(result);
     }
+
+    /// <summary>
+    /// Exchanges a valid refresh token for a new access token + a rotated refresh token.
+    /// Returns 401 if the token is invalid, expired, or has already been used (reuse revokes the chain).
+    /// </summary>
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    [EnableRateLimiting("auth-refresh")]
+    [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Refresh([FromBody] RefreshRequestDto dto)
+    {
+        var result = await _authService.RefreshAsync(dto.RefreshToken);
+        return Ok(result);
+    }
+
+    /// <summary>Revokes the given refresh token. Idempotent.</summary>
+    [HttpPost("logout")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> Logout([FromBody] RefreshRequestDto dto)
+    {
+        await _authService.LogoutAsync(dto.RefreshToken);
+        return NoContent();
+    }
 }

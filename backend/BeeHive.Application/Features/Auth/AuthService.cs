@@ -1,9 +1,12 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Auth.DTOs;
+using BeeHive.Domain.Entities;
+using BeeHive.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
@@ -28,16 +31,86 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new BusinessRuleException("Invalid email or password.");
 
-        var token = GenerateToken(user.Id, user.Email, user.Role.ToString(), user.OrganizationId, user.ApiaryId);
+        // Beekeepers need their assigned-beehive ids included in the response.
+        if (user.Role == UserRole.Beekeeper)
+            user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id) ?? user;
 
-        IReadOnlyList<int> assignedBeehiveIds = user.Role == Domain.Enums.UserRole.Beekeeper
-            ? (await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id))
-                ?.AssignedBeehives.Select(ub => ub.BeehiveId).ToList()
-              ?? []
+        return await IssueTokensAsync(user);
+    }
+
+    public async Task<LoginResponseDto> RefreshAsync(string refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken))
+            throw new UnauthorizedException("Refresh token is required.");
+
+        var stored = await _uow.RefreshTokens.GetByHashAsync(Hash(refreshToken))
+            ?? throw new UnauthorizedException("Invalid refresh token.");
+
+        // Reuse of an already-rotated/revoked token signals theft — revoke the user's whole active set.
+        if (stored.RevokedAt is not null)
+        {
+            await RevokeAllActiveForUserAsync(stored.UserId);
+            await _uow.SaveChangesAsync();
+            throw new UnauthorizedException("Refresh token has been revoked.");
+        }
+
+        if (stored.ExpiresAt <= DateTime.UtcNow)
+            throw new UnauthorizedException("Refresh token has expired.");
+
+        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(stored.UserId)
+            ?? throw new UnauthorizedException("User no longer exists.");
+
+        // Rotate: revoke the presented token and link it to the replacement issued below.
+        return await IssueTokensAsync(user, newRefreshHash =>
+        {
+            stored.RevokedAt = DateTime.UtcNow;
+            stored.ReplacedByTokenHash = newRefreshHash;
+        });
+    }
+
+    public async Task LogoutAsync(string refreshToken)
+    {
+        if (string.IsNullOrWhiteSpace(refreshToken)) return;
+
+        var stored = await _uow.RefreshTokens.GetByHashAsync(Hash(refreshToken));
+        if (stored is { RevokedAt: null })
+        {
+            stored.RevokedAt = DateTime.UtcNow;
+            await _uow.SaveChangesAsync();
+        }
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Issues an access token + a new (persisted) refresh token for the user. <paramref name="onNewRefreshHash"/>
+    /// runs just before persistence so a rotation caller can revoke the old token in the same transaction.
+    /// </summary>
+    private async Task<LoginResponseDto> IssueTokensAsync(User user, Action<string>? onNewRefreshHash = null)
+    {
+        var (accessToken, accessExpiresAt) = GenerateAccessToken(user);
+
+        var rawRefresh = GenerateRawToken();
+        var refreshHash = Hash(rawRefresh);
+        onNewRefreshHash?.Invoke(refreshHash);
+
+        var refreshDays = int.TryParse(_config["Jwt:RefreshTokenDays"], out var d) ? d : 14;
+        await _uow.RefreshTokens.AddAsync(new RefreshToken
+        {
+            UserId = user.Id,
+            TokenHash = refreshHash,
+            ExpiresAt = DateTime.UtcNow.AddDays(refreshDays),
+        });
+        await _uow.SaveChangesAsync();
+
+        IReadOnlyList<int> assignedBeehiveIds = user.Role == UserRole.Beekeeper
+            ? user.AssignedBeehives.Select(ub => ub.BeehiveId).ToList()
             : [];
 
         return new LoginResponseDto(
-            Token: token,
+            Token: accessToken,
+            RefreshToken: rawRefresh,
+            AccessTokenExpiresAt: accessExpiresAt,
             Email: user.Email,
             FirstName: user.FirstName,
             LastName: user.LastName,
@@ -48,40 +121,54 @@ public class AuthService : IAuthService
         );
     }
 
-    private string GenerateToken(int userId, string email, string role, int? organizationId, int? apiaryId)
+    private async Task RevokeAllActiveForUserAsync(int userId)
+    {
+        var active = await _uow.RefreshTokens.GetActiveByUserAsync(userId);
+        var now = DateTime.UtcNow;
+        foreach (var token in active)
+            token.RevokedAt = now;
+    }
+
+    private (string Token, DateTime ExpiresAt) GenerateAccessToken(User user)
     {
         var secret = _config["Jwt:Secret"]!;
         var issuer = _config["Jwt:Issuer"]!;
         var audience = _config["Jwt:Audience"]!;
-        var expiryMinutes = int.Parse(_config["Jwt:ExpiryMinutes"]!);
+        var minutes = int.TryParse(_config["Jwt:AccessTokenMinutes"] ?? _config["Jwt:ExpiryMinutes"], out var m) ? m : 30;
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+        var expiresAt = DateTime.UtcNow.AddMinutes(minutes);
 
-        var claimsList = new List<Claim>
+        var claims = new List<Claim>
         {
-            new Claim(JwtRegisteredClaimNames.Sub, userId.ToString()),
-            new Claim(JwtRegisteredClaimNames.Email, email),
-            new Claim(ClaimTypes.Role, role),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
+            new(JwtRegisteredClaimNames.Email, user.Email),
+            new(ClaimTypes.Role, user.Role.ToString()),
+            new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
         };
 
-        if (organizationId.HasValue)
-            claimsList.Add(new Claim("organizationId", organizationId.Value.ToString()));
+        if (user.OrganizationId.HasValue)
+            claims.Add(new Claim("organizationId", user.OrganizationId.Value.ToString()));
 
-        if (apiaryId.HasValue)
-            claimsList.Add(new Claim("apiaryId", apiaryId.Value.ToString()));
-
-        var claims = claimsList.ToArray();
+        if (user.ApiaryId.HasValue)
+            claims.Add(new Claim("apiaryId", user.ApiaryId.Value.ToString()));
 
         var token = new JwtSecurityToken(
             issuer: issuer,
             audience: audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(expiryMinutes),
-            signingCredentials: creds
-        );
+            expires: expiresAt,
+            signingCredentials: creds);
 
-        return new JwtSecurityTokenHandler().WriteToken(token);
+        return (new JwtSecurityTokenHandler().WriteToken(token), expiresAt);
     }
+
+    /// <summary>A 256-bit cryptographically-random token, hex-encoded.</summary>
+    private static string GenerateRawToken() =>
+        Convert.ToHexString(RandomNumberGenerator.GetBytes(32));
+
+    /// <summary>SHA-256 of the raw token (hex). Only this is persisted.</summary>
+    private static string Hash(string raw) =>
+        Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(raw)));
 }
