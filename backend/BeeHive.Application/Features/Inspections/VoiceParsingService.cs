@@ -1,8 +1,8 @@
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using BeeHive.Application.Features.Inspections.DTOs;
+using BeeHive.Application.Features.Inspections.Groq;
 using BeeHive.Domain.Enums;
 using Microsoft.Extensions.Configuration;
 
@@ -123,33 +123,4 @@ public class VoiceParsingService : IVoiceParsingService
             ".mp3"  => "audio/mpeg",
             _       => "audio/webm",
         };
-}
-
-// ── Internal response shapes ──────────────────────────────────────────────────
-
-internal sealed class GroqChatResponse
-{
-    [JsonPropertyName("choices")]
-    public List<GroqChoice>? Choices { get; set; }
-}
-
-internal sealed class GroqChoice
-{
-    [JsonPropertyName("message")]
-    public GroqMessage? Message { get; set; }
-}
-
-internal sealed class GroqMessage
-{
-    [JsonPropertyName("content")]
-    public string? Content { get; set; }
-}
-
-internal sealed class GroqParsedInspection
-{
-    [JsonPropertyName("date")]          public string? Date        { get; set; }
-    [JsonPropertyName("temperature")]   public double? Temperature { get; set; }
-    [JsonPropertyName("honeyLevel")]    public int?    HoneyLevel  { get; set; }
-    [JsonPropertyName("broodStatus")]   public string? BroodStatus { get; set; }
-    [JsonPropertyName("notes")]         public string? Notes       { get; set; }
 }

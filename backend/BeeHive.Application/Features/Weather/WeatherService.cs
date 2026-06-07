@@ -1,28 +1,8 @@
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
+using BeeHive.Application.Features.Weather.DTOs;
+using BeeHive.Application.Features.Weather.OpenMeteo;
 
 namespace BeeHive.Application.Features.Weather;
-
-// ── DTOs ─────────────────────────────────────────────────────────────────────
-
-public class WeatherForecastDto
-{
-    public double Latitude { get; set; }
-    public double Longitude { get; set; }
-    public string Timezone { get; set; } = string.Empty;
-    public List<DailyWeatherDto> Daily { get; set; } = [];
-}
-
-public class DailyWeatherDto
-{
-    public string Date { get; set; } = string.Empty;
-    public double? MaxTemp { get; set; }
-    public double? MinTemp { get; set; }
-    public int? WeatherCode { get; set; }
-    public double? PrecipitationSum { get; set; }
-    public double? MaxWindSpeed { get; set; }
-    public double? PrecipitationProbability { get; set; }
-}
 
 public class WeatherService : IWeatherService
 {
@@ -72,38 +52,4 @@ public class WeatherService : IWeatherService
 
     private static double? SafeGet(List<double?>? list, int i) =>
         list is not null && i < list.Count ? list[i] : null;
-}
-
-// ── Open-Meteo response shapes (internal) ────────────────────────────────────
-
-internal sealed class OpenMeteoResponse
-{
-    [JsonPropertyName("latitude")]  public double  Latitude  { get; set; }
-    [JsonPropertyName("longitude")] public double  Longitude { get; set; }
-    [JsonPropertyName("timezone")]  public string? Timezone  { get; set; }
-    [JsonPropertyName("daily")]     public OpenMeteoDailyData Daily { get; set; } = new();
-}
-
-internal sealed class OpenMeteoDailyData
-{
-    [JsonPropertyName("time")]
-    public List<string>? Time { get; set; }
-
-    [JsonPropertyName("temperature_2m_max")]
-    public List<double?>? Temperature2mMax { get; set; }
-
-    [JsonPropertyName("temperature_2m_min")]
-    public List<double?>? Temperature2mMin { get; set; }
-
-    [JsonPropertyName("weathercode")]
-    public List<double?>? Weathercode { get; set; }
-
-    [JsonPropertyName("precipitation_sum")]
-    public List<double?>? PrecipitationSum { get; set; }
-
-    [JsonPropertyName("windspeed_10m_max")]
-    public List<double?>? Windspeed10mMax { get; set; }
-
-    [JsonPropertyName("precipitation_probability_max")]
-    public List<double?>? PrecipitationProbabilityMax { get; set; }
 }

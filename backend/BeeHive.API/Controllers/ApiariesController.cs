@@ -2,6 +2,7 @@ using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.Apiaries.DTOs;
 using BeeHive.Application.Features.Weather;
+using BeeHive.Application.Features.Weather.DTOs;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

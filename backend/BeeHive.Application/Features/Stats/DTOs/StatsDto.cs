@@ -19,8 +19,3 @@ public record StatsDto
     public IReadOnlyList<NameValueDto> ApiariesByBeehiveCount { get; init; } = [];
     public IReadOnlyList<PriorityStatsDto> TodosByPriority { get; init; } = [];
 }
-
-public record NameValueDto(string Name, int Value);
-public record MonthCountDto(string Month, int Count);
-public record MonthTempDto(string Month, double? AvgTemp, double? MinTemp, double? MaxTemp);
-public record PriorityStatsDto(string Priority, int Total, int Completed);

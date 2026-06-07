@@ -10,8 +10,3 @@ public record NotificationDto(
     int? RelatedEntityId,
     string? RelatedEntityType
 );
-
-public record NotificationListDto(
-    IEnumerable<NotificationDto> Notifications,
-    int UnreadCount
-);

@@ -9,10 +9,6 @@ using BeeHive.Domain.Enums;
 
 namespace BeeHive.Application.Features.Todos;
 
-// ── Assignable user DTO ───────────────────────────────────────────────────────
-
-public record AssignableUserDto(int Id, string FullName);
-
 public class TodoService : ITodoService
 {
     private readonly IUnitOfWork _uow;

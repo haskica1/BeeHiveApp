@@ -1,4 +1,3 @@
-using BeeHive.Application.Common.Mappings;
 using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Apiaries.Validators;
 using BeeHive.Application.Common.Services;
@@ -28,8 +27,8 @@ public static class DependencyInjection
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
     {
-        // AutoMapper — scans this assembly for all Profile subclasses
-        services.AddAutoMapper(typeof(MappingProfile).Assembly);
+        // AutoMapper — scans this assembly for all per-feature Profile subclasses
+        services.AddAutoMapper(typeof(DependencyInjection).Assembly);
 
         // FluentValidation — registers all validators in this assembly
         services.AddValidatorsFromAssemblyContaining<CreateApiaryValidator>();
