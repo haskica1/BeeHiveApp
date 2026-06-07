@@ -92,7 +92,6 @@ export default function InspectionFormPage() {
         const result = await inspectionService.parseVoice(blob)
         setTranscript(result.transcript ?? null)
         if (result.date)               setValue('date', result.date)
-        if (result.temperature != null) setValue('temperature', result.temperature)
         if (result.honeyLevel  != null) setValue('honeyLevel', result.honeyLevel)
         if (result.broodStatus)        setValue('broodStatus', result.broodStatus)
         if (result.notes)              setValue('notes', result.notes)
@@ -115,7 +114,7 @@ export default function InspectionFormPage() {
       ...data,
       honeyLevel: Number(data.honeyLevel),
       beehiveId: resolvedBeehiveId,
-      temperature: data.temperature ? Number(data.temperature) : undefined,
+      temperature: undefined, // set automatically on the backend from apiary weather
     }
     if (isEditing) {
       await updateMutation.mutateAsync(payload)
@@ -249,43 +248,21 @@ export default function InspectionFormPage() {
             {errors.date && <p className="form-error">{errors.date.message}</p>}
           </div>
 
-          {/* Temperature + Honey Level row */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="form-label" htmlFor="temperature">
-                Temperature (°C)
-              </label>
-              <input
-                id="temperature"
-                type="number"
-                step="0.1"
-                min="-50"
-                max="60"
-                placeholder="e.g. 22.5"
-                className="form-input"
-                {...register('temperature', {
-                  min: { value: -50, message: 'Min -50°C' },
-                  max: { value: 60, message: 'Max 60°C' },
-                })}
-              />
-              {errors.temperature && <p className="form-error">{errors.temperature.message}</p>}
-            </div>
-
-            <div>
-              <label className="form-label" htmlFor="honeyLevel">
-                Honey Level <span className="text-red-500">*</span>
-              </label>
-              <select
-                id="honeyLevel"
-                className="form-input"
-                {...register('honeyLevel', { required: 'Honey level is required' })}
-              >
-                {Object.entries(HoneyLevelLabels).map(([val, label]) => (
-                  <option key={val} value={val}>{label}</option>
-                ))}
-              </select>
-              {errors.honeyLevel && <p className="form-error">{errors.honeyLevel.message}</p>}
-            </div>
+          {/* Honey Level */}
+          <div>
+            <label className="form-label" htmlFor="honeyLevel">
+              Honey Level <span className="text-red-500">*</span>
+            </label>
+            <select
+              id="honeyLevel"
+              className="form-input"
+              {...register('honeyLevel', { required: 'Honey level is required' })}
+            >
+              {Object.entries(HoneyLevelLabels).map(([val, label]) => (
+                <option key={val} value={val}>{label}</option>
+              ))}
+            </select>
+            {errors.honeyLevel && <p className="form-error">{errors.honeyLevel.message}</p>}
           </div>
 
           {/* Brood Status */}

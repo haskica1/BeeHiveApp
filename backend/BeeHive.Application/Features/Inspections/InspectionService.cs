@@ -3,7 +3,9 @@ using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Inspections.DTOs;
+using BeeHive.Application.Features.Weather;
 using BeeHive.Domain.Entities;
+using Microsoft.Extensions.Logging;
 
 namespace BeeHive.Application.Features.Inspections;
 
@@ -12,12 +14,21 @@ public class InspectionService : IInspectionService
     private readonly IUnitOfWork _uow;
     private readonly IMapper _mapper;
     private readonly IAccessGuard _access;
+    private readonly IWeatherService _weather;
+    private readonly ILogger<InspectionService> _logger;
 
-    public InspectionService(IUnitOfWork uow, IMapper mapper, IAccessGuard access)
+    public InspectionService(
+        IUnitOfWork uow,
+        IMapper mapper,
+        IAccessGuard access,
+        IWeatherService weather,
+        ILogger<InspectionService> logger)
     {
         _uow = uow;
         _mapper = mapper;
         _access = access;
+        _weather = weather;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<InspectionDto>> GetByBeehiveIdAsync(int beehiveId)
@@ -43,12 +54,17 @@ public class InspectionService : IInspectionService
 
     public async Task<InspectionDto> CreateAsync(CreateInspectionDto dto)
     {
-        if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId))
-            throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
+        var beehive = await _uow.Beehives.GetByIdAsync(dto.BeehiveId)
+            ?? throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
 
         await _access.EnsureCanAccessBeehiveAsync(dto.BeehiveId);
 
         var inspection = _mapper.Map<Inspection>(dto);
+
+        // Auto-populate temperature from the apiary's current weather.
+        // Best-effort — a weather API failure never blocks saving an inspection.
+        inspection.Temperature = await FetchCurrentTemperatureAsync(beehive.ApiaryId);
+
         await _uow.Inspections.AddAsync(inspection);
         await _uow.SaveChangesAsync();
 
@@ -65,11 +81,14 @@ public class InspectionService : IInspectionService
         if (!await _uow.Beehives.ExistsAsync(dto.BeehiveId))
             throw new NotFoundException(nameof(Beehive), dto.BeehiveId);
 
-        // Guard the target beehive too, in case the inspection is being moved.
         if (dto.BeehiveId != inspection.BeehiveId)
             await _access.EnsureCanAccessBeehiveAsync(dto.BeehiveId);
 
+        // Preserve the temperature that was captured automatically on creation.
+        // The field is no longer user-editable so the DTO will carry null.
+        var originalTemperature = inspection.Temperature;
         _mapper.Map(dto, inspection);
+        inspection.Temperature = originalTemperature;
         inspection.UpdatedAt = DateTime.UtcNow;
 
         await _uow.Inspections.UpdateAsync(inspection);
@@ -87,5 +106,25 @@ public class InspectionService : IInspectionService
 
         await _uow.Inspections.DeleteAsync(inspection);
         await _uow.SaveChangesAsync();
+    }
+
+    // ── Helpers ────────────────────────────────────────────────────────────────
+
+    private async Task<double?> FetchCurrentTemperatureAsync(int apiaryId)
+    {
+        try
+        {
+            var apiary = await _uow.Apiaries.GetByIdAsync(apiaryId);
+            if (apiary?.Latitude is null || apiary.Longitude is null)
+                return null;
+
+            return await _weather.GetCurrentTemperatureAsync(
+                apiary.Latitude.Value, apiary.Longitude.Value);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not fetch current temperature for apiary {ApiaryId} — inspection saved without temperature", apiaryId);
+            return null;
+        }
     }
 }

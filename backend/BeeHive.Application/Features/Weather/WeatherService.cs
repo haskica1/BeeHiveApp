@@ -50,6 +50,18 @@ public class WeatherService : IWeatherService
         return forecast;
     }
 
+    public async Task<double?> GetCurrentTemperatureAsync(double latitude, double longitude)
+    {
+        var url =
+            $"https://api.open-meteo.com/v1/forecast" +
+            $"?latitude={latitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}" +
+            $"&longitude={longitude.ToString(System.Globalization.CultureInfo.InvariantCulture)}" +
+            $"&current=temperature_2m&timezone=auto";
+
+        var raw = await _http.GetFromJsonAsync<OpenMeteoCurrentResponse>(url);
+        return raw?.Current?.Temperature2m;
+    }
+
     private static double? SafeGet(List<double?>? list, int i) =>
         list is not null && i < list.Count ? list[i] : null;
 }
