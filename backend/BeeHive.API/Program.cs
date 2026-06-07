@@ -1,4 +1,5 @@
 using System.Text;
+using System.Threading.RateLimiting;
 using BeeHive.API.Middleware;
 using BeeHive.Application;
 using BeeHive.Application.Features.Inspections;
@@ -115,6 +116,24 @@ builder.Services.AddCors(options =>
     });
 });
 
+// Rate limiting — throttle login attempts per client IP to slow credential-stuffing/brute force.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+});
+
+// Health check — liveness probe at /health for the deployment platform.
+builder.Services.AddHealthChecks();
+
 var app = builder.Build();
 
 // ── Middleware Pipeline ────────────────────────────────��──────────────────────
@@ -131,9 +150,11 @@ app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "BeeHive API
 if (app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 app.UseCors("FrontendPolicy");
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHealthChecks("/health");
 
 // ── Database Initialisation ───────────────────────────────────────────────────
 using (var scope = app.Services.CreateScope())
