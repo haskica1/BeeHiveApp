@@ -1,3 +1,4 @@
+using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Features.Todos;
 using BeeHive.Application.Features.Todos.DTOs;
 using FluentValidation;
@@ -105,14 +106,27 @@ public class TodosController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>Returns users that can be assigned a todo for a beehive the caller can access.</summary>
+    /// <summary>
+    /// Returns users that can be assigned a todo for a beehive the caller can access.
+    /// Returns an empty list instead of an error when the beehive does not exist or the
+    /// caller has no access — the client should simply hide the assignee control.
+    /// </summary>
     [HttpGet("assignable-users/{beehiveId:int}")]
     [ProducesResponseType(typeof(IEnumerable<AssignableUserDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status403Forbidden)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetAssignableUsersForBeehive(int beehiveId)
     {
-        var users = await _service.GetAssignableUsersForBeehiveAsync(beehiveId);
-        return Ok(users);
+        try
+        {
+            var users = await _service.GetAssignableUsersForBeehiveAsync(beehiveId);
+            return Ok(users);
+        }
+        catch (NotFoundException)
+        {
+            return Ok(Array.Empty<AssignableUserDto>());
+        }
+        catch (ForbiddenAccessException)
+        {
+            return Ok(Array.Empty<AssignableUserDto>());
+        }
     }
 }

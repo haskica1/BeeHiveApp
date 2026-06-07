@@ -5,7 +5,6 @@ import { format, parseISO, isPast, isToday } from 'date-fns'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
   useTodosByApiary, useCreateTodo, useUpdateTodo, useDeleteTodo,
-  useAssignableUsers,
   queryKeys,
 } from '../../core/services/queries'
 import {
@@ -108,7 +107,6 @@ export default function ApiaryDetailPage() {
 
   const todoKey = queryKeys.todosByApiary(apiaryId)
   const { data: todos = [], isLoading: todosLoading } = useTodosByApiary(apiaryId)
-  const { data: assignableUsers = [] } = useAssignableUsers()
   const createTodo = useCreateTodo(todoKey)
   const updateTodo = useUpdateTodo(todoKey)
   const deleteTodo = useDeleteTodo(todoKey)
@@ -347,7 +345,6 @@ export default function ApiaryDetailPage() {
             todos={todos}
             isLoading={todosLoading}
             apiaryId={apiaryId}
-            assignableUsers={assignableUsers}
             canCreate={canManageApiaryTodos}
             canManage={canManageApiaryTodos}
             onCreate={p => createTodo.mutateAsync(p)}
