@@ -337,7 +337,7 @@ function NoMatchRow({ query }: { query: string }) {
   return (
     <div className="text-center py-12 border-t border-honey-100 dark:border-slate-800">
       <Search className="w-7 h-7 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
-      <p className=”text-sm text-gray-500 dark:text-slate-400”>Nema rezultata za “{query}”.</p>
+      <p className=”text-sm text-gray-500 dark:text-slate-400”>Nema rezultata za &quot;{query}&quot;.</p>
     </div>
   )
 }

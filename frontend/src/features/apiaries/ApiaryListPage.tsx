@@ -170,7 +170,7 @@ export default function ApiaryListPage() {
               <div className="w-14 h-14 mx-auto rounded-full bg-honey-100 dark:bg-honey-500/15 flex items-center justify-center mb-3">
                 <Search className="w-6 h-6 text-honey-400" />
               </div>
-              <p className=”text-gray-600 dark:text-slate-300 font-medium”>Nema pčelinjaka koji odgovaraju “{query}”.</p>
+              <p className=”text-gray-600 dark:text-slate-300 font-medium”>Nema pčelinjaka koji odgovaraju &quot;{query}&quot;.</p>
               <button onClick={() => setQuery('')} className=”mt-3 text-sm text-honey-600 dark:text-honey-400 hover:underline font-medium”>
                 Poništi pretragu
               </button>
