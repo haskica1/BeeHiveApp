@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
 import { format, parseISO, isPast, isToday } from 'date-fns'
@@ -289,7 +289,7 @@ export default function ApiaryDetailPage() {
                 {filteredBeehives.length === 0 ? (
                   <div className="text-center py-8">
                     <Search className="w-7 h-7 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
-                    <p className=”text-sm text-gray-500 dark:text-slate-400”>Nema košnica koje odgovaraju &quot;{hiveQuery}&quot;.</p>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">Nema košnica koje odgovaraju &quot;{hiveQuery}&quot;.</p>
                   </div>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">

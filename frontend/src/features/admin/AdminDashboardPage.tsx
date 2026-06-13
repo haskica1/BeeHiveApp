@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+﻿import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Building2, Users, Plus, Pencil, Trash2, Loader2, Search } from 'lucide-react'
 import {
@@ -54,7 +54,7 @@ export default function AdminDashboardPage() {
     try {
       if (kind === 'org') await deleteOrg.mutateAsync(id)
       else await deleteUser.mutateAsync(id)
-      toast.success(`${kind === 'org' ? 'Organizacija' : 'Korisnik'} “${name}” obrisan/a.`)
+      toast.success(`${kind === 'org' ? 'Organizacija' : 'Korisnik'} "${name}" obrisan/a.`)
       setConfirmTarget(null)
     } catch (e: any) {
       toast.error(e?.response?.data?.detail ?? e?.message ?? 'Greška pri brisanju. Pokušajte ponovo.')
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
       <ConfirmDialog
         isOpen={!!confirmTarget}
         title={`Obriši ${confirmTarget?.kind === 'org' ? 'organizaciju' : 'korisnika'}`}
-        message={`Obrisati “${confirmTarget?.name}”? Ova radnja se ne može poništiti.`}
+        message={`Obrisati "${confirmTarget?.name}"? Ova radnja se ne može poništiti.`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmTarget(null)}
         isLoading={isDeleting}
@@ -337,7 +337,7 @@ function NoMatchRow({ query }: { query: string }) {
   return (
     <div className="text-center py-12 border-t border-honey-100 dark:border-slate-800">
       <Search className="w-7 h-7 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
-      <p className=”text-sm text-gray-500 dark:text-slate-400”>Nema rezultata za &quot;{query}&quot;.</p>
+      <p className="text-sm text-gray-500 dark:text-slate-400">Nema rezultata za &quot;{query}&quot;.</p>
     </div>
   )
 }
