@@ -68,7 +68,7 @@ export default function BeehiveFormPage() {
     }
   }
 
-  if (isEditing && isLoading) return <LoadingSpinner message="Loading beehive…" />
+  if (isEditing && isLoading) return <LoadingSpinner message="Učitavanje košnice…" />
 
   const mutationError = createMutation.error ?? updateMutation.error
   const backUrl = isEditing
@@ -81,8 +81,9 @@ export default function BeehiveFormPage() {
     <div className="animate-fade-in max-w-lg mx-auto">
       <FormHeader
         icon="🐝"
-        title={isEditing ? 'Edit Beehive' : 'New Beehive'}
+        title={isEditing ? 'Uredi košnicu' : 'Nova košnica'}
         onBack={() => navigate(backUrl)}
+        backLabel="Nazad"
       />
 
       <div className="card">
@@ -99,16 +100,16 @@ export default function BeehiveFormPage() {
           {/* Name */}
           <div>
             <label className="form-label" htmlFor="name">
-              Name / Label <span className="text-red-500">*</span>
+              Naziv / Oznaka <span className="text-red-500">*</span>
             </label>
             <input
               id="name"
               type="text"
-              placeholder="e.g. Košnica A1"
+              placeholder="npr. Košnica A1"
               className="form-input"
               {...register('name', {
-                required: 'Beehive name is required',
-                maxLength: { value: 100, message: 'Name must not exceed 100 characters' },
+                required: 'Naziv košnice je obavezan',
+                maxLength: { value: 100, message: 'Naziv ne smije prelaziti 100 znakova' },
               })}
             />
             {errors.name && <p className="form-error">{errors.name.message}</p>}
@@ -118,12 +119,12 @@ export default function BeehiveFormPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="form-label" htmlFor="type">
-                Type <span className="text-red-500">*</span>
+                Tip <span className="text-red-500">*</span>
               </label>
               <select
                 id="type"
                 className="form-input"
-                {...register('type', { required: 'Type is required' })}
+                {...register('type', { required: 'Tip je obavezan' })}
               >
                 {Object.entries(BeehiveTypeLabels).map(([val, label]) => (
                   <option key={val} value={val}>{label}</option>
@@ -134,12 +135,12 @@ export default function BeehiveFormPage() {
 
             <div>
               <label className="form-label" htmlFor="material">
-                Material <span className="text-red-500">*</span>
+                Materijal <span className="text-red-500">*</span>
               </label>
               <select
                 id="material"
                 className="form-input"
-                {...register('material', { required: 'Material is required' })}
+                {...register('material', { required: 'Materijal je obavezan' })}
               >
                 {Object.entries(BeehiveMaterialLabels).map(([val, label]) => (
                   <option key={val} value={val}>{label}</option>
@@ -152,7 +153,7 @@ export default function BeehiveFormPage() {
           {/* Date Created */}
           <div>
             <label className="form-label" htmlFor="dateCreated">
-              Date Established <span className="text-red-500">*</span>
+              Datum osnivanja <span className="text-red-500">*</span>
             </label>
             <input
               id="dateCreated"
@@ -160,8 +161,8 @@ export default function BeehiveFormPage() {
               className="form-input"
               max={new Date().toISOString().split('T')[0]}
               {...register('dateCreated', {
-                required: 'Date established is required',
-                validate: v => v <= new Date().toISOString().split('T')[0] || 'Date cannot be in the future',
+                required: 'Datum osnivanja je obavezan',
+                validate: v => v <= new Date().toISOString().split('T')[0] || 'Datum ne može biti u budućnosti',
               })}
             />
             {errors.dateCreated && <p className="form-error">{errors.dateCreated.message}</p>}
@@ -169,14 +170,14 @@ export default function BeehiveFormPage() {
 
           {/* Notes */}
           <div>
-            <label className="form-label" htmlFor="notes">Notes</label>
+            <label className="form-label" htmlFor="notes">Napomene</label>
             <textarea
               id="notes"
               rows={3}
-              placeholder="Queen info, colony strength, special observations…"
+              placeholder="Info o matici, snaga kolonije, posebne napomene…"
               className="form-input resize-none"
               {...register('notes', {
-                maxLength: { value: 2000, message: 'Notes must not exceed 2000 characters' },
+                maxLength: { value: 2000, message: 'Napomene ne smiju prelaziti 2000 znakova' },
               })}
             />
             {errors.notes && <p className="form-error">{errors.notes.message}</p>}
@@ -189,15 +190,15 @@ export default function BeehiveFormPage() {
               onClick={() => navigate(backUrl)}
               className="btn-secondary flex-1"
             >
-              Cancel
+              Otkaži
             </button>
             <button type="submit" className="btn-primary flex-1" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : isEditing ? (
-                'Save Changes'
+                'Spremi promjene'
               ) : (
-                'Create Beehive'
+                'Napravi košnicu'
               )}
             </button>
           </div>

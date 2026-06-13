@@ -72,7 +72,7 @@ export default function ScanPage() {
     return (
       <div className="min-h-screen flex flex-col items-center justify-center bg-honey-50 dark:bg-slate-950 gap-4">
         <Loader2 className="w-10 h-10 text-honey-500 animate-spin" />
-        <p className="text-gray-500 dark:text-slate-400 text-sm">Opening beehive…</p>
+        <p className="text-gray-500 dark:text-slate-400 text-sm">Otvaranje košnice…</p>
       </div>
     )
   }
@@ -84,15 +84,15 @@ export default function ScanPage() {
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-amber-50 dark:bg-amber-500/15 mx-auto mb-4">
             <QrCode className="w-8 h-8 text-amber-400" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Beehive Not Found</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Košnica nije pronađena</h1>
           <p className="text-gray-500 dark:text-slate-400 text-sm">
-            This QR code doesn't match any beehive in the system. It may have been removed.
+            Ovaj QR kod ne odgovara nijednoj košnici u sistemu. Možda je uklonjena.
           </p>
           <button
             onClick={() => navigate('/', { replace: true })}
             className="mt-6 w-full py-2.5 px-4 rounded-xl bg-honey-500 hover:bg-honey-600 text-white font-semibold text-sm transition-colors"
           >
-            Go to Dashboard
+            Idi na kontrolnu ploču
           </button>
         </div>
       </div>
@@ -106,18 +106,18 @@ export default function ScanPage() {
           <div className="flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-500/15 mx-auto mb-4">
             <Lock className="w-8 h-8 text-red-400" />
           </div>
-          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Access Denied</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-slate-100 mb-2">Pristup odbijen</h1>
           {beehiveName && (
             <p className="text-sm font-medium text-honey-700 dark:text-honey-400 mb-2">{beehiveName}</p>
           )}
           <p className="text-gray-500 dark:text-slate-400 text-sm">
-            You don't have permission to view this beehive. Please contact your administrator to request access.
+            Nemate ovlaštenje za pregled ove košnice. Kontaktirajte svog administratora da zatražite pristup.
           </p>
           <button
             onClick={() => navigate('/', { replace: true })}
             className="mt-6 w-full py-2.5 px-4 rounded-xl bg-honey-500 hover:bg-honey-600 text-white font-semibold text-sm transition-colors"
           >
-            Go to Dashboard
+            Idi na kontrolnu ploču
           </button>
         </div>
       </div>
@@ -131,15 +131,15 @@ export default function ScanPage() {
         <div className="flex items-center justify-center w-16 h-16 rounded-full bg-orange-50 dark:bg-orange-500/15 mx-auto mb-4">
           <AlertTriangle className="w-8 h-8 text-orange-400" />
         </div>
-        <h1 className="text-xl font-bold text-gray-900 mb-2">Something Went Wrong</h1>
+        <h1 className="text-xl font-bold text-gray-900 mb-2">Nešto je pošlo po krivu</h1>
         <p className="text-gray-500 dark:text-slate-400 text-sm">
-          Unable to open the beehive right now. Please check your connection and try again.
+          Nije moguće otvoriti košnicu trenutno. Provjerite vašu vezu i pokušajte ponovo.
         </p>
         <button
           onClick={() => window.location.reload()}
           className="mt-6 w-full py-2.5 px-4 rounded-xl bg-honey-500 hover:bg-honey-600 text-white font-semibold text-sm transition-colors"
         >
-          Try Again
+          Pokušaj ponovo
         </button>
       </div>
     </div>

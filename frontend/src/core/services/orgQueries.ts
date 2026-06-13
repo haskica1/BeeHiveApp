@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { orgService } from './orgService'
-import type { UpdateBeehiveAssignmentsPayload, UpdateApiaryAssignmentPayload } from '../models'
+import type { UpdateBeehiveAssignmentsPayload, UpdateApiaryAssignmentPayload, CreateOrgMemberPayload } from '../models'
 
 export const orgQueryKeys = {
   members: ['org', 'members'] as const,
@@ -49,6 +49,18 @@ export const useUpdateApiaryAssignment = (memberId: number) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: orgQueryKeys.members })
       qc.invalidateQueries({ queryKey: orgQueryKeys.member(memberId) })
+    },
+  })
+}
+
+export const useCreateOrgMember = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateOrgMemberPayload) => orgService.createMember(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: orgQueryKeys.members })
+      qc.invalidateQueries({ queryKey: orgQueryKeys.availableBeehives })
+      qc.invalidateQueries({ queryKey: orgQueryKeys.availableApiaries })
     },
   })
 }

@@ -73,16 +73,16 @@ export default function DietFormPage() {
 
   function validate(): boolean {
     const e: Record<string, string> = {}
-    if (!name.trim()) e.name = 'Name is required.'
-    if (!startDate) e.startDate = 'Start date is required.'
-    else if (startDate > format(new Date(), 'yyyy-MM-dd')) e.startDate = 'Date cannot be in the future.'
-    if (!duration || duration < 1) e.duration = 'Duration must be at least 1 day.'
-    if (!frequency || frequency < 1) e.frequency = 'Frequency must be at least 1 day.'
-    if (frequency > duration) e.frequency = 'Frequency cannot exceed duration.'
+    if (!name.trim()) e.name = 'Naziv je obavezan.'
+    if (!startDate) e.startDate = 'Datum početka je obavezan.'
+    else if (startDate > format(new Date(), 'yyyy-MM-dd')) e.startDate = 'Datum ne može biti u budućnosti.'
+    if (!duration || duration < 1) e.duration = 'Trajanje mora biti najmanje 1 dan.'
+    if (!frequency || frequency < 1) e.frequency = 'Frekvencija mora biti najmanje 1 dan.'
+    if (frequency > duration) e.frequency = 'Frekvencija ne može biti veća od trajanja.'
     if (reason === DietReason.Custom && !customReason.trim())
-      e.customReason = 'Please describe the reason.'
+      e.customReason = 'Molimo opišite razlog.'
     if (foodType === FoodType.Custom && !customFood.trim())
-      e.customFood = 'Please describe the food type.'
+      e.customFood = 'Molimo opišite vrstu hrane.'
     setErrors(e)
     return Object.keys(e).length === 0
   }
@@ -125,8 +125,8 @@ export default function DietFormPage() {
 
   const isSaving = createMutation.isPending || updateMutation.isPending
 
-  if (isEdit && loadingExisting) return <LoadingSpinner message="Loading diet…" />
-  if (isEdit && !existing && !loadingExisting) return <ErrorMessage message="Diet not found." />
+  if (isEdit && loadingExisting) return <LoadingSpinner message="Učitavanje dijete…" />
+  if (isEdit && !existing && !loadingExisting) return <ErrorMessage message="Dijeta nije pronađena." />
 
   const backHref = isEdit
     ? `/diets/${dietId}`
@@ -136,8 +136,8 @@ export default function DietFormPage() {
     <div className="animate-fade-in max-w-2xl mx-auto">
       <FormHeader
         icon="🌿"
-        title={isEdit ? 'Edit Diet' : 'New Diet'}
-        subtitle={isEdit ? 'Update the feeding programme' : 'Create a feeding programme'}
+        title={isEdit ? 'Uredi dijetu' : 'Nova dijeta'}
+        subtitle={isEdit ? 'Ažuriraj program hranjenja' : 'Kreiraj program hranjenja'}
         onBack={() => navigate(backHref)}
       />
 
@@ -145,13 +145,13 @@ export default function DietFormPage() {
 
         {/* Basic info */}
         <div className="card space-y-4">
-          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Basic Info</h3>
+          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Osnovne informacije</h3>
 
           <div>
-            <label className="form-label">Diet Name *</label>
+            <label className="form-label">Naziv dijete *</label>
             <input
               className={`form-input ${errors.name ? 'border-red-400' : ''}`}
-              placeholder="e.g. Spring Stimulation Feed"
+              placeholder="npr. Proljetna stimulativna dijeta"
               value={name}
               onChange={e => setName(e.target.value)}
             />
@@ -159,7 +159,7 @@ export default function DietFormPage() {
           </div>
 
           <div>
-            <label className="form-label">Start Date *</label>
+            <label className="form-label">Datum početka *</label>
             <input
               type="date"
               className={`form-input ${errors.startDate ? 'border-red-400' : ''}`}
@@ -171,7 +171,7 @@ export default function DietFormPage() {
           </div>
 
           <div>
-            <label className="form-label">Reason *</label>
+            <label className="form-label">Razlog *</label>
             <select
               className="form-input"
               value={reason}
@@ -185,10 +185,10 @@ export default function DietFormPage() {
 
           {reason === DietReason.Custom && (
             <div>
-              <label className="form-label">Custom Reason *</label>
+              <label className="form-label">Vlastiti razlog *</label>
               <input
                 className={`form-input ${errors.customReason ? 'border-red-400' : ''}`}
-                placeholder="Describe the reason…"
+                placeholder="Opišite razlog…"
                 value={customReason}
                 onChange={e => setCustomReason(e.target.value)}
               />
@@ -199,11 +199,11 @@ export default function DietFormPage() {
 
         {/* Schedule */}
         <div className="card space-y-4">
-          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Schedule</h3>
+          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Raspored</h3>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="form-label">Duration (days) *</label>
+              <label className="form-label">Trajanje (dani) *</label>
               <input
                 type="number"
                 min={1}
@@ -214,7 +214,7 @@ export default function DietFormPage() {
               {errors.duration && <p className="form-error">{errors.duration}</p>}
             </div>
             <div>
-              <label className="form-label">Feed every (days) *</label>
+              <label className="form-label">Hranjenje svakih (dana) *</label>
               <input
                 type="number"
                 min={1}
@@ -231,9 +231,9 @@ export default function DietFormPage() {
             <div className="flex items-start gap-3 bg-honey-50 dark:bg-honey-500/10 border border-honey-200 dark:border-honey-500/30 rounded-xl p-4 text-sm">
               <Info className="w-4 h-4 text-honey-600 dark:text-honey-400 shrink-0 mt-0.5" />
               <div className="text-honey-800 dark:text-honey-200">
-                <span className="font-semibold">{entryCount} feeding {entryCount === 1 ? 'entry' : 'entries'}</span>
-                {' '}will be generated, every {frequency} day{frequency !== 1 ? 's' : ''} over {duration} days
-                {startDate && <span> (ends {endDate})</span>}.
+                <span className="font-semibold">{entryCount} {entryCount === 1 ? 'unos' : 'unosa'} hranjenja</span>
+                {' '}bit će generisano, svakih {frequency} {frequency === 1 ? 'dan' : 'dana'} tokom {duration} dana
+                {startDate && <span> (završava {endDate})</span>}.
               </div>
             </div>
           )}
@@ -241,10 +241,10 @@ export default function DietFormPage() {
 
         {/* Food */}
         <div className="card space-y-4">
-          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Food Type</h3>
+          <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Vrsta hrane</h3>
 
           <div>
-            <label className="form-label">Food Type *</label>
+            <label className="form-label">Vrsta hrane *</label>
             <select
               className="form-input"
               value={foodType}
@@ -258,10 +258,10 @@ export default function DietFormPage() {
 
           {foodType === FoodType.Custom && (
             <div>
-              <label className="form-label">Custom Food *</label>
+              <label className="form-label">Vlastita hrana *</label>
               <input
                 className={`form-input ${errors.customFood ? 'border-red-400' : ''}`}
-                placeholder="Describe the food…"
+                placeholder="Opišite hranu…"
                 value={customFood}
                 onChange={e => setCustomFood(e.target.value)}
               />
@@ -272,9 +272,9 @@ export default function DietFormPage() {
 
         {/* Actions */}
         <div className="flex gap-3 justify-end pb-8">
-          <Link to={backHref} className="btn-secondary">Cancel</Link>
+          <Link to={backHref} className="btn-secondary">Otkaži</Link>
           <button type="submit" className="btn-primary" disabled={isSaving}>
-            {isSaving ? 'Saving…' : isEdit ? 'Save Changes' : 'Create Diet'}
+            {isSaving ? 'Čuvanje…' : isEdit ? 'Spremi promjene' : 'Kreiraj dijetu'}
           </button>
         </div>
       </form>

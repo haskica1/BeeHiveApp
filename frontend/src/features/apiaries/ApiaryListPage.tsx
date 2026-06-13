@@ -20,9 +20,9 @@ import { usePermissions } from '../../core/hooks/usePermissions'
 type SortKey = 'name' | 'hives' | 'newest'
 
 const SORT_OPTIONS: { key: SortKey; label: string }[] = [
-  { key: 'name',   label: 'Name' },
-  { key: 'hives',  label: 'Most hives' },
-  { key: 'newest', label: 'Newest' },
+  { key: 'name',   label: 'Naziv' },
+  { key: 'hives',  label: 'Najviše košnica' },
+  { key: 'newest', label: 'Najnovije' },
 ]
 
 export default function ApiaryListPage() {
@@ -85,18 +85,18 @@ export default function ApiaryListPage() {
             </div>
             <div className="min-w-0">
               <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">
-                My Apiaries
+                Moji pčelinjaci
               </h1>
               <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">
-                {apiaries.length} apiar{apiaries.length === 1 ? 'y' : 'ies'}
-                {apiaries.length > 0 && <> · {totalBeehives} beehive{totalBeehives === 1 ? '' : 's'} total</>}
+                {apiaries.length} {apiaries.length === 1 ? 'pčelinjak' : 'pčelinjaka'}
+                {apiaries.length > 0 && <> · {totalBeehives} {totalBeehives === 1 ? 'košnica' : 'košnica'} ukupno</>}
               </p>
             </div>
           </div>
 
           {canManageApiaries && (
             <Link to="/apiaries/new" className="btn-primary text-sm shrink-0">
-              <Plus className="w-4 h-4" /> New Apiary
+              <Plus className="w-4 h-4" /> Novi pčelinjak
             </Link>
           )}
         </div>
@@ -104,12 +104,12 @@ export default function ApiaryListPage() {
 
       {apiaries.length === 0 ? (
         <EmptyState
-          title="No apiaries yet"
-          description="Create your first apiary to start managing your beehives."
+          title="Nema pčelinjaka"
+          description="Napravite vaš prvi pčelinjak da počnete upravljati košnicama."
           action={
             canManageApiaries ? (
               <Link to="/apiaries/new" className="btn-primary text-sm">
-                <Plus className="w-4 h-4" /> Create Apiary
+                <Plus className="w-4 h-4" /> Napravi pčelinjak
               </Link>
             ) : undefined
           }
@@ -118,10 +118,10 @@ export default function ApiaryListPage() {
         <>
           {/* ── Overview vitals ─────────────────────────────────────────────── */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
-            <VitalCard icon="🏡" label="Apiaries"   value={String(apiaries.length)} sub="registered" gradient="from-honey-400 to-honey-600" />
-            <VitalCard icon="🐝" label="Beehives"   value={String(totalBeehives)}   sub="across all"  gradient="from-amber-400 to-orange-500" />
-            <VitalCard icon="📍" label="Mapped"     value={String(mappedCount)}     sub={`of ${apiaries.length} located`} gradient="from-sky-400 to-blue-600" />
-            <VitalCard icon="📊" label="Avg hives"  value={avgHives.toFixed(1)}     sub="per apiary"  gradient="from-violet-400 to-indigo-600" />
+            <VitalCard icon="🏡" label="Pčelinjaci"  value={String(apiaries.length)} sub="registrovanih" gradient="from-honey-400 to-honey-600" />
+            <VitalCard icon="🐝" label="Košnice"    value={String(totalBeehives)}   sub="ukupno"       gradient="from-amber-400 to-orange-500" />
+            <VitalCard icon="📍" label="Locirani"   value={String(mappedCount)}     sub={`od ${apiaries.length} locirano`} gradient="from-sky-400 to-blue-600" />
+            <VitalCard icon="📊" label="Prosjek"    value={avgHives.toFixed(1)}     sub="košnica po pčelinjaku" gradient="from-violet-400 to-indigo-600" />
           </div>
 
           {/* ── Search + sort toolbar ───────────────────────────────────────── */}
@@ -131,15 +131,15 @@ export default function ApiaryListPage() {
               <input
                 value={query}
                 onChange={e => setQuery(e.target.value)}
-                placeholder="Search apiaries…"
+                placeholder="Pretraži pčelinjake…"
                 className="form-input pl-9 pr-9"
-                aria-label="Search apiaries"
+                aria-label="Pretraži pčelinjake"
               />
               {query && (
                 <button
                   onClick={() => setQuery('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-                  aria-label="Clear search"
+                  aria-label="Poništi pretragu"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -170,9 +170,9 @@ export default function ApiaryListPage() {
               <div className="w-14 h-14 mx-auto rounded-full bg-honey-100 dark:bg-honey-500/15 flex items-center justify-center mb-3">
                 <Search className="w-6 h-6 text-honey-400" />
               </div>
-              <p className="text-gray-600 dark:text-slate-300 font-medium">No apiaries match “{query}”.</p>
-              <button onClick={() => setQuery('')} className="mt-3 text-sm text-honey-600 dark:text-honey-400 hover:underline font-medium">
-                Clear search
+              <p className=”text-gray-600 dark:text-slate-300 font-medium”>Nema pčelinjaka koji odgovaraju “{query}”.</p>
+              <button onClick={() => setQuery('')} className=”mt-3 text-sm text-honey-600 dark:text-honey-400 hover:underline font-medium”>
+                Poništi pretragu
               </button>
             </div>
           ) : (
@@ -193,8 +193,8 @@ export default function ApiaryListPage() {
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Apiary"
-        message={`Are you sure you want to delete "${deleteTarget?.name}"? This will also delete all its beehives and inspection records. This action cannot be undone.`}
+        title="Obriši pčelinjak"
+        message={`Jeste li sigurni da želite obrisati "${deleteTarget?.name}"? Ovo će također obrisati sve košnice i zapise o inspekcijama. Ova radnja se ne može poništiti.`}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}
@@ -241,11 +241,11 @@ function ApiaryCard({ apiary, canManage, onOpen, onDelete }: {
       {/* Footer */}
       <div className="flex items-center gap-2 mt-4 pt-3 border-t border-honey-100 dark:border-slate-800">
         <span className="badge bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300 gap-1">
-          🐝 {apiary.beehiveCount} {apiary.beehiveCount === 1 ? 'hive' : 'hives'}
+          🐝 {apiary.beehiveCount} {apiary.beehiveCount === 1 ? 'košnica' : 'košnica'}
         </span>
         {apiary.hasLocation && (
           <span className="badge bg-sky-100 text-sky-700 dark:bg-sky-500/15 dark:text-sky-300 gap-1">
-            <MapPin className="w-3 h-3" /> Located
+            <MapPin className="w-3 h-3" /> Locirano
           </span>
         )}
 
@@ -257,14 +257,14 @@ function ApiaryCard({ apiary, canManage, onOpen, onDelete }: {
             <Link
               to={`/apiaries/${apiary.id}/edit`}
               className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
-              title="Edit"
+              title="Uredi"
             >
               <Pencil className="w-4 h-4" />
             </Link>
             <button
               onClick={onDelete}
               className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-              title="Delete"
+              title="Obriši"
             >
               <Trash2 className="w-4 h-4" />
             </button>

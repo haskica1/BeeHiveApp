@@ -51,7 +51,7 @@ export default function QrScannerModal({ onClose }: Props) {
       })
       .catch(() => {
         if (!cancelled)
-          setError('Camera access denied. Please allow camera permission and try again.')
+          setError('Pristup kameri odbijen. Molimo dozvolite pristup kameri i pokušajte ponovo.')
       })
 
     return () => {
@@ -73,12 +73,12 @@ export default function QrScannerModal({ onClose }: Props) {
         {/* Header */}
         <div className="absolute top-0 inset-x-0 z-10 flex items-center justify-between px-4 pt-4 pb-2">
           <span className="bg-black/60 text-white text-sm font-medium px-3 py-1 rounded-full backdrop-blur-sm">
-            Scan Beehive QR Code
+            Skeniraj QR kod košnice
           </span>
           <button
             onClick={onClose}
             className="p-1.5 rounded-full bg-black/60 text-white hover:bg-black/80 transition-colors backdrop-blur-sm"
-            aria-label="Close scanner"
+            aria-label="Zatvori skener"
           >
             <X className="w-5 h-5" />
           </button>
@@ -92,7 +92,7 @@ export default function QrScannerModal({ onClose }: Props) {
               onClick={onClose}
               className="mt-2 px-5 py-2 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold transition-colors"
             >
-              Close
+              Zatvori
             </button>
           </div>
         ) : (
@@ -123,7 +123,7 @@ export default function QrScannerModal({ onClose }: Props) {
 
             <div className="absolute bottom-4 inset-x-0 flex justify-center pointer-events-none">
               <span className="bg-black/60 text-white/80 text-xs px-4 py-1.5 rounded-full backdrop-blur-sm">
-                Point camera at a beehive QR code
+                Usmjerite kameru prema QR kodu košnice
               </span>
             </div>
           </>

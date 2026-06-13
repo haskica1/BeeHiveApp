@@ -27,4 +27,9 @@ public interface IOrgManagementService
 
     /// <summary>Returns all apiaries in the caller's organization for assigning to Admin users. OrgAdmin only.</summary>
     Task<IEnumerable<OrgAvailableApiaryDto>> GetAvailableApiariesAsync();
+
+    /// <summary>
+    /// Creates a new ApiaryAdmin or Beekeeper member in the caller's organization. OrgAdmin only.
+    /// </summary>
+    Task<OrgMemberDto> CreateMemberAsync(CreateOrgMemberDto dto);
 }

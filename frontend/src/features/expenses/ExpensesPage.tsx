@@ -12,9 +12,9 @@ import { useToast } from '../../core/context/ToastContext'
 type SourceFilter = 'all' | 'manual' | 'scan'
 
 const FILTERS: { key: SourceFilter; label: string }[] = [
-  { key: 'all',    label: 'All' },
-  { key: 'manual', label: 'Manual' },
-  { key: 'scan',   label: 'Scanned' },
+  { key: 'all',    label: 'Sve' },
+  { key: 'manual', label: 'Ručno' },
+  { key: 'scan',   label: 'Skenirani' },
 ]
 
 export default function ExpensesPage() {
@@ -31,10 +31,10 @@ export default function ExpensesPage() {
     setIsDeleting(true)
     try {
       await deleteExpense.mutateAsync(confirmTarget.id)
-      toast.success('Expense deleted.')
+      toast.success('Trošak obrisan.')
       setConfirmTarget(null)
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete expense.')
+      toast.error(e?.response?.data?.detail ?? e?.message ?? 'Greška pri brisanju troška.')
     } finally {
       setIsDeleting(false)
     }
@@ -72,8 +72,8 @@ export default function ExpensesPage() {
               🧾
             </div>
             <div className="min-w-0">
-              <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Expenses</h1>
-              <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Track what you spend on your apiaries.</p>
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Troškovi</h1>
+              <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Pratite šta trošite na vaše pčelinjake.</p>
             </div>
           </div>
 
@@ -83,14 +83,14 @@ export default function ExpensesPage() {
               className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-honey-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 transition-colors"
             >
               <Camera className="w-4 h-4" />
-              <span className="hidden sm:inline">Scan</span> Receipt
+              <span className="hidden sm:inline">Skeniraj</span> račun
             </button>
             <button
               onClick={() => navigate('/expenses/new')}
               className="btn-primary text-sm"
             >
               <Plus className="w-4 h-4" />
-              Add Expense
+              Dodaj trošak
             </button>
           </div>
         </div>
@@ -103,9 +103,9 @@ export default function ExpensesPage() {
       {!isLoading && expenses.length === 0 && (
         <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none">
           <ReceiptText className="w-12 h-12 text-honey-300 dark:text-honey-500/40 mx-auto mb-3" />
-          <p className="text-gray-500 dark:text-slate-300 font-medium">No expenses recorded yet.</p>
+          <p className="text-gray-500 dark:text-slate-300 font-medium">Nema zabilježenih troškova.</p>
           <p className="text-sm text-gray-400 dark:text-slate-500 mt-1">
-            Add your first expense manually or by scanning a receipt.
+            Dodajte vaš prvi trošak ručno ili skeniranjem računa.
           </p>
           <div className="flex items-center justify-center gap-3 mt-5">
             <button
@@ -113,14 +113,14 @@ export default function ExpensesPage() {
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
               <Camera className="w-4 h-4" />
-              Scan Receipt
+              Skeniraj račun
             </button>
             <button
               onClick={() => navigate('/expenses/new')}
               className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add Manually
+              Dodaj ručno
             </button>
           </div>
         </div>
@@ -131,10 +131,10 @@ export default function ExpensesPage() {
         <>
           {/* Vitals */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
-            <VitalCard icon="🧾" label="Records"    value={String(expenses.length)}   sub="expenses"             gradient="from-honey-400 to-honey-600" />
-            <VitalCard icon="💰" label="Total"      value={totalSpent.toFixed(2)}     sub={currency}             gradient="from-emerald-400 to-teal-600" />
-            <VitalCard icon="📅" label="This month" value={thisMonthTotal.toFixed(2)} sub={format(new Date(), 'MMMM')} gradient="from-sky-400 to-blue-600" />
-            <VitalCard icon="🧮" label="Average"    value={avg.toFixed(2)}            sub="per record"           gradient="from-violet-400 to-indigo-600" />
+            <VitalCard icon="🧾" label="Zapisi"       value={String(expenses.length)}   sub="troškova"             gradient="from-honey-400 to-honey-600" />
+            <VitalCard icon="💰" label="Ukupno"      value={totalSpent.toFixed(2)}     sub={currency}             gradient="from-emerald-400 to-teal-600" />
+            <VitalCard icon="📅" label="Ovaj mjesec" value={thisMonthTotal.toFixed(2)} sub={format(new Date(), 'MMMM')} gradient="from-sky-400 to-blue-600" />
+            <VitalCard icon="🧮" label="Prosjek"     value={avg.toFixed(2)}            sub="po zapisu"            gradient="from-violet-400 to-indigo-600" />
           </div>
 
           {/* Filter chips */}
@@ -158,7 +158,7 @@ export default function ExpensesPage() {
           {/* Expense list */}
           {visible.length === 0 ? (
             <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-2xl border border-honey-100 dark:border-slate-800">
-              <p className="text-sm text-gray-500 dark:text-slate-400">No expenses in this category.</p>
+              <p className="text-sm text-gray-500 dark:text-slate-400">Nema troškova u ovoj kategoriji.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -178,9 +178,9 @@ export default function ExpensesPage() {
 
       <ConfirmDialog
         isOpen={!!confirmTarget}
-        title="Delete Expense"
+        title="Obriši trošak"
         message={confirmTarget
-          ? `Delete the ${confirmTarget.totalAmount.toFixed(2)} ${confirmTarget.currency} expense from ${format(new Date(confirmTarget.purchaseDate), 'dd.MM.yyyy')}? This cannot be undone.`
+          ? `Obrisati trošak od ${confirmTarget.totalAmount.toFixed(2)} ${confirmTarget.currency} na dan ${format(new Date(confirmTarget.purchaseDate), 'dd.MM.yyyy')}? Ova radnja se ne može poništiti.`
           : ''}
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmTarget(null)}
@@ -224,7 +224,7 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
         <div className="flex items-center gap-3 mt-0.5 text-sm text-gray-500 dark:text-slate-400">
           <span>{format(new Date(expense.purchaseDate), 'dd.MM.yyyy')}</span>
           <span>·</span>
-          <span>{expense.itemCount} item{expense.itemCount !== 1 ? 's' : ''}</span>
+          <span>{expense.itemCount} {expense.itemCount === 1 ? 'stavka' : 'stavki'}</span>
           {expense.notes && (
             <>
               <span>·</span>
@@ -239,7 +239,7 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
         <button
           onClick={onEdit}
           className="p-2 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
-          aria-label="Edit expense"
+          aria-label="Uredi trošak"
         >
           <PencilLine className="w-4 h-4" />
         </button>
@@ -247,7 +247,7 @@ function ExpenseCard({ expense, isDeleting, onEdit, onDelete }: ExpenseCardProps
           onClick={onDelete}
           disabled={isDeleting}
           className="p-2 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
-          aria-label="Delete expense"
+          aria-label="Obriši trošak"
         >
           {isDeleting
             ? <Loader2 className="w-4 h-4 animate-spin" />

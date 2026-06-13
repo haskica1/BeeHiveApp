@@ -39,19 +39,19 @@ function wmoToIcon(code?: number): string {
 }
 
 function wmoToLabel(code?: number): string {
-  if (code == null) return 'Unknown'
-  if (code === 0)                   return 'Clear sky'
-  if (code === 1)                   return 'Mainly clear'
-  if (code === 2)                   return 'Partly cloudy'
-  if (code === 3)                   return 'Overcast'
-  if (code === 45 || code === 48)   return 'Foggy'
-  if (code >= 51 && code <= 55)     return 'Drizzle'
-  if (code >= 61 && code <= 65)     return 'Rain'
-  if (code >= 71 && code <= 77)     return 'Snow'
-  if (code >= 80 && code <= 82)     return 'Rain showers'
-  if (code >= 85 && code <= 86)     return 'Snow showers'
-  if (code >= 95 && code <= 99)     return 'Thunderstorm'
-  return 'Unknown'
+  if (code == null) return 'Nepoznato'
+  if (code === 0)                   return 'Vedro nebo'
+  if (code === 1)                   return 'Uglavnom vedro'
+  if (code === 2)                   return 'Djelimično oblačno'
+  if (code === 3)                   return 'Oblačno'
+  if (code === 45 || code === 48)   return 'Magla'
+  if (code >= 51 && code <= 55)     return 'Rosulja'
+  if (code >= 61 && code <= 65)     return 'Kiša'
+  if (code >= 71 && code <= 77)     return 'Snijeg'
+  if (code >= 80 && code <= 82)     return 'Pljuskovi kiše'
+  if (code >= 85 && code <= 86)     return 'Pljuskovi snijega'
+  if (code >= 95 && code <= 99)     return 'Grmljavina'
+  return 'Nepoznato'
 }
 
 // ── Weather card for a single day ─────────────────────────────────────────────
@@ -65,7 +65,7 @@ function DayCard({ day, isToday }: { day: DailyWeather; isToday: boolean }) {
         : 'bg-white border-gray-100 hover:border-honey-200 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-honey-500/40'
     }`}>
       <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-        {isToday ? 'Today' : format(date, 'EEE')}
+        {isToday ? 'Danas' : format(date, 'EEE')}
       </p>
       <p className="text-[11px] text-gray-400 dark:text-slate-500">{format(date, 'MMM d')}</p>
       <span className="text-3xl my-1" title={wmoToLabel(day.weatherCode)}>
@@ -145,12 +145,12 @@ export default function ApiaryDetailPage() {
     ? `${Math.round(todayWeather.maxTemp ?? 0)}° / ${Math.round(todayWeather.minTemp ?? 0)}°`
     : '—'
   const weatherSub = !apiary.hasLocation
-    ? 'No location'
+    ? 'Nema lokacije'
     : weatherLoading
-    ? 'Loading…'
+    ? 'Učitavanje…'
     : todayWeather
     ? wmoToLabel(todayWeather.weatherCode)
-    : 'Unavailable'
+    : 'Nije dostupno'
   const weatherIcon = todayWeather ? wmoToIcon(todayWeather.weatherCode) : '🌤️'
 
   // ── Beehive search ──
@@ -176,7 +176,7 @@ export default function ApiaryDetailPage() {
             onClick={() => navigate('/apiaries')}
             className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
           >
-            <ArrowLeft className="w-4 h-4" /> All Apiaries
+            <ArrowLeft className="w-4 h-4" /> Svi pčelinjaci
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -199,12 +199,12 @@ export default function ApiaryDetailPage() {
             <div className="flex gap-2 shrink-0">
               {apiary.hasLocation && (
                 <a href={mapUrl} target="_blank" rel="noreferrer" className="btn-secondary text-sm">
-                  <MapPin className="w-4 h-4" /> Map
+                  <MapPin className="w-4 h-4" /> Mapa
                 </a>
               )}
               {canManageApiaries && (
                 <Link to={`/apiaries/${apiaryId}/edit`} className="btn-secondary text-sm">
-                  <Pencil className="w-4 h-4" /> Edit
+                  <Pencil className="w-4 h-4" /> Uredi
                 </Link>
               )}
             </div>
@@ -216,29 +216,29 @@ export default function ApiaryDetailPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
         <VitalCard
           icon="🐝"
-          label="Beehives"
+          label="Košnice"
           value={String(apiary.beehiveCount)}
-          sub="in this apiary"
+          sub="u ovom pčelinjaku"
           gradient="from-honey-400 to-honey-600"
         />
         <VitalCard
           icon="📋"
-          label="Inspections"
+          label="Inspekcije"
           value={String(totalInspections)}
-          sub="all-time"
+          sub="ukupno"
           gradient="from-amber-400 to-orange-500"
         />
         <VitalCard
           icon="✅"
-          label="Open tasks"
+          label="Otvoreni zadaci"
           value={String(openTodos.length)}
-          sub={overdueCount > 0 ? `${overdueCount} overdue` : 'On track'}
+          sub={overdueCount > 0 ? `${overdueCount} kasni` : 'U redu'}
           subAlert={overdueCount > 0}
           gradient="from-violet-400 to-indigo-600"
         />
         <VitalCard
           icon={weatherIcon}
-          label="Today"
+          label="Danas"
           value={weatherValue}
           sub={weatherSub}
           gradient="from-sky-400 to-blue-600"
@@ -252,23 +252,23 @@ export default function ApiaryDetailPage() {
         <div className="lg:col-span-7 xl:col-span-8 space-y-6">
           {/* Beehives */}
           <CollapsibleSection
-            title="Beehives"
+            title="Košnice"
             icon="🏠"
             count={apiary.beehiveCount}
             action={
               canManageHives
-                ? <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Add Beehive</Link>
+                ? <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Dodaj košnicu</Link>
                 : undefined
             }
           >
             {beehives.length === 0 ? (
               <EmptyState
-                title="No beehives yet"
-                description="Add your first beehive to this apiary."
+                title="Nema košnica"
+                description="Dodajte vašu prvu košnicu u ovaj pčelinjak."
                 action={
                   canManageHives ? (
                     <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
-                      <Plus className="w-4 h-4" /> Add Beehive
+                      <Plus className="w-4 h-4" /> Dodaj košnicu
                     </Link>
                   ) : undefined
                 }
@@ -281,7 +281,7 @@ export default function ApiaryDetailPage() {
                     <input
                       value={hiveQuery}
                       onChange={e => setHiveQuery(e.target.value)}
-                      placeholder="Search beehives…"
+                      placeholder="Pretraži košnice…"
                       className="form-input pl-9 py-2 text-sm w-full"
                     />
                   </div>
@@ -289,7 +289,7 @@ export default function ApiaryDetailPage() {
                 {filteredBeehives.length === 0 ? (
                   <div className="text-center py-8">
                     <Search className="w-7 h-7 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
-                    <p className="text-sm text-gray-500 dark:text-slate-400">No beehives match “{hiveQuery}”.</p>
+                    <p className=”text-sm text-gray-500 dark:text-slate-400”>Nema košnica koje odgovaraju “{hiveQuery}”.</p>
                   </div>
                 ) : (
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -328,7 +328,7 @@ export default function ApiaryDetailPage() {
                           <span className="badge bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">{beehive.materialName}</span>
                         </div>
                         <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-                          📋 {beehive.inspectionCount} inspection{beehive.inspectionCount !== 1 ? 's' : ''}
+                          📋 {beehive.inspectionCount} {beehive.inspectionCount === 1 ? 'inspekcija' : 'inspekcija'}
                         </p>
                       </div>
                     </div>
@@ -355,24 +355,24 @@ export default function ApiaryDetailPage() {
 
           {/* Weather forecast */}
           <CollapsibleSection
-            title="7-Day Weather Forecast"
+            title="7-dnevna vremenska prognoza"
             icon="🌤️"
             action={
               apiary.hasLocation
-                ? <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium"><MapPin className="w-3 h-3" />View on Map</a>
+                ? <a href={mapUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium"><MapPin className="w-3 h-3" />Vidi na mapi</a>
                 : undefined
             }
           >
             {!apiary.hasLocation ? (
               <div className="text-center py-6 border-dashed border-2 border-gray-200 dark:border-slate-700 rounded-xl">
                 <MapPin className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-gray-500 dark:text-slate-400 text-sm">No location set for this apiary.</p>
+                <p className="text-gray-500 dark:text-slate-400 text-sm">Nije postavljena lokacija za ovaj pčelinjak.</p>
                 <Link to={`/apiaries/${apiaryId}/edit`} className="inline-flex items-center gap-1 mt-3 text-sm text-honey-600 dark:text-honey-400 hover:underline">
-                  <Pencil className="w-3.5 h-3.5" /> Add location
+                  <Pencil className="w-3.5 h-3.5" /> Dodaj lokaciju
                 </Link>
               </div>
             ) : weatherLoading ? (
-              <LoadingSpinner message="Fetching forecast…" />
+              <LoadingSpinner message="Preuzimanje prognoze…" />
             ) : weather ? (
               <>
                 <div className="overflow-x-auto -mx-1 px-1">
@@ -386,20 +386,20 @@ export default function ApiaryDetailPage() {
                   <div className="mt-3 bg-honey-50 dark:bg-slate-800 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-slate-300">
                     <span className="flex items-center gap-1.5">
                       <Thermometer className="w-4 h-4 text-red-400" />
-                      Today: <strong className="text-red-500">{Math.round(weather.daily[0].maxTemp ?? 0)}°C</strong>
+                      Danas: <strong className="text-red-500">{Math.round(weather.daily[0].maxTemp ?? 0)}°C</strong>
                       {' / '}
                       <strong className="text-blue-400">{Math.round(weather.daily[0].minTemp ?? 0)}°C</strong>
                     </span>
                     {weather.daily[0].precipitationProbability != null && (
                       <span className="flex items-center gap-1.5">
                         <Droplets className="w-4 h-4 text-blue-400" />
-                        Rain chance: <strong>{Math.round(weather.daily[0].precipitationProbability)}%</strong>
+                        Šansa za kišu: <strong>{Math.round(weather.daily[0].precipitationProbability)}%</strong>
                       </span>
                     )}
                     {weather.daily[0].maxWindSpeed != null && (
                       <span className="flex items-center gap-1.5">
                         <Wind className="w-4 h-4 text-gray-400" />
-                        Wind: <strong>{Math.round(weather.daily[0].maxWindSpeed)} km/h</strong>
+                        Vjetar: <strong>{Math.round(weather.daily[0].maxWindSpeed)} km/h</strong>
                       </span>
                     )}
                     <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">via Open-Meteo · {weather.timezone}</span>
@@ -407,7 +407,7 @@ export default function ApiaryDetailPage() {
                 )}
               </>
             ) : (
-              <p className="text-center py-4 text-gray-400 dark:text-slate-500 text-sm">Weather data unavailable.</p>
+              <p className="text-center py-4 text-gray-400 dark:text-slate-500 text-sm">Vremenski podaci nisu dostupni.</p>
             )}
           </CollapsibleSection>
         </div>
@@ -418,17 +418,17 @@ export default function ApiaryDetailPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-lg leading-none">🏡</span>
-              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Apiary Details</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Detalji pčelinjaka</h2>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailTile icon="📅" label="Established" value={format(new Date(apiary.createdAt), 'dd MMM yyyy')} />
-              <DetailTile icon="🐝" label="Beehives" value={String(apiary.beehiveCount)} />
-              <DetailTile icon="📋" label="Inspections" value={String(totalInspections)} />
+              <DetailTile icon="📅" label="Osnovan" value={format(new Date(apiary.createdAt), 'dd MMM yyyy')} />
+              <DetailTile icon="🐝" label="Košnice" value={String(apiary.beehiveCount)} />
+              <DetailTile icon="📋" label="Inspekcije" value={String(totalInspections)} />
               <DetailTile
                 icon="📍"
-                label="Location"
-                value={apiary.hasLocation ? 'Set' : 'Not set'}
+                label="Lokacija"
+                value={apiary.hasLocation ? 'Postavljena' : 'Nije postavljena'}
               />
             </div>
 
@@ -441,23 +441,23 @@ export default function ApiaryDetailPage() {
                     {apiary.latitude?.toFixed(5)}, {apiary.longitude?.toFixed(5)}
                   </span>
                   <a href={mapUrl} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-honey-600 dark:text-honey-400 hover:underline font-medium">
-                    Map
+                    Mapa
                   </a>
                 </div>
               ) : canManageApiaries ? (
                 <Link to={`/apiaries/${apiaryId}/edit`} className="flex items-center gap-1.5 text-xs text-honey-600 dark:text-honey-400 hover:underline">
-                  <MapPin className="w-3.5 h-3.5" /> Add a location for weather
+                  <MapPin className="w-3.5 h-3.5" /> Dodaj lokaciju za vremensku prognozu
                 </Link>
               ) : (
                 <p className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-slate-500">
-                  <MapPin className="w-3.5 h-3.5" /> No location set
+                  <MapPin className="w-3.5 h-3.5" /> Nema lokacije
                 </p>
               )}
             </div>
 
             {apiary.createdByName && (
               <p className="mt-3 pt-3 border-t border-honey-100 dark:border-slate-800 text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                👤 Created by {apiary.createdByName}
+                👤 Kreirao {apiary.createdByName}
               </p>
             )}
           </div>
@@ -467,8 +467,8 @@ export default function ApiaryDetailPage() {
 
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Beehive"
-        message={`Delete "${deleteTarget?.name}"? All inspection records will also be removed.`}
+        title="Obriši košnicu"
+        message={`Obrisati "${deleteTarget?.name}"? Svi zapisi o inspekcijama će također biti uklonjeni.`}
         onConfirm={handleDeleteBeehive}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}

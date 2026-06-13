@@ -51,7 +51,7 @@ export default function MemberAssignmentPage() {
       await updateBeehives.mutateAsync({ beehiveIds: selectedBeehiveIds })
       navigate('/members')
     } catch (e: any) {
-      setError(e?.response?.data?.detail ?? e?.message ?? 'Failed to update assignments.')
+      setError(e?.response?.data?.detail ?? e?.message ?? 'Greška pri ažuriranju dodjela.')
     }
   }
 
@@ -61,7 +61,7 @@ export default function MemberAssignmentPage() {
       await updateApiary.mutateAsync({ apiaryId: selectedApiaryId ? parseInt(selectedApiaryId) : null })
       navigate('/members')
     } catch (e: any) {
-      setError(e?.response?.data?.detail ?? e?.message ?? 'Failed to update apiary assignment.')
+      setError(e?.response?.data?.detail ?? e?.message ?? 'Greška pri ažuriranju dodjele pčelinjaka.')
     }
   }
 
@@ -75,13 +75,15 @@ export default function MemberAssignmentPage() {
 
   if (!member) {
     return (
-      <div className="text-center py-20 text-gray-500 dark:text-slate-400">Member not found.</div>
+      <div className="text-center py-20 text-gray-500 dark:text-slate-400">Član nije pronađen.</div>
     )
   }
 
   const isUserRole = member.role === 'Beekeeper'
   const isAdminRole = member.role === 'ApiaryAdmin'
   const isSaving = updateBeehives.isPending || updateApiary.isPending
+
+  const roleLabel = isAdminRole ? 'Admin' : 'Korisnik'
 
   return (
     <div className="max-w-xl mx-auto">
@@ -90,7 +92,7 @@ export default function MemberAssignmentPage() {
         title={`${member.firstName} ${member.lastName}`}
         subtitle={member.email}
         onBack={() => navigate('/members')}
-        backLabel="Back to Members"
+        backLabel="Nazad na Članove"
       />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8 space-y-6">
@@ -98,7 +100,7 @@ export default function MemberAssignmentPage() {
         <div>
           <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium
             ${isAdminRole ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300' : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'}`}>
-            {member.role}
+            {roleLabel}
           </span>
         </div>
 
@@ -113,7 +115,7 @@ export default function MemberAssignmentPage() {
         {isUserRole && (
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-              Assigned Hives
+              Dodijeljene košnice
             </label>
             {loadingBeehives ? (
               <div className="flex justify-center py-6">
@@ -121,7 +123,7 @@ export default function MemberAssignmentPage() {
               </div>
             ) : beehives.length === 0 ? (
               <p className="text-sm text-gray-400 dark:text-slate-500 py-2">
-                No hives available to assign.
+                Nema dostupnih košnica za dodjeljivanje.
               </p>
             ) : (
               <div className="border border-gray-200 dark:border-slate-700 rounded-xl divide-y divide-gray-100 dark:divide-slate-800 max-h-60 overflow-y-auto">
@@ -144,8 +146,8 @@ export default function MemberAssignmentPage() {
             )}
             <p className="mt-1.5 text-xs text-gray-400 dark:text-slate-500">
               {selectedBeehiveIds.length > 0
-                ? `${selectedBeehiveIds.length} hive${selectedBeehiveIds.length !== 1 ? 's' : ''} selected`
-                : 'No hives assigned'}
+                ? `${selectedBeehiveIds.length} ${selectedBeehiveIds.length === 1 ? 'košnica odabrana' : 'košnica odabrano'}`
+                : 'Nema dodijeljenih košnica'}
             </p>
 
             <div className="flex gap-3 pt-4">
@@ -154,7 +156,7 @@ export default function MemberAssignmentPage() {
                 onClick={() => navigate('/members')}
                 className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
-                Cancel
+                Otkaži
               </button>
               <button
                 onClick={handleSaveBeehives}
@@ -162,7 +164,7 @@ export default function MemberAssignmentPage() {
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors"
               >
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save Assignments
+                Spremi dodjele
               </button>
             </div>
           </div>
@@ -172,7 +174,7 @@ export default function MemberAssignmentPage() {
         {isAdminRole && isOrgAdmin && (
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
-              Assigned Apiary
+              Dodijeljeni pčelinjak
             </label>
             {loadingApiaries ? (
               <div className="flex justify-center py-6">
@@ -184,7 +186,7 @@ export default function MemberAssignmentPage() {
                 onChange={e => setSelectedApiaryId(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
               >
-                <option value="">No apiary assigned</option>
+                <option value="">Nema dodijeljenog pčelinjaka</option>
                 {apiaries.map((a) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
@@ -197,7 +199,7 @@ export default function MemberAssignmentPage() {
                 onClick={() => navigate('/members')}
                 className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
-                Cancel
+                Otkaži
               </button>
               <button
                 onClick={handleSaveApiary}
@@ -205,7 +207,7 @@ export default function MemberAssignmentPage() {
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors"
               >
                 {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-                Save Assignment
+                Spremi dodjelu
               </button>
             </div>
           </div>
@@ -214,7 +216,7 @@ export default function MemberAssignmentPage() {
         {/* Admin member but caller is also Admin (not OrgAdmin) */}
         {isAdminRole && !isOrgAdmin && (
           <div className="text-sm text-gray-500 dark:text-slate-400 bg-gray-50 dark:bg-slate-800/60 rounded-xl px-4 py-3">
-            Only Organization Admins can change apiary assignments for Admin users.
+            Samo administratori organizacije mogu mijenjati dodjele pčelinjaka za Admin korisnike.
           </div>
         )}
       </div>

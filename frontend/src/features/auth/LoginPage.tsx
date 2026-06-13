@@ -15,15 +15,15 @@ interface LoginForm {
 // ── Left-panel feature highlights ───────────────────────────────────────────────
 
 const FEATURES = [
-  { icon: '🏡', title: 'Apiaries',      desc: 'Organize every yard in one place' },
-  { icon: '🍯', title: 'Inspections',   desc: 'Track colony health over time' },
-  { icon: '🌿', title: 'Feeding plans', desc: 'Schedule diets that run themselves' },
+  { icon: '🏡', title: 'Pčelinjaci',    desc: 'Organizirajte svaki pčelinjak na jednom mjestu' },
+  { icon: '🍯', title: 'Inspekcije',    desc: 'Pratite zdravlje kolonija tokom vremena' },
+  { icon: '🌿', title: 'Planovi ishrane', desc: 'Kreirajte planove ishrane koji se odvijaju sami' },
 ]
 
 // ── Demo accounts (tap to fill the form) ────────────────────────────────────────
 
 const DEMO_ACCOUNTS = [
-  { label: 'System Admin',          email: 'sysadmin@beehive.com',     password: 'SysAdmin123!', tone: 'purple' as const },
+  { label: 'Sistem Admin',           email: 'sysadmin@beehive.com',     password: 'SysAdmin123!', tone: 'purple' as const },
   { label: 'Golden Hive Co · Admin', email: 'admin@goldenhive.com',     password: 'Admin123!',    tone: 'honey' as const },
   { label: 'Mountain Bees · Admin',  email: 'admin@mountainbees.com',   password: 'Admin123!',    tone: 'sky' as const },
 ]
@@ -57,7 +57,7 @@ export default function LoginPage() {
       const destination = returnUrl ?? (response.role === 'SystemAdmin' ? '/admin' : '/apiaries')
       navigate(destination, { replace: true })
     } catch (err) {
-      setServerError(err instanceof Error ? err.message : 'Login failed. Please try again.')
+      setServerError(err instanceof Error ? err.message : 'Prijava neuspješna. Pokušajte ponovo.')
     }
   }
 
@@ -74,8 +74,8 @@ export default function LoginPage() {
       <button
         onClick={toggleTheme}
         className="absolute top-4 right-4 z-30 w-9 h-9 rounded-full flex items-center justify-center bg-white/80 dark:bg-slate-800/80 backdrop-blur border border-honey-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:text-honey-600 dark:hover:text-honey-300 transition-colors shadow-sm"
-        aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-        title={isDark ? 'Light mode' : 'Dark mode'}
+        aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
+        title={isDark ? 'Svjetla tema' : 'Tamna tema'}
       >
         {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
       </button>
@@ -103,7 +103,7 @@ export default function LoginPage() {
           <div className="text-7xl mb-5 drop-shadow-lg animate-float">🐝</div>
           <h1 className="font-display text-5xl font-bold text-white tracking-tight">BeeHive</h1>
           <p className="mt-4 text-honey-50/90 text-lg leading-relaxed">
-            Manage your apiaries, track your colonies, and keep your bees thriving — all in one hive.
+            Upravljajte vašim pčelinjacima, pratite vaše kolonije i čuvajte vaše pčele zdravim — sve na jednom mjestu.
           </p>
 
           <div className="mt-10 space-y-3 text-left stagger">
@@ -134,8 +134,8 @@ export default function LoginPage() {
 
           <div className="bg-white/90 dark:bg-slate-900/90 backdrop-blur rounded-3xl shadow-xl border border-honey-100 dark:border-slate-800 px-8 py-10">
             <div className="mb-7">
-              <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-slate-100">Welcome back</h2>
-              <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Sign in to your beekeeping workspace</p>
+              <h2 className="font-display text-2xl font-bold text-gray-900 dark:text-slate-100">Dobrodošli nazad</h2>
+              <p className="text-gray-500 dark:text-slate-400 mt-1 text-sm">Prijavite se u vaš pčelarski radni prostor</p>
             </div>
 
             {/* Server error */}
@@ -150,7 +150,7 @@ export default function LoginPage() {
               {/* Email */}
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Email address
+                  E-pošta
                 </label>
                 <div className="relative">
                   <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -167,8 +167,8 @@ export default function LoginPage() {
                         : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 dark:focus:ring-honey-500/20',
                     )}
                     {...register('email', {
-                      required: 'Email is required',
-                      pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Enter a valid email' },
+                      required: 'E-pošta je obavezna',
+                      pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Unesite valjanu e-poštu' },
                     })}
                   />
                 </div>
@@ -178,7 +178,7 @@ export default function LoginPage() {
               {/* Password */}
               <div>
                 <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                  Password
+                  Lozinka
                 </label>
                 <div className="relative">
                   <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500 pointer-events-none" />
@@ -194,14 +194,14 @@ export default function LoginPage() {
                         ? 'border-red-400 focus:ring-2 focus:ring-red-200 dark:focus:ring-red-500/30'
                         : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 dark:focus:ring-honey-500/20',
                     )}
-                    {...register('password', { required: 'Password is required' })}
+                    {...register('password', { required: 'Lozinka je obavezna' })}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(v => !v)}
                     className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
                     tabIndex={-1}
-                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-label={showPassword ? 'Sakrij lozinku' : 'Prikaži lozinku'}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -225,9 +225,9 @@ export default function LoginPage() {
                 <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out bg-gradient-to-r from-transparent via-white/25 to-transparent" />
                 <span className="relative z-10 flex items-center gap-2">
                   {isSubmitting ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Signing in…</>
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Prijavljivanje…</>
                   ) : (
-                    <>Sign in <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></>
+                    <>Prijava <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" /></>
                   )}
                 </span>
               </button>
@@ -236,7 +236,7 @@ export default function LoginPage() {
             {/* Demo accounts — tap to fill */}
             <div className="mt-7 pt-6 border-t border-gray-100 dark:border-slate-800">
               <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 text-center mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> Tap a demo account to fill the form
+                <Sparkles className="w-3.5 h-3.5" /> Tapnite demo račun da popunite formu
               </p>
               <div className="grid gap-2 stagger">
                 {DEMO_ACCOUNTS.map(acc => (
@@ -258,7 +258,7 @@ export default function LoginPage() {
                 ))}
               </div>
               <p className="text-[11px] text-gray-400 dark:text-slate-500 text-center mt-3">
-                Org admin password: <span className="font-mono">Admin123!</span>
+                Lozinka org admina: <span className="font-mono">Admin123!</span>
               </p>
             </div>
           </div>

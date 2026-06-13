@@ -69,7 +69,7 @@ export default function NotificationBell() {
           'text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-700 dark:hover:text-honey-300',
           open && 'bg-honey-100 dark:bg-slate-800 text-honey-700 dark:text-honey-300'
         )}
-        aria-label="Notifications"
+        aria-label="Obavještenja"
       >
         <Bell className="w-4 h-4" />
         {unread > 0 && (
@@ -83,13 +83,13 @@ export default function NotificationBell() {
         <div className="absolute right-0 top-11 w-80 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-fade-in z-50">
           {/* Header */}
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-slate-800">
-            <span className="text-sm font-semibold text-gray-800 dark:text-slate-100">Notifications</span>
+            <span className="text-sm font-semibold text-gray-800 dark:text-slate-100">Obavještenja</span>
             {notifications.length > 0 && (
               <button
                 onClick={() => markAllRead.mutate()}
                 className="text-xs text-honey-600 dark:text-honey-400 hover:text-honey-800 dark:hover:text-honey-300 font-medium transition-colors"
               >
-                Mark all read
+                Označi sve kao pročitano
               </button>
             )}
           </div>
@@ -99,7 +99,7 @@ export default function NotificationBell() {
             {notifications.length === 0 ? (
               <div className="px-4 py-8 text-center">
                 <Bell className="w-8 h-8 text-gray-300 dark:text-slate-600 mx-auto mb-2" />
-                <p className="text-sm text-gray-400 dark:text-slate-500">No notifications yet</p>
+                <p className="text-sm text-gray-400 dark:text-slate-500">Nema obavještenja</p>
               </div>
             ) : (
               notifications.map(n => (

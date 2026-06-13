@@ -85,7 +85,7 @@ export default function ReceiptScanPage() {
       }
       setPhase('review')
     } catch {
-      setOcrError('OCR failed. You can still add items manually.')
+      setOcrError('OCR nije uspio. Možete ručno dodati stavke.')
       setReviewItems([emptyItem(0)])
       setPhase('review')
     }
@@ -121,10 +121,10 @@ export default function ReceiptScanPage() {
     <div className="max-w-2xl mx-auto">
       <FormHeader
         icon="📷"
-        title="Scan Receipt"
-        subtitle="Snap or upload a receipt — items are extracted automatically."
+        title="Skeniraj račun"
+        subtitle="Fotografirajte ili učitajte račun — stavke se automatski prepoznaju."
         onBack={() => navigate('/expenses')}
-        backLabel="Back to Expenses"
+        backLabel="Nazad na troškove"
       />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8 space-y-6">
@@ -136,7 +136,7 @@ export default function ReceiptScanPage() {
               <ScanLine className="w-10 h-10 text-honey-500" />
             </div>
             <p className="text-sm text-gray-500 dark:text-slate-400 text-center max-w-xs">
-              Use your camera to capture the receipt, or upload an existing image.
+              Koristite kameru za fotografisanje računa ili učitajte postojeću sliku.
             </p>
             <div className="flex items-center gap-3">
               <button
@@ -150,7 +150,7 @@ export default function ReceiptScanPage() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold transition-colors"
               >
                 <Camera className="w-4 h-4" />
-                Open Camera
+                Otvori kameru
               </button>
               <button
                 onClick={() => {
@@ -163,7 +163,7 @@ export default function ReceiptScanPage() {
                 className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-gray-700 dark:text-slate-200 text-sm font-medium hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
                 <Upload className="w-4 h-4" />
-                Upload Image
+                Učitaj sliku
               </button>
             </div>
             <input
@@ -191,10 +191,10 @@ export default function ReceiptScanPage() {
             )}
             <div className="flex items-center gap-2 text-gray-500 dark:text-slate-400">
               <Loader2 className="w-5 h-5 animate-spin text-honey-500" />
-              <span className="text-sm">Reading receipt…</span>
+              <span className="text-sm">Čitanje računa…</span>
             </div>
             <p className="text-xs text-gray-400 dark:text-slate-500 text-center max-w-xs">
-              This may take a few seconds. The first scan loads the OCR engine.
+              Ovo može potrajati nekoliko sekundi. Prva skeniranja učitavaju OCR engine.
             </p>
           </div>
         )}
@@ -218,14 +218,14 @@ export default function ReceiptScanPage() {
                   ) : (
                     <div className="flex items-center gap-1.5 text-green-600 text-sm">
                       <CheckCircle2 className="w-4 h-4" />
-                      Receipt scanned — review the items below.
+                      Račun skeniran — pregledajte stavke ispod.
                     </div>
                   )}
                   <button
                     onClick={() => setPhase('capture')}
                     className="text-xs text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 mt-0.5 transition-colors"
                   >
-                    Scan again
+                    Skeniraj ponovo
                   </button>
                 </div>
               </div>
@@ -233,7 +233,7 @@ export default function ReceiptScanPage() {
 
             {/* Column headers */}
             <div className="grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 px-1">
-              {['Product', 'Qty', 'Unit', 'Unit price', 'Total', ''].map(h => (
+              {['Proizvod', 'Kol.', 'Jed.', 'Jed. cijena', 'Ukupno', ''].map(h => (
                 <span key={h} className="text-xs font-medium text-gray-400 dark:text-slate-500">{h}</span>
               ))}
             </div>
@@ -245,7 +245,7 @@ export default function ReceiptScanPage() {
                     type="text"
                     value={item.name}
                     onChange={e => updateItem(index, 'name', e.target.value)}
-                    placeholder="Product name"
+                    placeholder="Naziv proizvoda"
                     className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
                   <input
@@ -297,7 +297,7 @@ export default function ReceiptScanPage() {
               className="flex items-center gap-1.5 text-sm text-honey-600 dark:text-honey-400 hover:text-honey-700 dark:hover:text-honey-300 font-medium transition-colors"
             >
               <Plus className="w-4 h-4" />
-              Add item
+              Dodaj stavku
             </button>
 
             {/* Actions */}
@@ -307,7 +307,7 @@ export default function ReceiptScanPage() {
                 onClick={() => navigate('/expenses')}
                 className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
               >
-                Cancel
+                Otkaži
               </button>
               <button
                 type="button"
@@ -315,7 +315,7 @@ export default function ReceiptScanPage() {
                 disabled={reviewItems.filter(i => i.name.trim()).length === 0}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors"
               >
-                Continue to Save
+                Nastavi na čuvanje
               </button>
             </div>
           </div>

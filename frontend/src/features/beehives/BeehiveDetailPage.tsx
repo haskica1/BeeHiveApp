@@ -137,14 +137,14 @@ export default function BeehiveDetailPage() {
     : 'from-red-400 to-rose-600'
 
   const lastInspLabel =
-    lastInspDays == null ? 'No inspections'
-    : lastInspDays === 0 ? 'Today'
-    : lastInspDays === 1 ? 'Yesterday'
-    : `${lastInspDays} days ago`
+    lastInspDays == null ? 'Nema inspekcija'
+    : lastInspDays === 0 ? 'Danas'
+    : lastInspDays === 1 ? 'Jučer'
+    : `Prije ${lastInspDays} dana`
 
   const addInspectionBtn = (
     <Link to={`/inspections/new?beehiveId=${beehiveId}`} className="btn-primary text-sm">
-      <Plus className="w-4 h-4" /> Add Inspection
+      <Plus className="w-4 h-4" /> Dodaj inspekciju
     </Link>
   )
 
@@ -161,7 +161,7 @@ export default function BeehiveDetailPage() {
             onClick={() => navigate(`/apiaries/${beehive.apiaryId}`)}
             className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Apiary
+            <ArrowLeft className="w-4 h-4" /> Nazad na pčelinjak
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -187,7 +187,7 @@ export default function BeehiveDetailPage() {
               )}
               {canEditDelete && (
                 <Link to={`/beehives/${beehiveId}/edit`} className="btn-secondary text-sm">
-                  <Pencil className="w-4 h-4" /> Edit
+                  <Pencil className="w-4 h-4" /> Uredi
                 </Link>
               )}
             </div>
@@ -199,31 +199,31 @@ export default function BeehiveDetailPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
         <VitalCard
           icon="🍯"
-          label="Honey level"
+          label="Nivo meda"
           value={latest ? latest.honeyLevelName : '—'}
-          sub={latest ? format(new Date(latest.date), 'dd MMM yyyy') : 'No data yet'}
+          sub={latest ? format(new Date(latest.date), 'dd MMM yyyy') : 'Nema podataka'}
           gradient={honeyGradient}
         />
         <VitalCard
           icon="🌡️"
-          label="Temperature"
+          label="Temperatura"
           value={latest?.temperature != null ? `${latest.temperature}°C` : '—'}
           sub={lastInspLabel}
           gradient="from-sky-400 to-blue-600"
         />
         <VitalCard
           icon="✅"
-          label="Open tasks"
+          label="Otvoreni zadaci"
           value={String(openTodos.length)}
-          sub={overdueCount > 0 ? `${overdueCount} overdue` : 'On track'}
+          sub={overdueCount > 0 ? `${overdueCount} kasni` : 'U redu'}
           subAlert={overdueCount > 0}
           gradient="from-violet-400 to-indigo-600"
         />
         <VitalCard
           icon="🌿"
-          label="Active diets"
+          label="Aktivne dijete"
           value={String(activeDiets)}
-          sub={`${diets.length} total`}
+          sub={`${diets.length} ukupno`}
           gradient="from-emerald-400 to-teal-600"
         />
       </div>
@@ -235,18 +235,18 @@ export default function BeehiveDetailPage() {
         <div className="lg:col-span-7 xl:col-span-8 space-y-6">
           {/* Inspection history (timeline) */}
           <CollapsibleSection
-            title="Inspection History"
+            title="Historija inspekcija"
             icon="📋"
             count={beehive.inspectionCount}
             action={canManageThisHive ? addInspectionBtn : undefined}
           >
             {!inspections.length ? (
               <EmptyState
-                title="No inspections recorded"
-                description="Record your first inspection for this beehive."
+                title="Nema inspekcija"
+                description="Zabilježite vašu prvu inspekciju za ovu košnicu."
                 action={
                   <Link to={`/inspections/new?beehiveId=${beehiveId}`} className="btn-primary text-sm">
-                    <Plus className="w-4 h-4" /> Record Inspection
+                    <Plus className="w-4 h-4" /> Zabilježi inspekciju
                   </Link>
                 }
               />
@@ -289,18 +289,18 @@ export default function BeehiveDetailPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-4">
               <span className="text-lg leading-none">🐝</span>
-              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Hive Details</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Detalji košnice</h2>
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <DetailTile icon="🐝" label="Type" value={beehive.typeName} />
-              <DetailTile icon="🪵" label="Material" value={beehive.materialName} />
+              <DetailTile icon="🐝" label="Tip" value={beehive.typeName} />
+              <DetailTile icon="🪵" label="Materijal" value={beehive.materialName} />
               <DetailTile
                 icon="📅"
-                label="Established"
+                label="Osnovan"
                 value={format(new Date(beehive.dateCreated), 'dd MMM yyyy')}
               />
-              <DetailTile icon="📋" label="Inspections" value={String(beehive.inspectionCount)} />
+              <DetailTile icon="📋" label="Inspekcije" value={String(beehive.inspectionCount)} />
             </div>
 
             {beehive.notes && (
@@ -316,7 +316,7 @@ export default function BeehiveDetailPage() {
             )}
             {beehive.createdByName && (
               <p className="mt-3 pt-3 border-t border-honey-100 dark:border-slate-800 text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-                👤 Created by {beehive.createdByName}
+                👤 Kreirao {beehive.createdByName}
               </p>
             )}
           </div>
@@ -327,8 +327,8 @@ export default function BeehiveDetailPage() {
       {/* Delete inspection confirmation */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Delete Inspection"
-        message="Are you sure you want to delete this inspection record? This cannot be undone."
+        title="Obriši inspekciju"
+        message="Jeste li sigurni da želite obrisati ovaj zapis inspekcije? Ova radnja se ne može poništiti."
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}
@@ -360,7 +360,7 @@ export default function BeehiveDetailPage() {
                 onClick={() => setQrOpen(false)}
                 className="btn-secondary flex-1 text-sm py-2 px-3"
               >
-                Close
+                Zatvori
               </button>
               <button
                 onClick={() =>
@@ -368,7 +368,7 @@ export default function BeehiveDetailPage() {
                 }
                 className="btn-primary flex-1 text-sm py-2 px-3"
               >
-                <Download className="w-4 h-4" /> Download PDF
+                <Download className="w-4 h-4" /> Preuzmi PDF
               </button>
             </div>
           </div>
@@ -458,7 +458,7 @@ function InspectionTimelineItem({ inspection, beehiveId, canManage, isLast, onDe
           {inspection.broodStatus && (
             <div className="flex gap-2 text-sm text-gray-600 dark:text-slate-300 mb-1">
               <span className="shrink-0 text-base">🐛</span>
-              <span><strong>Brood:</strong> {inspection.broodStatus}</span>
+              <span><strong>Leglo:</strong> {inspection.broodStatus}</span>
             </div>
           )}
           {inspection.notes && (

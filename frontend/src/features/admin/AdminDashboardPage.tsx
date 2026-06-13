@@ -54,10 +54,10 @@ export default function AdminDashboardPage() {
     try {
       if (kind === 'org') await deleteOrg.mutateAsync(id)
       else await deleteUser.mutateAsync(id)
-      toast.success(`${kind === 'org' ? 'Organization' : 'Beekeeper'} “${name}” deleted.`)
+      toast.success(`${kind === 'org' ? 'Organizacija' : 'Korisnik'} “${name}” obrisan/a.`)
       setConfirmTarget(null)
     } catch (e: any) {
-      toast.error(e?.response?.data?.detail ?? e?.message ?? 'Failed to delete. Please try again.')
+      toast.error(e?.response?.data?.detail ?? e?.message ?? 'Greška pri brisanju. Pokušajte ponovo.')
     } finally {
       setIsDeleting(false)
     }
@@ -77,10 +77,10 @@ export default function AdminDashboardPage() {
           </div>
           <div className="min-w-0">
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">
-              System Dashboard
+              Sistemska kontrolna ploča
             </h1>
             <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">
-              Manage all organizations and users across the platform.
+              Upravljajte svim organizacijama i korisnicima na platformi.
             </p>
           </div>
         </div>
@@ -88,27 +88,27 @@ export default function AdminDashboardPage() {
 
       {/* ── Vitals strip ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
-        <VitalCard icon="🏢" label="Organizations" value={String(organizations.length)} sub="on the platform" gradient="from-honey-400 to-honey-600" />
-        <VitalCard icon="👥" label="Users"         value={String(users.length)}         sub="total accounts"  gradient="from-amber-400 to-orange-500" />
-        <VitalCard icon="🏡" label="Apiaries"      value={String(totalApiaries)}        sub="across all orgs" gradient="from-sky-400 to-blue-600" />
-        <VitalCard icon="🛡️" label="Admins"        value={String(adminCount)}           sub="non-user roles"  gradient="from-violet-400 to-indigo-600" />
+        <VitalCard icon="🏢" label="Organizacije" value={String(organizations.length)} sub="na platformi"           gradient="from-honey-400 to-honey-600" />
+        <VitalCard icon="👥" label="Korisnici"    value={String(users.length)}         sub="ukupno računa"          gradient="from-amber-400 to-orange-500" />
+        <VitalCard icon="🏡" label="Pčelinjaci"   value={String(totalApiaries)}        sub="u svim organizacijama"  gradient="from-sky-400 to-blue-600" />
+        <VitalCard icon="🛡️" label="Admini"       value={String(adminCount)}           sub="uloge s pravima"        gradient="from-violet-400 to-indigo-600" />
       </div>
 
       {/* ── Organizations ───────────────────────────────────────────────────── */}
       <SectionCard
         icon={<Building2 className="w-5 h-5 text-honey-600 dark:text-honey-400" />}
-        title="Organizations"
+        title="Organizacije"
         count={organizations.length}
         query={orgQuery}
         onQuery={setOrgQuery}
-        searchPlaceholder="Search organizations…"
+        searchPlaceholder="Pretraži organizacije…"
         onAdd={() => navigate('/admin/organizations/new')}
-        addLabel="Add Organization"
+        addLabel="Dodaj organizaciju"
       >
         {orgsLoading ? (
           <SpinnerRow />
         ) : organizations.length === 0 ? (
-          <EmptyRow icon={<Building2 className="w-8 h-8 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />} text="No organizations yet." />
+          <EmptyRow icon={<Building2 className="w-8 h-8 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />} text="Nema organizacija." />
         ) : filteredOrgs.length === 0 ? (
           <NoMatchRow query={orgQuery} />
         ) : (
@@ -116,10 +116,10 @@ export default function AdminDashboardPage() {
             <table className="w-full text-sm">
               <thead className="bg-honey-50 dark:bg-slate-800/60 border-y border-honey-100 dark:border-slate-800">
                 <tr>
-                  <Th>Name</Th>
-                  <Th className="hidden md:table-cell">Description</Th>
-                  <Th className="text-center">Users</Th>
-                  <Th className="text-center">Apiaries</Th>
+                  <Th>Naziv</Th>
+                  <Th className="hidden md:table-cell">Opis</Th>
+                  <Th className="text-center">Korisnici</Th>
+                  <Th className="text-center">Pčelinjaci</Th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -152,18 +152,18 @@ export default function AdminDashboardPage() {
       {/* ── Users ────────────────────────────────────────────────────────────── */}
       <SectionCard
         icon={<Users className="w-5 h-5 text-honey-600 dark:text-honey-400" />}
-        title="Users"
+        title="Korisnici"
         count={users.length}
         query={userQuery}
         onQuery={setUserQuery}
-        searchPlaceholder="Search users…"
+        searchPlaceholder="Pretraži korisnike…"
         onAdd={() => navigate('/admin/users/new')}
-        addLabel="Add User"
+        addLabel="Dodaj korisnika"
       >
         {usersLoading ? (
           <SpinnerRow />
         ) : users.length === 0 ? (
-          <EmptyRow icon={<Users className="w-8 h-8 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />} text="No users yet." />
+          <EmptyRow icon={<Users className="w-8 h-8 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />} text="Nema korisnika." />
         ) : filteredUsers.length === 0 ? (
           <NoMatchRow query={userQuery} />
         ) : (
@@ -171,10 +171,10 @@ export default function AdminDashboardPage() {
             <table className="w-full text-sm">
               <thead className="bg-honey-50 dark:bg-slate-800/60 border-y border-honey-100 dark:border-slate-800">
                 <tr>
-                  <Th>Name</Th>
-                  <Th className="hidden sm:table-cell">Email</Th>
-                  <Th>Role</Th>
-                  <Th className="hidden md:table-cell">Organization</Th>
+                  <Th>Ime</Th>
+                  <Th className="hidden sm:table-cell">E-pošta</Th>
+                  <Th>Uloga</Th>
+                  <Th className="hidden md:table-cell">Organizacija</Th>
                   <th className="px-4 py-3" />
                 </tr>
               </thead>
@@ -195,10 +195,10 @@ export default function AdminDashboardPage() {
                           ? 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
                           : 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
                         }`}>
-                        {user.role === 'SystemAdmin' ? 'System Admin'
+                        {user.role === 'SystemAdmin' ? 'Sistem Admin'
                           : user.role === 'OrganizationAdmin' ? 'Org Admin'
-                          : user.role === 'Beekeeper' ? 'Beekeeper'
-                          : 'ApiaryAdmin'}
+                          : user.role === 'Beekeeper' ? 'Korisnik'
+                          : 'Admin'}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden md:table-cell">
@@ -226,8 +226,8 @@ export default function AdminDashboardPage() {
 
       <ConfirmDialog
         isOpen={!!confirmTarget}
-        title={`Delete ${confirmTarget?.kind === 'org' ? 'Organization' : 'Beekeeper'}`}
-        message={`Delete “${confirmTarget?.name}”? This cannot be undone.`}
+        title={`Obriši ${confirmTarget?.kind === 'org' ? 'organizaciju' : 'korisnika'}`}
+        message={`Obrisati “${confirmTarget?.name}”? Ova radnja se ne može poništiti.`}
         onConfirm={handleConfirmDelete}
         onCancel={() => setConfirmTarget(null)}
         isLoading={isDeleting}
@@ -297,7 +297,7 @@ function RowAction({ kind, onClick, loading }: { kind: 'edit' | 'delete'; onClic
       <button
         onClick={onClick}
         className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
-        title="Edit"
+        title="Uredi"
       >
         <Pencil className="w-4 h-4" />
       </button>
@@ -308,7 +308,7 @@ function RowAction({ kind, onClick, loading }: { kind: 'edit' | 'delete'; onClic
       onClick={onClick}
       disabled={loading}
       className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-50"
-      title="Delete"
+      title="Obriši"
     >
       {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
     </button>
@@ -337,7 +337,7 @@ function NoMatchRow({ query }: { query: string }) {
   return (
     <div className="text-center py-12 border-t border-honey-100 dark:border-slate-800">
       <Search className="w-7 h-7 text-honey-300 dark:text-honey-500/40 mx-auto mb-2" />
-      <p className="text-sm text-gray-500 dark:text-slate-400">No results for “{query}”.</p>
+      <p className=”text-sm text-gray-500 dark:text-slate-400”>Nema rezultata za “{query}”.</p>
     </div>
   )
 }

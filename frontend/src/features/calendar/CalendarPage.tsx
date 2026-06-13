@@ -86,7 +86,7 @@ export default function CalendarPage() {
   const selectedEvents = eventsByDate.get(selectedKey) ?? { todos: [], feedings: [] }
 
   if (isLoading) return <PageSkeleton />
-  if (isError)   return <ErrorMessage message="Failed to load calendar events." />
+  if (isError)   return <ErrorMessage message="Greška pri učitavanju kalendarskih događaja." />
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -101,18 +101,18 @@ export default function CalendarPage() {
             📅
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Calendar</h1>
-            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Your tasks and feeding schedules at a glance</p>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Kalendar</h1>
+            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Vaši zadaci i rasporedi hranjenja na jednom mjestu</p>
           </div>
         </div>
       </div>
 
       {/* ── Vitals strip ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger">
-        <VitalCard icon="📋" label="Tasks"    value={String(monthSummary.todos)}    sub={format(currentMonth, 'MMMM')} gradient="from-honey-400 to-honey-600" />
-        <VitalCard icon="🌿" label="Feedings" value={String(monthSummary.feedings)} sub={format(currentMonth, 'MMMM')} gradient="from-emerald-400 to-teal-600" />
-        <VitalCard icon="⚠️" label="Overdue"  value={String(overdueCount)} sub={overdueCount > 0 ? 'needs attention' : 'all clear'} gradient={overdueCount > 0 ? 'from-red-400 to-rose-600' : 'from-slate-400 to-slate-500'} />
-        <VitalCard icon="📌" label="Today"    value={String(todayCount)}    sub={format(new Date(), 'EEE, MMM d')} gradient="from-sky-400 to-blue-600" />
+        <VitalCard icon="📋" label="Zadaci"    value={String(monthSummary.todos)}    sub={format(currentMonth, 'MMMM')} gradient="from-honey-400 to-honey-600" />
+        <VitalCard icon="🌿" label="Hranjenja" value={String(monthSummary.feedings)} sub={format(currentMonth, 'MMMM')} gradient="from-emerald-400 to-teal-600" />
+        <VitalCard icon="⚠️" label="Zakasnjelo" value={String(overdueCount)} sub={overdueCount > 0 ? 'treba pažnju' : 'sve u redu'} gradient={overdueCount > 0 ? 'from-red-400 to-rose-600' : 'from-slate-400 to-slate-500'} />
+        <VitalCard icon="📌" label="Danas"     value={String(todayCount)}    sub={format(new Date(), 'EEE, MMM d')} gradient="from-sky-400 to-blue-600" />
       </div>
 
       {/* ── Bento: calendar + selected day ────────────────────────────────────── */}
@@ -129,7 +129,7 @@ export default function CalendarPage() {
           <button
             onClick={() => setCurrentMonth(m => subMonths(m, 1))}
             className="p-2 rounded-xl text-gray-500 dark:text-slate-400 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-800 dark:hover:text-honey-300 transition-colors"
-            aria-label="Previous month"
+            aria-label="Prethodni mjesec"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -139,7 +139,7 @@ export default function CalendarPage() {
           <button
             onClick={() => setCurrentMonth(m => addMonths(m, 1))}
             className="p-2 rounded-xl text-gray-500 dark:text-slate-400 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-800 dark:hover:text-honey-300 transition-colors"
-            aria-label="Next month"
+            aria-label="Sljedeći mjesec"
           >
             <ChevronRightIcon className="w-5 h-5" />
           </button>
@@ -147,7 +147,7 @@ export default function CalendarPage() {
 
         {/* Day-of-week header */}
         <div className="grid grid-cols-7 mb-2">
-          {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(d => (
+          {['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned'].map(d => (
             <div key={d} className="text-center text-[11px] font-bold text-gray-400 dark:text-slate-500 uppercase tracking-wide py-1">
               {d}
             </div>
@@ -222,15 +222,15 @@ export default function CalendarPage() {
         <div className="flex items-center gap-5 mt-5 pt-4 border-t border-gray-100 dark:border-slate-800">
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-honey-500" />
-            <span className="text-xs text-gray-500 dark:text-slate-400">Tasks</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">Zadaci</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
-            <span className="text-xs text-gray-500 dark:text-slate-400">Diet feedings</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">Hranjenja</span>
           </div>
           <div className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-full bg-red-500" />
-            <span className="text-xs text-gray-500 dark:text-slate-400">Overdue</span>
+            <span className="text-xs text-gray-500 dark:text-slate-400">Zakasnjelo</span>
           </div>
         </div>
       </div>
@@ -247,7 +247,7 @@ export default function CalendarPage() {
           </h3>
           {isToday(selectedDay) && (
             <span className="text-xs font-semibold px-2 py-0.5 bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300 rounded-full">
-              Today
+              Danas
             </span>
           )}
         </div>
@@ -259,7 +259,7 @@ export default function CalendarPage() {
             {selectedEvents.todos.length > 0 && (
               <section>
                 <SectionLabel icon={<CheckSquare className="w-3.5 h-3.5" />} color="honey" count={selectedEvents.todos.length}>
-                  Tasks
+                  Zadaci
                 </SectionLabel>
                 <div className="space-y-2 mt-2">
                   {selectedEvents.todos.map(todo => <TodoCard key={todo.id} todo={todo} />)}
@@ -269,7 +269,7 @@ export default function CalendarPage() {
             {selectedEvents.feedings.length > 0 && (
               <section>
                 <SectionLabel icon={<Droplets className="w-3.5 h-3.5" />} color="emerald" count={selectedEvents.feedings.length}>
-                  Diet Feedings
+                  Hranjenja
                 </SectionLabel>
                 <div className="space-y-2 mt-2">
                   {selectedEvents.feedings.map(f => <FeedingCard key={f.id} entry={f} />)}
@@ -294,8 +294,8 @@ function EmptyDay() {
   return (
     <div className="flex flex-col items-center justify-center py-10 text-gray-400 dark:text-slate-500">
       <CalendarDays className="w-10 h-10 mb-3 opacity-30" />
-      <p className="text-sm font-medium">No events on this day</p>
-      <p className="text-xs mt-0.5 opacity-70">Select another date to browse your schedule</p>
+      <p className="text-sm font-medium">Nema događaja ovog dana</p>
+      <p className="text-xs mt-0.5 opacity-70">Odaberite drugi datum za pregled rasporeda</p>
     </div>
   )
 }
@@ -325,14 +325,14 @@ function TodoCard({ todo }: { todo: CalendarTodo }) {
   const overdue = !todo.isCompleted && todo.dueDate && isPast(parseISO(todo.dueDate))
 
   const priorityConfig = {
-    [TodoPriority.High]:   { label: 'High',   cls: 'text-red-600 bg-red-50 border-red-100 dark:text-red-300 dark:bg-red-500/10 dark:border-red-500/20' },
-    [TodoPriority.Medium]: { label: 'Medium', cls: 'text-amber-600 bg-amber-50 border-amber-100 dark:text-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20' },
-    [TodoPriority.Low]:    { label: 'Low',    cls: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20' },
+    [TodoPriority.High]:   { label: 'Visok',  cls: 'text-red-600 bg-red-50 border-red-100 dark:text-red-300 dark:bg-red-500/10 dark:border-red-500/20' },
+    [TodoPriority.Medium]: { label: 'Srednji', cls: 'text-amber-600 bg-amber-50 border-amber-100 dark:text-amber-300 dark:bg-amber-500/10 dark:border-amber-500/20' },
+    [TodoPriority.Low]:    { label: 'Nizak',  cls: 'text-blue-600 bg-blue-50 border-blue-100 dark:text-blue-300 dark:bg-blue-500/10 dark:border-blue-500/20' },
   }
   const pc = priorityConfig[todo.priority] ?? priorityConfig[TodoPriority.Medium]
 
   const context     = todo.beehiveName ?? todo.apiaryName
-  const contextKind = todo.beehiveId ? 'Beehive' : 'Apiary'
+  const contextKind = todo.beehiveId ? 'Košnica' : 'Pčelinjak'
 
   return (
     <div className={clsx(
@@ -370,11 +370,11 @@ function TodoCard({ todo }: { todo: CalendarTodo }) {
           </span>
           {overdue && (
             <span className="flex items-center gap-0.5 text-xs text-red-600 font-semibold">
-              <AlertCircle className="w-3 h-3" /> Overdue
+              <AlertCircle className="w-3 h-3" /> Zakasnjelo
             </span>
           )}
           {todo.isCompleted && (
-            <span className="text-xs text-green-600 font-medium">Completed</span>
+            <span className="text-xs text-green-600 font-medium">Završeno</span>
           )}
         </div>
 
@@ -419,7 +419,7 @@ function FeedingCard({ entry }: { entry: CalendarFeedingEntry }) {
 
         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
           <span className="text-xs text-gray-500 dark:text-slate-400">
-            Beehive: <span className="font-medium text-gray-700 dark:text-slate-300">{entry.beehiveName}</span>
+            Košnica: <span className="font-medium text-gray-700 dark:text-slate-300">{entry.beehiveName}</span>
           </span>
           <span className="text-xs text-gray-400 dark:text-slate-500">·</span>
           <span className="text-xs text-gray-500 dark:text-slate-400">{entry.foodTypeName}</span>
@@ -429,15 +429,15 @@ function FeedingCard({ entry }: { entry: CalendarFeedingEntry }) {
           {completed ? (
             <span className="flex items-center gap-1 text-xs text-green-600 font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-              Completed
+              Završeno
             </span>
           ) : overdue ? (
             <span className="flex items-center gap-1 text-xs text-red-600 font-semibold">
-              <AlertCircle className="w-3 h-3" /> Overdue
+              <AlertCircle className="w-3 h-3" /> Zakasnjelo
             </span>
           ) : (
             <span className="flex items-center gap-1 text-xs text-emerald-700 font-semibold">
-              <Clock className="w-3 h-3" /> Pending
+              <Clock className="w-3 h-3" /> Na čekanju
             </span>
           )}
         </div>

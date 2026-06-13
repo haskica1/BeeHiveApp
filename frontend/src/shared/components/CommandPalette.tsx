@@ -30,20 +30,20 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const items = useMemo<CommandItem[]>(() => {
     const go = (to: string) => () => { onClose(); navigate(to) }
     const nav: CommandItem[] = []
-    if (isSystemAdmin) nav.push({ id: 'admin', label: 'Dashboard', icon: <LayoutDashboard className="w-4 h-4" />, group: 'Navigate', run: go('/admin') })
-    else nav.push({ id: 'apiaries', label: 'Apiaries', icon: <Home className="w-4 h-4" />, group: 'Navigate', run: go('/apiaries') })
-    if (canSeeMembers) nav.push({ id: 'members', label: 'Members', icon: <Users className="w-4 h-4" />, group: 'Navigate', run: go('/members') })
-    if (canSeeExpenses) nav.push({ id: 'expenses', label: 'Expenses', icon: <ReceiptText className="w-4 h-4" />, group: 'Navigate', run: go('/expenses') })
-    nav.push({ id: 'calendar', label: 'Calendar', icon: <CalendarDays className="w-4 h-4" />, group: 'Navigate', run: go('/calendar') })
-    nav.push({ id: 'stats', label: 'Statistics', icon: <BarChart2 className="w-4 h-4" />, group: 'Navigate', run: go('/stats') })
-    nav.push({ id: 'profile', label: 'Edit profile', icon: <Settings className="w-4 h-4" />, group: 'Navigate', run: go('/profile') })
+    if (isSystemAdmin) nav.push({ id: 'admin', label: 'Kontrolna ploča', icon: <LayoutDashboard className="w-4 h-4" />, group: 'Navigacija', run: go('/admin') })
+    else nav.push({ id: 'apiaries', label: 'Pčelinjaci', icon: <Home className="w-4 h-4" />, group: 'Navigacija', run: go('/apiaries') })
+    if (canSeeMembers) nav.push({ id: 'members', label: 'Korisnici', icon: <Users className="w-4 h-4" />, group: 'Navigacija', run: go('/members') })
+    if (canSeeExpenses) nav.push({ id: 'expenses', label: 'Troškovi', icon: <ReceiptText className="w-4 h-4" />, group: 'Navigacija', run: go('/expenses') })
+    nav.push({ id: 'calendar', label: 'Kalendar', icon: <CalendarDays className="w-4 h-4" />, group: 'Navigacija', run: go('/calendar') })
+    nav.push({ id: 'stats', label: 'Statistike', icon: <BarChart2 className="w-4 h-4" />, group: 'Navigacija', run: go('/stats') })
+    nav.push({ id: 'profile', label: 'Uredi profil', icon: <Settings className="w-4 h-4" />, group: 'Navigacija', run: go('/profile') })
 
     const ap: CommandItem[] = apiaries.map(a => ({
       id: `ap-${a.id}`,
       label: a.name,
-      hint: `${a.beehiveCount} hive${a.beehiveCount === 1 ? '' : 's'}`,
+      hint: `${a.beehiveCount} košnic${a.beehiveCount === 1 ? 'a' : 'e'}`,
       icon: <span className="text-base leading-none">🏡</span>,
-      group: 'Apiaries',
+      group: 'Pčelinjaci',
       run: go(`/apiaries/${a.id}`),
     }))
     return [...nav, ...ap]
@@ -95,7 +95,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Search pages and apiaries…"
+            placeholder="Pretraži stranice i pčelinjake…"
             className="flex-1 py-3.5 bg-transparent outline-none text-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500"
           />
           <kbd className="text-[10px] font-mono text-gray-400 dark:text-slate-500 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-0.5">ESC</kbd>
@@ -104,7 +104,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
         {/* Results */}
         <div className="max-h-80 overflow-y-auto py-2">
           {filtered.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-slate-500">No results.</p>
+            <p className="px-4 py-8 text-center text-sm text-gray-400 dark:text-slate-500">Nema rezultata.</p>
           ) : (
             filtered.map((item, i) => {
               const header = item.group !== lastGroup ? item.group : null

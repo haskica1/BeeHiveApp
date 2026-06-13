@@ -31,7 +31,7 @@ export default function Layout() {
     : 'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300'
 
   const roleLabel = isSystemAdmin
-    ? 'System Admin'
+    ? 'Sistem Admin'
     : isOrgAdmin
     ? `Org Admin · ${user?.organizationName}`
     : isAdmin
@@ -90,24 +90,24 @@ export default function Layout() {
             {/* Nav pill group */}
             <nav className="flex items-center gap-0.5 bg-gray-100 dark:bg-slate-800 rounded-xl p-1">
               {isSystemAdmin ? (
-                <NavPill to="/admin" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" />
+                <NavPill to="/admin" icon={<LayoutDashboard className="w-4 h-4" />} label="Kontrolna ploča" />
               ) : (
-                <NavPill to="/apiaries" icon={<Home className="w-4 h-4" />} label="Apiaries" />
+                <NavPill to="/apiaries" icon={<Home className="w-4 h-4" />} label="Pčelinjaci" />
               )}
               {(isOrgAdmin || isAdmin) && (
-                <NavPill to="/members" icon={<Users className="w-4 h-4" />} label="Members" />
+                <NavPill to="/members" icon={<Users className="w-4 h-4" />} label="Članovi" />
               )}
               {canSeeExpenses && (
-                <NavPill to="/expenses" icon={<ReceiptText className="w-4 h-4" />} label="Expenses" />
+                <NavPill to="/expenses" icon={<ReceiptText className="w-4 h-4" />} label="Troškovi" />
               )}
-              <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Calendar" />
-              <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistics" />
+              <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Kalendar" />
+              <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistike" />
               <button
                 onClick={() => setScannerOpen(true)}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm hover:text-honey-700 dark:hover:text-honey-300 transition-all"
               >
                 <QrCode className="w-4 h-4" />
-                Scan
+                Skeniraj
               </button>
             </nav>
 
@@ -115,10 +115,10 @@ export default function Layout() {
             <button
               onClick={() => setPaletteOpen(true)}
               className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl text-sm text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-              aria-label="Open search"
+              aria-label="Otvori pretragu"
             >
               <Search className="w-4 h-4" />
-              <span className="hidden lg:inline">Search</span>
+              <span className="hidden lg:inline">Pretraži</span>
               <kbd className="text-[10px] font-mono bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-0.5 leading-none">
                 {isMac ? '⌘K' : 'Ctrl K'}
               </kbd>
@@ -128,8 +128,8 @@ export default function Layout() {
             <button
               onClick={toggleTheme}
               className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
-              title={isDark ? 'Light mode' : 'Dark mode'}
+              aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
+              title={isDark ? 'Svjetla tema' : 'Tamna tema'}
             >
               {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             </button>
@@ -147,7 +147,7 @@ export default function Layout() {
                   avatarClass,
                   profileOpen && 'ring-2 ring-honey-400 ring-offset-1'
                 )}
-                aria-label="Open profile menu"
+                aria-label="Otvori meni profila"
               >
                 {user?.firstName[0] ?? '?'}
               </button>
@@ -175,7 +175,7 @@ export default function Layout() {
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
                   >
                     <Settings className="w-4 h-4" />
-                    Edit Profile
+                    Uredi profil
                   </button>
                   {/* Sign out */}
                   <button
@@ -183,7 +183,7 @@ export default function Layout() {
                     className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
-                    Sign out
+                    Odjavi se
                   </button>
                 </div>
               )}
@@ -195,21 +195,21 @@ export default function Layout() {
             <button
               onClick={() => setPaletteOpen(true)}
               className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Search"
+              aria-label="Pretraži"
             >
               <Search className="w-5 h-5" />
             </button>
             <button
               onClick={toggleTheme}
               className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
             >
               {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
             <button
               className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
               onClick={() => setMobileOpen(v => !v)}
-              aria-label="Toggle menu"
+              aria-label="Otvori/zatvori meni"
             >
               {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
@@ -224,14 +224,14 @@ export default function Layout() {
               <MobileNavItem
                 to="/admin"
                 icon={<LayoutDashboard className="w-4 h-4" />}
-                label="Dashboard"
+                label="Kontrolna ploča"
                 onClick={() => setMobileOpen(false)}
               />
             ) : (
               <MobileNavItem
                 to="/apiaries"
                 icon={<Home className="w-4 h-4" />}
-                label="Apiaries"
+                label="Pčelinjaci"
                 onClick={() => setMobileOpen(false)}
               />
             )}
@@ -239,7 +239,7 @@ export default function Layout() {
               <MobileNavItem
                 to="/members"
                 icon={<Users className="w-4 h-4" />}
-                label="Members"
+                label="Članovi"
                 onClick={() => setMobileOpen(false)}
               />
             )}
@@ -247,20 +247,20 @@ export default function Layout() {
               <MobileNavItem
                 to="/expenses"
                 icon={<ReceiptText className="w-4 h-4" />}
-                label="Expenses"
+                label="Troškovi"
                 onClick={() => setMobileOpen(false)}
               />
             )}
             <MobileNavItem
               to="/calendar"
               icon={<CalendarDays className="w-4 h-4" />}
-              label="Calendar"
+              label="Kalendar"
               onClick={() => setMobileOpen(false)}
             />
             <MobileNavItem
               to="/stats"
               icon={<BarChart2 className="w-4 h-4" />}
-              label="Statistics"
+              label="Statistike"
               onClick={() => setMobileOpen(false)}
             />
             <button
@@ -268,7 +268,7 @@ export default function Layout() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
             >
               <QrCode className="w-4 h-4 text-honey-600 dark:text-honey-400" />
-              Scan
+              Skeniraj
             </button>
 
             {/* User section */}
@@ -290,14 +290,14 @@ export default function Layout() {
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                 >
                   <Settings className="w-4 h-4 text-honey-600 dark:text-honey-400" />
-                  Edit Profile
+                  Uredi profil
                 </button>
                 <button
                   onClick={() => { setMobileOpen(false); handleLogout() }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                 >
                   <LogOut className="w-4 h-4" />
-                  Sign out
+                  Odjavi se
                 </button>
               </div>
             )}
@@ -312,14 +312,14 @@ export default function Layout() {
 
       {/* ── Footer ──────────────────────────────────────────────────────────── */}
       <footer className="border-t border-honey-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-gray-400 dark:text-slate-500">
-        BeeHive App © {new Date().getFullYear()} — Keeping your colonies thriving 🍯
+        BeeHive App © {new Date().getFullYear()} — Čuvajte vaše kolonije zdravim 🍯
       </footer>
 
       {/* ── Mobile FAB (scan) ───────────────────────────────────────────────── */}
       <button
         onClick={() => setScannerOpen(true)}
         className="sm:hidden fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-honey-500 hover:bg-honey-600 active:bg-honey-700 text-white shadow-honey shadow-lg transition-colors"
-        aria-label="Scan beehive QR code"
+        aria-label="Skeniraj QR kod košnice"
       >
         <QrCode className="w-6 h-6" />
       </button>

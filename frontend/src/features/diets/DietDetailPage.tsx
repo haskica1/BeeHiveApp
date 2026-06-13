@@ -74,7 +74,7 @@ function EntryRow({
               ? 'text-gray-300 dark:text-slate-600 hover:text-honey-500 dark:hover:text-honey-400 cursor-pointer'
               : 'text-gray-200 dark:text-slate-700 cursor-not-allowed'
           }`}
-          title={canComplete ? 'Mark as completed' : 'Diet is finished'}
+          title={canComplete ? 'Označi kao završeno' : 'Dijeta je završena'}
         >
           <Circle className="w-5 h-5" />
         </button>
@@ -84,12 +84,12 @@ function EntryRow({
       <div className="flex-1 min-w-0">
         <p className={`text-sm font-medium ${done ? 'text-gray-500 dark:text-slate-500 line-through' : 'text-gray-800 dark:text-slate-100'}`}>
           {format(date, 'EEEE, dd MMM yyyy')}
-          {today && <span className="ml-2 text-xs font-semibold text-amber-600 dark:text-amber-400">Today</span>}
-          {overdue && <span className="ml-2 text-xs font-semibold text-red-500 dark:text-red-400">Overdue</span>}
+          {today && <span className="ml-2 text-xs font-semibold text-amber-600 dark:text-amber-400">Danas</span>}
+          {overdue && <span className="ml-2 text-xs font-semibold text-red-500 dark:text-red-400">Kasni</span>}
         </p>
         {done && entry.completionDate && (
           <p className="text-xs text-gray-400 dark:text-slate-500 mt-0.5">
-            Completed {format(new Date(entry.completionDate), 'dd MMM yyyy, HH:mm')}
+            Završeno {format(new Date(entry.completionDate), 'dd MMM yyyy, HH:mm')}
           </p>
         )}
       </div>
@@ -101,7 +101,7 @@ function EntryRow({
         today ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300' :
         'bg-gray-100 text-gray-500 dark:bg-slate-700 dark:text-slate-300'
       }`}>
-        {done ? 'Done' : overdue ? 'Overdue' : today ? 'Today' : 'Pending'}
+        {done ? 'Završeno' : overdue ? 'Kasni' : today ? 'Danas' : 'Na čekanju'}
       </span>
     </div>
   )
@@ -122,7 +122,7 @@ function CompleteEarlyModal({
   const [err, setErr] = useState('')
 
   function submit() {
-    if (!comment.trim()) { setErr('Please enter a reason.'); return }
+    if (!comment.trim()) { setErr('Molimo unesite razlog.'); return }
     onConfirm(comment.trim())
   }
 
@@ -134,14 +134,14 @@ function CompleteEarlyModal({
             <AlertTriangle className="w-5 h-5 text-red-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-800 dark:text-slate-100">Stop Diet Early</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400">Please explain why the diet is being stopped early.</p>
+            <h2 className="font-semibold text-gray-800 dark:text-slate-100">Zaustavi dijetu ranije</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Molimo objasnite zašto se dijeta zaustavlja ranije.</p>
           </div>
         </div>
 
         <textarea
           className={`form-input resize-none h-24 ${err ? 'border-red-400' : ''}`}
-          placeholder="Reason for early completion…"
+          placeholder="Razlog za prijevremeno završavanje…"
           value={comment}
           onChange={e => { setComment(e.target.value); setErr('') }}
         />
@@ -149,10 +149,10 @@ function CompleteEarlyModal({
 
         <div className="flex gap-3 mt-4">
           <button onClick={onCancel} className="btn-secondary flex-1" disabled={isLoading}>
-            Cancel
+            Otkaži
           </button>
           <button onClick={submit} className="btn-primary flex-1 bg-red-500 hover:bg-red-600" disabled={isLoading}>
-            {isLoading ? 'Stopping…' : 'Stop Diet'}
+            {isLoading ? 'Zaustavljam…' : 'Zaustavi dijetu'}
           </button>
         </div>
       </div>
@@ -216,7 +216,7 @@ export default function DietDetailPage() {
             onClick={() => navigate(`/beehives/${diet.beehiveId}`)}
             className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
           >
-            <ArrowLeft className="w-4 h-4" /> Back to Beehive
+            <ArrowLeft className="w-4 h-4" /> Nazad na košnicu
           </button>
 
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -239,14 +239,14 @@ export default function DietDetailPage() {
                   onClick={() => setShowDeleteConfirm(true)}
                   className="btn-secondary text-sm text-red-500 hover:text-red-600 hover:bg-red-50 border-red-200 dark:text-red-400 dark:hover:text-red-300 dark:hover:bg-red-500/10 dark:border-red-500/30"
                 >
-                  <Trash2 className="w-4 h-4" /> Delete
+                  <Trash2 className="w-4 h-4" /> Obriši
                 </button>
               )}
               {canManage && !isFinished && (
-                <button onClick={() => setShowCompleteEarly(true)} className="btn-secondary text-sm">Stop Early</button>
+                <button onClick={() => setShowCompleteEarly(true)} className="btn-secondary text-sm">Zaustavi ranije</button>
               )}
               {canEdit && (
-                <Link to={`/diets/${dietId}/edit`} className="btn-secondary text-sm"><Pencil className="w-4 h-4" /> Edit</Link>
+                <Link to={`/diets/${dietId}/edit`} className="btn-secondary text-sm"><Pencil className="w-4 h-4" /> Uredi</Link>
               )}
             </div>
           </div>
@@ -256,16 +256,16 @@ export default function DietDetailPage() {
       {/* ── Vitals ────────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger mb-6">
         <VitalCard
-          icon="📊" label="Progress" value={`${progressPct}%`} sub="complete"
+          icon="📊" label="Napredak" value={`${progressPct}%`} sub="završeno"
           gradient={
             diet.status === DietStatus.StoppedEarly ? 'from-red-400 to-rose-600'
             : diet.status === DietStatus.Completed ? 'from-emerald-400 to-green-600'
             : 'from-honey-400 to-honey-600'
           }
         />
-        <VitalCard icon="✅" label="Feedings"  value={`${diet.completedEntries}/${diet.totalEntries}`} sub="completed" gradient="from-amber-400 to-orange-500" />
-        <VitalCard icon="📅" label="Duration"  value={String(diet.durationDays)} sub="days total" gradient="from-sky-400 to-blue-600" />
-        <VitalCard icon="⏱️" label="Frequency" value={String(diet.frequencyDays)} sub={`every ${diet.frequencyDays} day${diet.frequencyDays !== 1 ? 's' : ''}`} gradient="from-violet-400 to-indigo-600" />
+        <VitalCard icon="✅" label="Hranjenja"  value={`${diet.completedEntries}/${diet.totalEntries}`} sub="završeno" gradient="from-amber-400 to-orange-500" />
+        <VitalCard icon="📅" label="Trajanje"  value={String(diet.durationDays)} sub="dana ukupno" gradient="from-sky-400 to-blue-600" />
+        <VitalCard icon="⏱️" label="Frekvencija" value={String(diet.frequencyDays)} sub={`svakih ${diet.frequencyDays} ${diet.frequencyDays === 1 ? 'dan' : 'dana'}`} gradient="from-violet-400 to-indigo-600" />
       </div>
 
       {/* ── Summary card ──────────────────────────────────────────────────────── */}
@@ -283,28 +283,28 @@ export default function DietDetailPage() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 text-center text-sm">
-          <InfoItem icon={<CalendarDays className="w-4 h-4" />} label="Start Date"
+          <InfoItem icon={<CalendarDays className="w-4 h-4" />} label="Datum početka"
             value={format(new Date(diet.startDate), 'dd MMM yyyy')} />
-          <InfoItem icon={<Utensils className="w-4 h-4" />} label="Food"
+          <InfoItem icon={<Utensils className="w-4 h-4" />} label="Hrana"
             value={diet.foodType === 5 && diet.customFoodType ? diet.customFoodType : diet.foodTypeName} />
         </div>
 
         {diet.status === DietStatus.StoppedEarly && diet.earlyCompletionComment && (
           <div className="mt-4 pt-4 border-t border-red-100 dark:border-red-500/20 flex gap-2 text-sm text-red-700 dark:text-red-300">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span><strong>Stopped early:</strong> {diet.earlyCompletionComment}</span>
+            <span><strong>Zaustavljeno ranije:</strong> {diet.earlyCompletionComment}</span>
           </div>
         )}
         {diet.createdByName && (
           <p className="mt-3 pt-3 border-t border-honey-100 dark:border-slate-800 text-xs text-gray-500 dark:text-slate-400 flex items-center gap-1.5">
-            👤 Created by {diet.createdByName}
+            👤 Kreirao {diet.createdByName}
           </p>
         )}
       </div>
 
       {/* Pending entries */}
       <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100 mb-3">
-        Upcoming Feedings
+        Predstojeća hranjenja
         {pendingEntries.length > 0 && (
           <span className="ml-2 text-sm font-normal text-gray-400 dark:text-slate-500">({pendingEntries.length})</span>
         )}
@@ -313,7 +313,7 @@ export default function DietDetailPage() {
       {pendingEntries.length === 0 ? (
         <div className="card text-center text-gray-400 dark:text-slate-500 py-8 mb-6">
           <CheckCircle2 className="w-10 h-10 mx-auto mb-2 text-green-300" />
-          <p className="text-sm">All feedings accounted for.</p>
+          <p className="text-sm">Sva hranjenja su evidentirana.</p>
         </div>
       ) : (
         <div className="space-y-2 mb-6">
@@ -340,7 +340,7 @@ export default function DietDetailPage() {
               ? <ChevronUp className="w-4 h-4" />
               : <ChevronDown className="w-4 h-4" />
             }
-            Completed Feedings ({completedEntries.length})
+            Završena hranjenja ({completedEntries.length})
           </button>
 
           {showCompleted && (
@@ -362,8 +362,8 @@ export default function DietDetailPage() {
       {/* Delete confirm */}
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Delete Diet"
-        message="Are you sure you want to delete this diet? This cannot be undone."
+        title="Obriši dijetu"
+        message="Da li ste sigurni da želite obrisati ovu dijetu? Ova radnja ne može biti poništena."
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         isLoading={deleteMutation.isPending}

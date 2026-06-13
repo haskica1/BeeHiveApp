@@ -72,7 +72,7 @@ function Section({ title, icon, children }: { title: string; icon: string; child
 
 // ── Empty chart placeholder ────────────────────────────────────────────────────
 
-function EmptyChart({ message = 'Not enough data yet' }: { message?: string }) {
+function EmptyChart({ message = 'Nedovoljno podataka' }: { message?: string }) {
   return (
     <div className="flex items-center justify-center h-48 rounded-xl border-2 border-dashed border-gray-200 dark:border-slate-700">
       <p className="text-gray-400 dark:text-slate-500 text-sm">{message}</p>
@@ -109,22 +109,22 @@ export default function StatsPage() {
             📊
           </div>
           <div className="min-w-0">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Statistics</h1>
-            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Overview of your apiary activity and hive health</p>
+            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Statistike</h1>
+            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Pregled aktivnosti vašeg pčelinjaka i zdravlja košnica</p>
           </div>
         </div>
       </div>
 
       {/* ── KPI Summary ──────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger mb-8">
-        <VitalCard icon="🏡" label="Apiaries"     value={String(stats.totalApiaries)}    gradient="from-honey-400 to-honey-600" />
-        <VitalCard icon="🐝" label="Beehives"     value={String(stats.totalBeehives)}    gradient="from-amber-400 to-orange-500" />
-        <VitalCard icon="🔍" label="Inspections"  value={String(stats.totalInspections)} gradient="from-emerald-400 to-teal-600" />
-        <VitalCard icon="🌿" label="Active Diets" value={String(stats.activeDiets)}      gradient="from-violet-400 to-indigo-600" />
+        <VitalCard icon="🏡" label="Pčelinjaci"    value={String(stats.totalApiaries)}    gradient="from-honey-400 to-honey-600" />
+        <VitalCard icon="🐝" label="Košnice"      value={String(stats.totalBeehives)}    gradient="from-amber-400 to-orange-500" />
+        <VitalCard icon="🔍" label="Inspekcije"   value={String(stats.totalInspections)} gradient="from-emerald-400 to-teal-600" />
+        <VitalCard icon="🌿" label="Aktivne dijete" value={String(stats.activeDiets)}    gradient="from-violet-400 to-indigo-600" />
       </div>
 
       {/* ── Inspections over time ─────────────────────────────────────────────── */}
-      <Section title="Inspections — Last 12 Months" icon="📋">
+      <Section title="Inspekcije — posljednjih 12 mjeseci" icon="📋">
         {!hasInspectionData ? <EmptyChart /> : (
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={stats.inspectionsByMonth} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
@@ -141,7 +141,7 @@ export default function StatsPage() {
               <Area
                 type="monotone"
                 dataKey="count"
-                name="Inspections"
+                name="Inspekcije"
                 stroke="#f59e0b"
                 strokeWidth={2.5}
                 fill={`url(#${HONEY_GRADIENT_ID})`}
@@ -154,8 +154,8 @@ export default function StatsPage() {
       </Section>
 
       {/* ── Temperature trend ────────────────────────────────────────────────── */}
-      <Section title="Temperature Trend — Last 12 Months (°C)" icon="🌡️">
-        {!hasTempData ? <EmptyChart message="No temperature data recorded yet" /> : (
+      <Section title="Trend temperature — posljednjih 12 mjeseci (°C)" icon="🌡️">
+        {!hasTempData ? <EmptyChart message="Nema zabilježenih podataka o temperaturi" /> : (
           <ResponsiveContainer width="100%" height={220}>
             <LineChart
               data={stats.temperatureByMonth as MonthTemp[]}
@@ -172,8 +172,8 @@ export default function StatsPage() {
               <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Line type="monotone" dataKey="maxTemp" name="Max °C" stroke="#ef4444" strokeWidth={2} dot={false} connectNulls />
-              <Line type="monotone" dataKey="avgTemp" name="Avg °C" stroke="#f97316" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
+              <Line type="monotone" dataKey="maxTemp" name="Maks °C" stroke="#ef4444" strokeWidth={2} dot={false} connectNulls />
+              <Line type="monotone" dataKey="avgTemp" name="Prosjek °C" stroke="#f97316" strokeWidth={2.5} dot={{ r: 3 }} connectNulls />
               <Line type="monotone" dataKey="minTemp" name="Min °C" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />
             </LineChart>
           </ResponsiveContainer>
@@ -185,7 +185,7 @@ export default function StatsPage() {
         <div className="card">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xl">🏠</span>
-            <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Hive Types</h2>
+            <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Tipovi košnica</h2>
           </div>
           {!hasHiveData ? <EmptyChart /> : (
             <ResponsiveContainer width="100%" height={200}>
@@ -216,7 +216,7 @@ export default function StatsPage() {
         <div className="card">
           <div className="flex items-center gap-2 mb-5">
             <span className="text-xl">🪵</span>
-            <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Hive Materials</h2>
+            <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Materijali košnica</h2>
           </div>
           {stats.beehivesByMaterial.length === 0 ? <EmptyChart /> : (
             <ResponsiveContainer width="100%" height={200}>
@@ -246,7 +246,7 @@ export default function StatsPage() {
       </div>
 
       {/* ── Honey level distribution ──────────────────────────────────────────── */}
-      <Section title="Honey Level Distribution" icon="🍯">
+      <Section title="Distribucija nivoa meda" icon="🍯">
         {stats.honeyLevelDistribution.length === 0 ? <EmptyChart /> : (
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
@@ -257,7 +257,7 @@ export default function StatsPage() {
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" name="Inspections" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="value" name="Inspekcije" radius={[6, 6, 0, 0]}>
                 {stats.honeyLevelDistribution.map((entry, i) => (
                   <Cell
                     key={i}
@@ -272,7 +272,7 @@ export default function StatsPage() {
 
       {/* ── Beehives per apiary ───────────────────────────────────────────────── */}
       {hasApiaryData && (
-        <Section title="Beehives per Apiary" icon="🏡">
+        <Section title="Košnice po pčelinjaku" icon="🏡">
           <ResponsiveContainer width="100%" height={Math.max(160, stats.apiariesByBeehiveCount.length * 44)}>
             <BarChart
               data={stats.apiariesByBeehiveCount as NameValue[]}
@@ -283,7 +283,7 @@ export default function StatsPage() {
               <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} width={120} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" name="Beehives" fill="#f59e0b" radius={[0, 6, 6, 0]} />
+              <Bar dataKey="value" name="Košnice" fill="#f59e0b" radius={[0, 6, 6, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </Section>
@@ -291,7 +291,7 @@ export default function StatsPage() {
 
       {/* ── Top beehives by inspection count ─────────────────────────────────── */}
       {hasTopBeehivesData && (
-        <Section title="Most Inspected Beehives" icon="🔍">
+        <Section title="Najinspektiranije košnice" icon="🔍">
           <ResponsiveContainer width="100%" height={Math.max(160, stats.topBeehivesByInspections.length * 44)}>
             <BarChart
               data={stats.topBeehivesByInspections as NameValue[]}
@@ -302,7 +302,7 @@ export default function StatsPage() {
               <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} width={120} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" name="Inspections" radius={[0, 6, 6, 0]}>
+              <Bar dataKey="value" name="Inspekcije" radius={[0, 6, 6, 0]}>
                 {stats.topBeehivesByInspections.map((_, i) => (
                   <Cell key={i} fill={MULTI[i % MULTI.length]} />
                 ))}
@@ -318,7 +318,7 @@ export default function StatsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-5">
               <span className="text-xl">🌿</span>
-              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Diet Status</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Status dijete</h2>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -351,7 +351,7 @@ export default function StatsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-5">
               <Leaf className="w-5 h-5 text-honey-500" />
-              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Food Types Used</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Korišćeni tipovi hrane</h2>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <BarChart
@@ -362,7 +362,7 @@ export default function StatsPage() {
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" name="Diets" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="value" name="Dijete" radius={[6, 6, 0, 0]}>
                   {stats.dietsByFoodType.map((_, i) => (
                     <Cell key={i} fill={MULTI[i % MULTI.length]} />
                   ))}
@@ -375,7 +375,7 @@ export default function StatsPage() {
 
       {/* ── Todos by priority ────────────────────────────────────────────────── */}
       {hasTodoData && (
-        <Section title="Tasks by Priority" icon="✅">
+        <Section title="Zadaci po prioritetu" icon="✅">
           <ResponsiveContainer width="100%" height={200}>
             <BarChart
               data={stats.todosByPriority as PriorityStats[]}
@@ -386,8 +386,8 @@ export default function StatsPage() {
               <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
               <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="total" name="Total" fill="#e5e7eb" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="completed" name="Completed" fill="#10b981" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="total" name="Ukupno" fill="#e5e7eb" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="completed" name="Završeno" fill="#10b981" radius={[6, 6, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
           {/* Completion rate chips */}
@@ -400,7 +400,7 @@ export default function StatsPage() {
               return (
                 <div key={p.priority} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium ${color}`}>
                   <CheckSquare className="w-3.5 h-3.5" />
-                  {p.priority}: {pct}% done
+                  {p.priority}: {pct}% završeno
                 </div>
               )
             })}

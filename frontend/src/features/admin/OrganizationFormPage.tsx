@@ -68,9 +68,9 @@ export default function OrganizationFormPage() {
     <div className="max-w-xl mx-auto">
       <FormHeader
         icon="🏢"
-        title={isEdit ? 'Edit Organization' : 'New Organization'}
+        title={isEdit ? 'Uredi organizaciju' : 'Nova organizacija'}
         onBack={() => navigate('/admin')}
-        backLabel="Back to Dashboard"
+        backLabel="Nazad na kontrolnu ploču"
       />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
@@ -83,31 +83,31 @@ export default function OrganizationFormPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-              Name <span className="text-red-500">*</span>
+              Naziv <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              placeholder="Organization name"
+              placeholder="Naziv organizacije"
               className={`w-full px-4 py-3 rounded-xl border text-sm outline-none transition-all
                 bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100
                 ${errors.name
                   ? 'border-red-400 focus:ring-2 focus:ring-red-200'
                   : 'border-gray-200 dark:border-slate-700 focus:border-honey-400 focus:ring-2 focus:ring-honey-100'
                 }`}
-              {...register('name', { required: 'Name is required', maxLength: { value: 200, message: 'Max 200 characters' } })}
+              {...register('name', { required: 'Naziv je obavezan', maxLength: { value: 200, message: 'Maks 200 znakova' } })}
             />
             {errors.name && <p className="mt-1.5 text-xs text-red-600">{errors.name.message}</p>}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Description</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Opis</label>
             <textarea
               rows={3}
-              placeholder="Brief description (optional)"
+              placeholder="Kratki opis (opcionalno)"
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none
                 bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100
                 transition-all resize-none"
-              {...register('description', { maxLength: { value: 1000, message: 'Max 1000 characters' } })}
+              {...register('description', { maxLength: { value: 1000, message: 'Maks 1000 znakova' } })}
             />
             {errors.description && <p className="mt-1.5 text-xs text-red-600">{errors.description.message}</p>}
           </div>
@@ -119,7 +119,7 @@ export default function OrganizationFormPage() {
               className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200
                 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
-              Cancel
+              Otkaži
             </button>
             <button
               type="submit"
@@ -129,7 +129,7 @@ export default function OrganizationFormPage() {
                 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {isEdit ? 'Save Changes' : 'Create Organization'}
+              {isEdit ? 'Spremi promjene' : 'Napravi organizaciju'}
             </button>
           </div>
         </form>

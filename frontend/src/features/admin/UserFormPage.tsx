@@ -131,9 +131,9 @@ export default function UserFormPage() {
     <div className="max-w-xl mx-auto">
       <FormHeader
         icon="👤"
-        title={isEdit ? 'Edit User' : 'New User'}
+        title={isEdit ? 'Uredi korisnika' : 'Novi korisnik'}
         onBack={() => navigate('/admin')}
-        backLabel="Back to Dashboard"
+        backLabel="Nazad na kontrolnu ploču"
       />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
@@ -147,25 +147,25 @@ export default function UserFormPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                First Name <span className="text-red-500">*</span>
+                Ime <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder="First name"
+                placeholder="Ime"
                 className={inputCls(!!errors.firstName)}
-                {...register('firstName', { required: 'Required' })}
+                {...register('firstName', { required: 'Obavezno' })}
               />
               {errors.firstName && <p className="mt-1 text-xs text-red-600">{errors.firstName.message}</p>}
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Last Name <span className="text-red-500">*</span>
+                Prezime <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
-                placeholder="Last name"
+                placeholder="Prezime"
                 className={inputCls(!!errors.lastName)}
-                {...register('lastName', { required: 'Required' })}
+                {...register('lastName', { required: 'Obavezno' })}
               />
               {errors.lastName && <p className="mt-1 text-xs text-red-600">{errors.lastName.message}</p>}
             </div>
@@ -173,15 +173,15 @@ export default function UserFormPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-              Email <span className="text-red-500">*</span>
+              E-pošta <span className="text-red-500">*</span>
             </label>
             <input
               type="email"
               placeholder="user@example.com"
               className={inputCls(!!errors.email)}
               {...register('email', {
-                required: 'Email is required',
-                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email' },
+                required: 'E-pošta je obavezna',
+                pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Nevažeća e-pošta' },
               })}
             />
             {errors.email && <p className="mt-1.5 text-xs text-red-600">{errors.email.message}</p>}
@@ -190,15 +190,15 @@ export default function UserFormPage() {
           {!isEdit && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Password <span className="text-red-500">*</span>
+                Lozinka <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
                 placeholder="••••••••"
                 className={inputCls(!!errors.password)}
                 {...register('password', {
-                  required: isEdit ? false : 'Password is required',
-                  minLength: { value: 6, message: 'Minimum 6 characters' },
+                  required: isEdit ? false : 'Lozinka je obavezna',
+                  minLength: { value: 6, message: 'Minimum 6 znakova' },
                 })}
               />
               {errors.password && <p className="mt-1.5 text-xs text-red-600">{errors.password.message}</p>}
@@ -207,7 +207,7 @@ export default function UserFormPage() {
 
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-              Role <span className="text-red-500">*</span>
+              Uloga <span className="text-red-500">*</span>
             </label>
             <select
               className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
@@ -215,29 +215,29 @@ export default function UserFormPage() {
             >
               <option value="OrganizationAdmin">Org Admin</option>
               <option value="ApiaryAdmin">Admin</option>
-              <option value="Beekeeper">User</option>
-              <option value="SystemAdmin">System Admin</option>
+              <option value="Beekeeper">Korisnik</option>
+              <option value="SystemAdmin">Sistem Admin</option>
             </select>
             <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-              {selectedRole === 'OrganizationAdmin' && 'Can manage all apiaries, hives, diets, inspections, and todos within the org.'}
-              {selectedRole === 'ApiaryAdmin' && 'Scoped to one apiary — can manage hives, diets, inspections, and hive todos.'}
-              {selectedRole === 'Beekeeper' && 'Can create inspections, manage todos on assigned hives, and view diets.'}
-              {selectedRole === 'SystemAdmin' && 'Full platform access — no org required.'}
+              {selectedRole === 'OrganizationAdmin' && 'Može upravljati svim pčelinjacima, košnicama, dijetama, inspekcijama i zadacima u organizaciji.'}
+              {selectedRole === 'ApiaryAdmin' && 'Ograničen na jedan pčelinjak — može upravljati košnicama, dijetama, inspekcijama i zadacima.'}
+              {selectedRole === 'Beekeeper' && 'Može kreirati inspekcije, upravljati zadacima dodijeljenih košnica i pregledati dijete.'}
+              {selectedRole === 'SystemAdmin' && 'Puni pristup platformi — nije potrebna organizacija.'}
             </p>
           </div>
 
           {needsOrg && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Organization <span className="text-red-500">*</span>
+                Organizacija <span className="text-red-500">*</span>
               </label>
               <select
                 className={inputCls(!!errors.organizationId)}
                 {...register('organizationId', {
-                  validate: (v) => !needsOrg || !!v || 'Organization is required for this role',
+                  validate: (v) => !needsOrg || !!v || 'Organizacija je obavezna za ovu ulogu',
                 })}
               >
-                <option value="">Select organization…</option>
+                <option value="">Odaberite organizaciju…</option>
                 {organizations.map((org) => (
                   <option key={org.id} value={org.id}>{org.name}</option>
                 ))}
@@ -249,16 +249,16 @@ export default function UserFormPage() {
           {needsApiary && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Apiary <span className="text-red-500">*</span>
+                Pčelinjak <span className="text-red-500">*</span>
               </label>
               <select
                 className={inputCls(!!errors.apiaryId)}
                 {...register('apiaryId', {
-                  validate: (v) => !needsApiary || !!v || 'Apiary is required for Admin users',
+                  validate: (v) => !needsApiary || !!v || 'Pčelinjak je obavezan za Admin korisnike',
                 })}
                 disabled={!orgIdNumber}
               >
-                <option value="">{orgIdNumber ? 'Select apiary…' : 'Select an organization first'}</option>
+                <option value="">{orgIdNumber ? 'Odaberite pčelinjak…' : 'Prvo odaberite organizaciju'}</option>
                 {apiaries.map((a) => (
                   <option key={a.id} value={a.id}>{a.name}</option>
                 ))}
@@ -270,12 +270,12 @@ export default function UserFormPage() {
           {needsHives && (
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Assigned Hives
+                Dodijeljene košnice
               </label>
               {!orgIdNumber ? (
-                <p className="text-xs text-gray-400 dark:text-slate-500 py-2">Select an organization first to see available hives.</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 py-2">Prvo odaberite organizaciju da vidite dostupne košnice.</p>
               ) : beehives.length === 0 ? (
-                <p className="text-xs text-gray-400 dark:text-slate-500 py-2">No hives found in this organization.</p>
+                <p className="text-xs text-gray-400 dark:text-slate-500 py-2">Nema košnica u ovoj organizaciji.</p>
               ) : (
                 <div className="border border-gray-200 dark:border-slate-700 rounded-xl divide-y divide-gray-100 dark:divide-slate-800 max-h-48 overflow-y-auto">
                   {beehives.map((b) => (
@@ -297,8 +297,8 @@ export default function UserFormPage() {
               )}
               <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
                 {selectedBeehiveIds.length > 0
-                  ? `${selectedBeehiveIds.length} hive${selectedBeehiveIds.length !== 1 ? 's' : ''} selected`
-                  : 'No hives assigned — user can still view but not manage todos.'}
+                  ? `${selectedBeehiveIds.length} ${selectedBeehiveIds.length === 1 ? 'košnica odabrana' : 'košnica odabrano'}`
+                  : 'Nema dodijeljenih košnica — korisnik može pregledati ali ne upravljati zadacima.'}
               </p>
             </div>
           )}
@@ -310,7 +310,7 @@ export default function UserFormPage() {
               className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200
                 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
-              Cancel
+              Otkaži
             </button>
             <button
               type="submit"
@@ -320,7 +320,7 @@ export default function UserFormPage() {
                 disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
-              {isEdit ? 'Save Changes' : 'Create User'}
+              {isEdit ? 'Spremi promjene' : 'Napravi korisnika'}
             </button>
           </div>
         </form>

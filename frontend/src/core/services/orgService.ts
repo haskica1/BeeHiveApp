@@ -5,6 +5,7 @@ import type {
   OrgAvailableApiary,
   UpdateBeehiveAssignmentsPayload,
   UpdateApiaryAssignmentPayload,
+  CreateOrgMemberPayload,
 } from '../models'
 
 export const orgService = {
@@ -35,6 +36,11 @@ export const orgService = {
 
   async getAvailableApiaries(): Promise<OrgAvailableApiary[]> {
     const { data } = await apiClient.get<OrgAvailableApiary[]>('/org/available-apiaries')
+    return data
+  },
+
+  async createMember(payload: CreateOrgMemberPayload): Promise<OrgMember> {
+    const { data } = await apiClient.post<OrgMember>('/org/members', payload)
     return data
   },
 }

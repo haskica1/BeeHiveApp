@@ -6,7 +6,7 @@ export type { VitalCardProps } from './VitalCard'
 
 // ── LoadingSpinner ─────────────────────────────────────────────────────────────
 
-export function LoadingSpinner({ message = 'Loading…' }: { message?: string }) {
+export function LoadingSpinner({ message = 'Učitavanje…' }: { message?: string }) {
   return (
     <div className="flex flex-col items-center justify-center py-20 gap-3 animate-fade-in">
       <Loader2 className="w-8 h-8 text-honey-500 animate-spin" />
@@ -100,7 +100,7 @@ export function ConfirmDialog({
   isOpen,
   title,
   message,
-  confirmLabel = 'Delete',
+  confirmLabel = 'Obriši',
   onConfirm,
   onCancel,
   isLoading,
@@ -141,7 +141,7 @@ export function ConfirmDialog({
 
         <div className="flex gap-3 justify-end">
           <button onClick={onCancel} className="btn-secondary text-sm">
-            Cancel
+            Otkaži
           </button>
           <button
             onClick={onConfirm}
@@ -189,7 +189,7 @@ interface FormHeaderProps {
   actions?: React.ReactNode
 }
 
-export function FormHeader({ icon, title, subtitle, onBack, backLabel = 'Back', actions }: FormHeaderProps) {
+export function FormHeader({ icon, title, subtitle, onBack, backLabel = 'Nazad', actions }: FormHeaderProps) {
   return (
     <div className="relative overflow-hidden rounded-3xl border border-honey-200 dark:border-slate-800
                     bg-gradient-to-br from-honey-100 via-white to-honey-50
@@ -222,13 +222,13 @@ export function FormHeader({ icon, title, subtitle, onBack, backLabel = 'Back', 
 import { HoneyLevel } from '../../core/models'
 
 const honeyLevelConfig: Record<HoneyLevel, { label: string; className: string }> = {
-  [HoneyLevel.Low]:    { label: 'Low',    className: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' },
-  [HoneyLevel.Medium]: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300' },
-  [HoneyLevel.High]:   { label: 'High',   className: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300' },
+  [HoneyLevel.Low]:    { label: 'Nisko',   className: 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300' },
+  [HoneyLevel.Medium]: { label: 'Srednje', className: 'bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300' },
+  [HoneyLevel.High]:   { label: 'Visoko',  className: 'bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-300' },
 }
 
 export function HoneyLevelBadge({ level }: { level: HoneyLevel }) {
-  const config = honeyLevelConfig[level] ?? { label: 'Unknown', className: 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300' }
+  const config = honeyLevelConfig[level] ?? { label: 'Nepoznato', className: 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300' }
   return (
     <span className={`badge ${config.className}`}>
       🍯 {config.label}

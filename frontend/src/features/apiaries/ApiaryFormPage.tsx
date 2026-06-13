@@ -55,7 +55,7 @@ export default function ApiaryFormPage() {
     }
   }
 
-  if (isEditing && isLoading) return <LoadingSpinner message="Loading apiary…" />
+  if (isEditing && isLoading) return <LoadingSpinner message="Učitavanje pčelinjaka…" />
 
   const mutationError = createMutation.error ?? updateMutation.error
 
@@ -63,8 +63,9 @@ export default function ApiaryFormPage() {
     <div className="animate-fade-in max-w-lg mx-auto">
       <FormHeader
         icon="🏡"
-        title={isEditing ? 'Edit Apiary' : 'New Apiary'}
+        title={isEditing ? 'Uredi pčelinjak' : 'Novi pčelinjak'}
         onBack={() => navigate(isEditing ? `/apiaries/${apiaryId}` : '/apiaries')}
+        backLabel="Nazad na pčelinjake"
       />
 
       <div className="card">
@@ -78,16 +79,16 @@ export default function ApiaryFormPage() {
           {/* Name */}
           <div>
             <label className="form-label" htmlFor="name">
-              Apiary Name <span className="text-red-500">*</span>
+              Naziv pčelinjaka <span className="text-red-500">*</span>
             </label>
             <input
               id="name"
               type="text"
-              placeholder="e.g. Mountain Apiary"
+              placeholder="npr. Planinski pčelinjak"
               className="form-input"
               {...register('name', {
-                required: 'Apiary name is required',
-                maxLength: { value: 200, message: 'Name must not exceed 200 characters' },
+                required: 'Naziv pčelinjaka je obavezan',
+                maxLength: { value: 200, message: 'Naziv ne smije prelaziti 200 znakova' },
               })}
             />
             {errors.name && <p className="form-error">{errors.name.message}</p>}
@@ -96,15 +97,15 @@ export default function ApiaryFormPage() {
           {/* Description */}
           <div>
             <label className="form-label" htmlFor="description">
-              Description
+              Opis
             </label>
             <textarea
               id="description"
               rows={3}
-              placeholder="Location details, flora type, notes…"
+              placeholder="Detalji lokacije, vrsta flore, napomene…"
               className="form-input resize-none"
               {...register('description', {
-                maxLength: { value: 1000, message: 'Description must not exceed 1000 characters' },
+                maxLength: { value: 1000, message: 'Opis ne smije prelaziti 1000 znakova' },
               })}
             />
             {errors.description && <p className="form-error">{errors.description.message}</p>}
@@ -114,7 +115,7 @@ export default function ApiaryFormPage() {
           <div>
             <label className="form-label flex items-center gap-1.5">
               <MapPin className="w-3.5 h-3.5 text-honey-600" />
-              Location <span className="text-gray-400 dark:text-slate-500 font-normal">(for weather forecast)</span>
+              Lokacija <span className="text-gray-400 dark:text-slate-500 font-normal">(za vremensku prognozu)</span>
             </label>
 
             {pickedLocation ? (
@@ -128,13 +129,13 @@ export default function ApiaryFormPage() {
                   onClick={() => setMapOpen(true)}
                   className="text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium"
                 >
-                  Change
+                  Promijeni
                 </button>
                 <button
                   type="button"
                   onClick={() => setPickedLocation(null)}
                   className="p-0.5 rounded text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                  aria-label="Remove location"
+                  aria-label="Ukloni lokaciju"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -146,7 +147,7 @@ export default function ApiaryFormPage() {
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-honey-200 dark:border-slate-700 text-honey-600 dark:text-honey-400 hover:border-honey-400 dark:hover:border-honey-500/50 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors text-sm font-medium"
               >
                 <MapPin className="w-4 h-4" />
-                Pick location on map
+                Odaberi lokaciju na mapi
               </button>
             )}
           </div>
@@ -158,15 +159,15 @@ export default function ApiaryFormPage() {
               onClick={() => navigate(isEditing ? `/apiaries/${apiaryId}` : '/apiaries')}
               className="btn-secondary flex-1"
             >
-              Cancel
+              Otkaži
             </button>
             <button type="submit" className="btn-primary flex-1" disabled={isSubmitting}>
               {isSubmitting ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : isEditing ? (
-                'Save Changes'
+                'Spremi promjene'
               ) : (
-                'Create Apiary'
+                'Napravi pčelinjak'
               )}
             </button>
           </div>

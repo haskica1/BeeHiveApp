@@ -92,12 +92,12 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
         <div className="flex items-center justify-between px-4 py-3 border-b border-honey-100 dark:border-slate-800 shrink-0">
           <div className="flex items-center gap-2">
             <MapPin className="w-4 h-4 text-honey-600 dark:text-honey-400" />
-            <span className="font-semibold text-gray-800 dark:text-slate-100 text-sm">Pick Apiary Location</span>
+            <span className="font-semibold text-gray-800 dark:text-slate-100 text-sm">Odaberi lokaciju pčelinjaka</span>
           </div>
           <button
             onClick={onClose}
             className="p-1.5 rounded-full text-gray-400 dark:text-slate-500 hover:bg-gray-100 dark:hover:bg-slate-800 hover:text-gray-600 dark:hover:text-slate-300 transition-colors"
-            aria-label="Close"
+            aria-label="Zatvori"
           >
             <X className="w-5 h-5" />
           </button>
@@ -105,7 +105,7 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
 
         {/* Instruction bar */}
         <div className="px-4 py-2 bg-honey-50 dark:bg-slate-800/60 border-b border-honey-100 dark:border-slate-800 text-xs text-honey-800 dark:text-honey-300 shrink-0">
-          Tap anywhere on the map to place a pin.
+          Kliknite bilo gdje na mapi da postavite marker.
         </div>
 
         {/* Map */}
@@ -128,7 +128,7 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
           <button
             onClick={handleLocateMe}
             disabled={locating}
-            title="Use my location"
+            title="Koristi moju lokaciju"
             className="absolute bottom-4 right-4 z-[1000] flex items-center justify-center w-10 h-10 rounded-full bg-white dark:bg-slate-800 shadow-md border border-gray-200 dark:border-slate-700 text-gray-600 dark:text-slate-300 hover:text-honey-600 dark:hover:text-honey-400 hover:border-honey-300 dark:hover:border-honey-500/50 transition-colors disabled:opacity-50"
           >
             <Crosshair className={`w-5 h-5 ${locating ? 'animate-pulse' : ''}`} />
@@ -140,18 +140,18 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
           <div className="flex-1 text-xs text-gray-500 dark:text-slate-400 font-mono">
             {pin
               ? <span className="text-gray-700 dark:text-slate-300">{fmt(pin.lat)}, {fmt(pin.lng)}</span>
-              : <span className="italic">No location selected</span>
+              : <span className="italic">Nije odabrana lokacija</span>
             }
           </div>
           <button onClick={onClose} className="btn-secondary py-2 px-4 text-sm">
-            Cancel
+            Otkaži
           </button>
           <button
             onClick={() => pin && onConfirm(pin.lat, pin.lng)}
             disabled={!pin}
             className="btn-primary py-2 px-4 text-sm"
           >
-            Confirm
+            Potvrdi
           </button>
         </div>
       </div>

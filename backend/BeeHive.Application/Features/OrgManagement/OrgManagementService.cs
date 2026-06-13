@@ -201,6 +201,104 @@ public class OrgManagementService : IOrgManagementService
         return apiaries.Select(a => new OrgAvailableApiaryDto { Id = a.Id, Name = a.Name });
     }
 
+    public async Task<OrgMemberDto> CreateMemberAsync(CreateOrgMemberDto dto)
+    {
+        var orgId = RequireOrganization();
+
+        if (_currentUser.Role != UserRole.OrganizationAdmin)
+            throw new ForbiddenAccessException("Only Organization Admins can add new members.");
+
+        if (!Enum.TryParse<UserRole>(dto.Role, out var role) || role is not (UserRole.ApiaryAdmin or UserRole.Beekeeper))
+            throw new BusinessRuleException("Role must be ApiaryAdmin or Beekeeper.");
+
+        var existing = await _uow.Users.GetByEmailAsync(dto.Email.Trim().ToLower());
+        if (existing != null)
+            throw new BusinessRuleException($"A user with email '{dto.Email}' already exists.");
+
+        Apiary? apiary = null;
+        if (role == UserRole.ApiaryAdmin)
+        {
+            if (!dto.ApiaryId.HasValue)
+                throw new BusinessRuleException("Admin members must be assigned to a specific apiary.");
+
+            apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId.Value)
+                ?? throw new NotFoundException(nameof(Apiary), dto.ApiaryId.Value);
+
+            if (apiary.OrganizationId != orgId)
+                throw new BusinessRuleException("The selected apiary does not belong to your organization.");
+        }
+
+        if (role == UserRole.Beekeeper)
+        {
+            foreach (var beehiveId in dto.AssignedBeehiveIds)
+            {
+                var beehive = await _uow.Beehives.GetByIdAsync(beehiveId)
+                    ?? throw new NotFoundException(nameof(Beehive), beehiveId);
+
+                var beehiveApiary = await _uow.Apiaries.GetByIdAsync(beehive.ApiaryId)
+                    ?? throw new NotFoundException(nameof(Apiary), beehive.ApiaryId);
+
+                if (beehiveApiary.OrganizationId != orgId)
+                    throw new BusinessRuleException($"Beehive '{beehive.Name}' does not belong to your organization.");
+            }
+        }
+
+        var user = new User
+        {
+            FirstName = dto.FirstName.Trim(),
+            LastName = dto.LastName.Trim(),
+            Email = dto.Email.Trim().ToLower(),
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = role,
+            OrganizationId = orgId,
+            ApiaryId = role == UserRole.ApiaryAdmin ? dto.ApiaryId : null,
+            CreatedAt = DateTime.UtcNow,
+        };
+
+        await _uow.Users.AddAsync(user);
+        await _uow.SaveChangesAsync();
+
+        if (role == UserRole.Beekeeper && dto.AssignedBeehiveIds.Count > 0)
+        {
+            await _uow.Users.SetBeehiveAssignmentsAsync(user.Id, dto.AssignedBeehiveIds);
+            await _uow.SaveChangesAsync();
+        }
+
+        await _notifications.NotifyAsync(
+            user.Id,
+            "Dobrodošli u BeeHive!",
+            $"Vaš račun je kreiran. Možete se prijaviti s e-poštom: {user.Email}.",
+            NotificationType.AccountCreated);
+
+        if (role == UserRole.ApiaryAdmin && apiary != null)
+        {
+            await _notifications.NotifyAsync(
+                user.Id,
+                "Pčelinjak dodijeljen",
+                $"Dodijeljeni ste kao Admin pčelinjaka '{apiary.Name}'.",
+                NotificationType.ApiaryAssigned,
+                dto.ApiaryId!.Value, nameof(Apiary));
+        }
+
+        if (role == UserRole.Beekeeper)
+        {
+            foreach (var beehiveId in dto.AssignedBeehiveIds)
+            {
+                var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
+                if (beehive == null) continue;
+                await _notifications.NotifyAsync(
+                    user.Id,
+                    "Košnica dodijeljena",
+                    $"Dodijeljeni ste košnici '{beehive.Name}'.",
+                    NotificationType.BeehiveAssigned,
+                    beehiveId, nameof(Beehive));
+            }
+        }
+
+        var created = await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id);
+        return MapMember(created!);
+    }
+
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     private int RequireOrganization() =>

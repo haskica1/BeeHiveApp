@@ -137,16 +137,16 @@ export default function ExpenseFormPage() {
     <div className="max-w-2xl mx-auto">
       <FormHeader
         icon="🧾"
-        title={isEdit ? 'Edit Expense' : 'New Expense'}
+        title={isEdit ? 'Uredi trošak' : 'Novi trošak'}
         onBack={() => navigate('/expenses')}
-        backLabel="Back to Expenses"
+        backLabel="Nazad na troškove"
       />
 
       <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8">
         {error && (
           <div className="flex items-start gap-2 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 text-red-700 dark:text-red-300 rounded-xl px-4 py-3 text-sm mb-5">
             <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
-            Failed to save expense. Please check your inputs and try again.
+            Greška pri čuvanju troška. Provjerite vaše podatke i pokušajte ponovo.
           </div>
         )}
 
@@ -155,7 +155,7 @@ export default function ExpenseFormPage() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">
-                Purchase Date <span className="text-red-500">*</span>
+                Datum kupovine <span className="text-red-500">*</span>
               </label>
               <input
                 type="date"
@@ -164,7 +164,7 @@ export default function ExpenseFormPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Currency</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Valuta</label>
               <select
                 {...register('currency')}
                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
@@ -178,10 +178,10 @@ export default function ExpenseFormPage() {
 
           {/* Notes */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1.5">Notes</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1.5">Napomene</label>
             <input
               type="text"
-              placeholder="e.g. Spring supplies, local store"
+              placeholder="npr. Proljetne zalihe, lokalna prodavnica"
               {...register('notes')}
               className="w-full px-4 py-2.5 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
             />
@@ -191,7 +191,7 @@ export default function ExpenseFormPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="block text-sm font-medium text-gray-700 dark:text-slate-300">
-                Items <span className="text-red-500">*</span>
+                Stavke <span className="text-red-500">*</span>
               </label>
               <button
                 type="button"
@@ -199,13 +199,13 @@ export default function ExpenseFormPage() {
                 className="flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:text-honey-700 dark:hover:text-honey-300 font-medium transition-colors"
               >
                 <Plus className="w-3.5 h-3.5" />
-                Add item
+                Dodaj stavku
               </button>
             </div>
 
             {/* Column headers */}
             <div className="grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 px-1 mb-1">
-              {['Product', 'Qty', 'Unit', 'Unit price', 'Total', ''].map(h => (
+              {['Proizvod', 'Kol.', 'Jed.', 'Jed. cijena', 'Ukupno', ''].map(h => (
                 <span key={h} className="text-xs font-medium text-gray-400 dark:text-slate-500">{h}</span>
               ))}
             </div>
@@ -215,7 +215,7 @@ export default function ExpenseFormPage() {
                 <div key={field.id} className="grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 items-center">
                   <input
                     type="text"
-                    placeholder="Sugar"
+                    placeholder="Šećer"
                     {...register(`items.${index}.name`, { required: true })}
                     className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
                   />
@@ -254,7 +254,7 @@ export default function ExpenseFormPage() {
                     onClick={() => remove(index)}
                     disabled={fields.length === 1}
                     className="p-1.5 rounded-lg text-gray-300 dark:text-slate-600 hover:text-red-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    aria-label="Remove item"
+                    aria-label="Ukloni stavku"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -265,7 +265,7 @@ export default function ExpenseFormPage() {
 
           {/* Total */}
           <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
-            <span className="text-sm text-gray-500 dark:text-slate-400">Total amount</span>
+            <span className="text-sm text-gray-500 dark:text-slate-400">Ukupan iznos</span>
             <div className="flex items-center gap-2">
               <input
                 type="number"
@@ -285,7 +285,7 @@ export default function ExpenseFormPage() {
               onClick={() => navigate('/expenses')}
               className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
-              Cancel
+              Otkaži
             </button>
             <button
               type="submit"
@@ -293,7 +293,7 @@ export default function ExpenseFormPage() {
               className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors"
             >
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
-              {isEdit ? 'Save Changes' : 'Save Expense'}
+              {isEdit ? 'Spremi promjene' : 'Sačuvaj trošak'}
             </button>
           </div>
         </form>

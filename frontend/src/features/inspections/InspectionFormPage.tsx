@@ -148,7 +148,7 @@ export default function InspectionFormPage() {
     navigate(`/beehives/${resolvedBeehiveId}`)
   }
 
-  if (isEditing && isLoading) return <LoadingSpinner message="Loading inspection…" />
+  if (isEditing && isLoading) return <LoadingSpinner message="Učitavanje inspekcije…" />
 
   const mutationError = createMutation.error ?? updateMutation.error
   const backUrl = `/beehives/${resolvedBeehiveId}`
@@ -157,9 +157,9 @@ export default function InspectionFormPage() {
     <div className="animate-fade-in max-w-lg mx-auto">
       <FormHeader
         icon="📋"
-        title={isEditing ? 'Edit Inspection' : 'Record Inspection'}
+        title={isEditing ? 'Uredi inspekciju' : 'Zabilježi inspekciju'}
         onBack={() => navigate(backUrl)}
-        backLabel="Back to Beehive"
+        backLabel="Nazad na košnicu"
       />
 
       <div className="card">
@@ -313,7 +313,7 @@ export default function InspectionFormPage() {
               {/* Date */}
               <div>
                 <label className="form-label" htmlFor="date">
-                  Inspection Date <span className="text-red-500">*</span>
+                  Datum inspekcije <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="date"
@@ -321,8 +321,8 @@ export default function InspectionFormPage() {
                   className="form-input"
                   max={new Date().toISOString().split('T')[0]}
                   {...register('date', {
-                    required: 'Inspection date is required',
-                    validate: v => v <= new Date().toISOString().split('T')[0] || 'Date cannot be in the future',
+                    required: 'Datum inspekcije je obavezan',
+                    validate: v => v <= new Date().toISOString().split('T')[0] || 'Datum ne može biti u budućnosti',
                   })}
                 />
                 {errors.date && <p className="form-error">{errors.date.message}</p>}
@@ -331,12 +331,12 @@ export default function InspectionFormPage() {
               {/* Honey Level */}
               <div>
                 <label className="form-label" htmlFor="honeyLevel">
-                  Honey Level <span className="text-red-500">*</span>
+                  Nivo meda <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="honeyLevel"
                   className="form-input"
-                  {...register('honeyLevel', { required: 'Honey level is required' })}
+                  {...register('honeyLevel', { required: 'Nivo meda je obavezan' })}
                 >
                   {Object.entries(HoneyLevelLabels).map(([val, label]) => (
                     <option key={val} value={val}>{label}</option>
@@ -347,14 +347,14 @@ export default function InspectionFormPage() {
 
               {/* Brood Status */}
               <div>
-                <label className="form-label" htmlFor="broodStatus">Brood Status</label>
+                <label className="form-label" htmlFor="broodStatus">Status legla</label>
                 <input
                   id="broodStatus"
                   type="text"
-                  placeholder="e.g. Healthy pattern, queen spotted, eggs visible…"
+                  placeholder="npr. Zdravo leglo, matica viđena, jaja vidljiva…"
                   className="form-input"
                   {...register('broodStatus', {
-                    maxLength: { value: 500, message: 'Max 500 characters' },
+                    maxLength: { value: 500, message: 'Maksimalno 500 znakova' },
                   })}
                 />
                 {errors.broodStatus && <p className="form-error">{errors.broodStatus.message}</p>}
@@ -362,14 +362,14 @@ export default function InspectionFormPage() {
 
               {/* Notes */}
               <div>
-                <label className="form-label" htmlFor="notes">Notes</label>
+                <label className="form-label" htmlFor="notes">Napomene</label>
                 <textarea
                   id="notes"
                   rows={3}
-                  placeholder="Any other observations, treatments applied, honey harvested…"
+                  placeholder="Ostala zapažanja, primijenjeni tretmani, ubrani med…"
                   className="form-input resize-none"
                   {...register('notes', {
-                    maxLength: { value: 2000, message: 'Notes must not exceed 2000 characters' },
+                    maxLength: { value: 2000, message: 'Napomene ne smiju prelaziti 2000 znakova' },
                   })}
                 />
                 {errors.notes && <p className="form-error">{errors.notes.message}</p>}
@@ -382,15 +382,15 @@ export default function InspectionFormPage() {
                   onClick={() => navigate(backUrl)}
                   className="btn-secondary flex-1"
                 >
-                  Cancel
+                  Otkaži
                 </button>
                 <button type="submit" className="btn-primary flex-1" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : isEditing ? (
-                    'Save Changes'
+                    'Spremi promjene'
                   ) : (
-                    'Record Inspection'
+                    'Zabilježi inspekciju'
                   )}
                 </button>
               </div>

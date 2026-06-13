@@ -22,7 +22,7 @@ export const BeehiveTypeLabels: Record<BeehiveType, string> = {
   [BeehiveType.DadantBlatt]: 'Dadant-Blatt',
   [BeehiveType.Warré]:       'Warré',
   [BeehiveType.TopBar]:      'Top Bar',
-  [BeehiveType.Other]:       'Other',
+  [BeehiveType.Other]:       'Ostalo',
 }
 
 export enum BeehiveMaterial {
@@ -32,9 +32,9 @@ export enum BeehiveMaterial {
 }
 
 export const BeehiveMaterialLabels: Record<BeehiveMaterial, string> = {
-  [BeehiveMaterial.Wood]:        'Wood',
-  [BeehiveMaterial.Plastic]:     'Plastic',
-  [BeehiveMaterial.Polystyrene]: 'Polystyrene',
+  [BeehiveMaterial.Wood]:        'Drvo',
+  [BeehiveMaterial.Plastic]:     'Plastika',
+  [BeehiveMaterial.Polystyrene]: 'Polistiren',
 }
 
 export enum HoneyLevel {
@@ -44,9 +44,9 @@ export enum HoneyLevel {
 }
 
 export const HoneyLevelLabels: Record<HoneyLevel, string> = {
-  [HoneyLevel.Low]:    'Low',
-  [HoneyLevel.Medium]: 'Medium',
-  [HoneyLevel.High]:   'High',
+  [HoneyLevel.Low]:    'Nisko',
+  [HoneyLevel.Medium]: 'Srednje',
+  [HoneyLevel.High]:   'Visoko',
 }
 
 // ── Apiary ────────────────────────────────────────────────────────────────────
@@ -172,9 +172,9 @@ export enum TodoPriority {
 }
 
 export const TodoPriorityLabels: Record<TodoPriority, string> = {
-  [TodoPriority.Low]:    'Low',
-  [TodoPriority.Medium]: 'Medium',
-  [TodoPriority.High]:   'High',
+  [TodoPriority.Low]:    'Nizak',
+  [TodoPriority.Medium]: 'Srednji',
+  [TodoPriority.High]:   'Visok',
 }
 
 export interface AssignableUser {
@@ -245,15 +245,15 @@ export enum DietReason {
 }
 
 export const DietReasonLabels: Record<DietReason, string> = {
-  [DietReason.LackOfFood]:               'Lack of Food',
-  [DietReason.WinterFeeding]:            'Winter Feeding',
-  [DietReason.SpringStimulation]:        'Spring Stimulation',
-  [DietReason.NewSwarmSupport]:          'New Swarm Support',
-  [DietReason.PostHarvestRecovery]:      'Post-Harvest Recovery',
-  [DietReason.DroughtConditions]:        'Drought Conditions',
-  [DietReason.WeakColonySupport]:        'Weak Colony Support',
-  [DietReason.QueenIntroductionSupport]: 'Queen Introduction Support',
-  [DietReason.Custom]:                   'Custom',
+  [DietReason.LackOfFood]:               'Nedostatak hrane',
+  [DietReason.WinterFeeding]:            'Zimsko hranjenje',
+  [DietReason.SpringStimulation]:        'Proljetna stimulacija',
+  [DietReason.NewSwarmSupport]:          'Podrška novom roju',
+  [DietReason.PostHarvestRecovery]:      'Oporavak nakon berbe',
+  [DietReason.DroughtConditions]:        'Uvjeti suše',
+  [DietReason.WeakColonySupport]:        'Podrška slaboj koloniji',
+  [DietReason.QueenIntroductionSupport]: 'Podrška uvođenju matice',
+  [DietReason.Custom]:                   'Vlastito',
 }
 
 export enum FoodType {
@@ -265,11 +265,11 @@ export enum FoodType {
 }
 
 export const FoodTypeLabels: Record<FoodType, string> = {
-  [FoodType.SugarSyrup]:     'Sugar Syrup',
-  [FoodType.Fondant]:        'Fondant',
-  [FoodType.Pollen]:         'Pollen',
-  [FoodType.ProteinPatties]: 'Protein Patties',
-  [FoodType.Custom]:         'Custom',
+  [FoodType.SugarSyrup]:     'Šećerni sirup',
+  [FoodType.Fondant]:        'Fondan',
+  [FoodType.Pollen]:         'Polen',
+  [FoodType.ProteinPatties]: 'Proteinski kolači',
+  [FoodType.Custom]:         'Vlastito',
 }
 
 export interface FeedingEntry {
@@ -468,6 +468,16 @@ export interface UpdateApiaryAssignmentPayload {
   apiaryId: number | null
 }
 
+export interface CreateOrgMemberPayload {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  role: string
+  apiaryId?: number | null
+  assignedBeehiveIds: number[]
+}
+
 // ── Expenses ──────────────────────────────────────────────────────────────────
 
 export enum ExpenseSource {
@@ -476,8 +486,8 @@ export enum ExpenseSource {
 }
 
 export const ExpenseSourceLabels: Record<ExpenseSource, string> = {
-  [ExpenseSource.Manual]:      'Manual',
-  [ExpenseSource.ReceiptScan]: 'Receipt Scan',
+  [ExpenseSource.Manual]:      'Ručno',
+  [ExpenseSource.ReceiptScan]: 'Skeniranje računa',
 }
 
 export interface ExpenseItem {

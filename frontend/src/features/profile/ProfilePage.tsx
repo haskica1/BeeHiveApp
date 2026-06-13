@@ -72,7 +72,7 @@ export default function ProfilePage() {
 
   async function onSubmit(data: ProfileForm) {
     if (data.newPassword && data.newPassword !== data.confirmPassword) {
-      setError('confirmPassword', { message: 'Passwords do not match.' })
+      setError('confirmPassword', { message: 'Lozinke se ne podudaraju.' })
       return
     }
 
@@ -97,7 +97,7 @@ export default function ProfilePage() {
     : 'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300'
 
   const roleLabel = user?.role === 'SystemAdmin'
-    ? 'System Admin'
+    ? 'Sistem Admin'
     : user?.role === 'OrganizationAdmin'
     ? `Org Admin · ${user?.organizationName}`
     : user?.role === 'ApiaryAdmin'
@@ -130,38 +130,38 @@ export default function ProfilePage() {
         <div className="card space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <User className="w-4 h-4 text-honey-500" />
-            <h3 className="font-semibold text-gray-700 dark:text-slate-200">Personal Information</h3>
+            <h3 className="font-semibold text-gray-700 dark:text-slate-200">Lični podaci</h3>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">First Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Ime</label>
               <input
-                {...register('firstName', { required: 'First name is required' })}
+                {...register('firstName', { required: 'Ime je obavezno' })}
                 className={clsx('form-input', errors.firstName && 'border-red-400 focus:ring-red-300')}
-                placeholder="First name"
+                placeholder="Ime"
               />
               {errors.firstName && <p className="text-xs text-red-500 mt-1">{errors.firstName.message}</p>}
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Last Name</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Prezime</label>
               <input
-                {...register('lastName', { required: 'Last name is required' })}
+                {...register('lastName', { required: 'Prezime je obavezno' })}
                 className={clsx('form-input', errors.lastName && 'border-red-400 focus:ring-red-300')}
-                placeholder="Last name"
+                placeholder="Prezime"
               />
               {errors.lastName && <p className="text-xs text-red-500 mt-1">{errors.lastName.message}</p>}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Email</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">E-pošta</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
               <input
                 {...register('email', {
-                  required: 'Email is required',
-                  pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Invalid email address' },
+                  required: 'E-pošta je obavezna',
+                  pattern: { value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, message: 'Nevažeća e-pošta' },
                 })}
                 type="email"
                 className={clsx('form-input pl-9', errors.email && 'border-red-400 focus:ring-red-300')}
@@ -176,18 +176,18 @@ export default function ProfilePage() {
         <div className="card space-y-4">
           <div className="flex items-center gap-2 mb-1">
             <KeyRound className="w-4 h-4 text-honey-500" />
-            <h3 className="font-semibold text-gray-700 dark:text-slate-200">Change Password</h3>
-            <span className="text-xs text-gray-400 dark:text-slate-500 font-normal">(optional)</span>
+            <h3 className="font-semibold text-gray-700 dark:text-slate-200">Promjena lozinke</h3>
+            <span className="text-xs text-gray-400 dark:text-slate-500 font-normal">(opcionalno)</span>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Current Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Trenutna lozinka</label>
             <div className="relative">
               <input
                 {...register('currentPassword')}
                 type={showCurrent ? 'text' : 'password'}
                 className={clsx('form-input pr-10', errors.currentPassword && 'border-red-400 focus:ring-red-300')}
-                placeholder="Enter current password"
+                placeholder="Unesite trenutnu lozinku"
                 autoComplete="current-password"
               />
               <button type="button" onClick={() => setShowCurrent(v => !v)}
@@ -199,15 +199,15 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">New Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Nova lozinka</label>
             <div className="relative">
               <input
                 {...register('newPassword', {
-                  minLength: newPassword ? { value: 6, message: 'Minimum 6 characters' } : undefined,
+                  minLength: newPassword ? { value: 6, message: 'Minimum 6 znakova' } : undefined,
                 })}
                 type={showNew ? 'text' : 'password'}
                 className={clsx('form-input pr-10', errors.newPassword && 'border-red-400 focus:ring-red-300')}
-                placeholder="Enter new password"
+                placeholder="Unesite novu lozinku"
                 autoComplete="new-password"
               />
               <button type="button" onClick={() => setShowNew(v => !v)}
@@ -219,13 +219,13 @@ export default function ProfilePage() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Confirm New Password</label>
+            <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1">Potvrdi novu lozinku</label>
             <div className="relative">
               <input
                 {...register('confirmPassword')}
                 type={showConfirm ? 'text' : 'password'}
                 className={clsx('form-input pr-10', errors.confirmPassword && 'border-red-400 focus:ring-red-300')}
-                placeholder="Repeat new password"
+                placeholder="Ponovite novu lozinku"
                 autoComplete="new-password"
               />
               <button type="button" onClick={() => setShowConfirm(v => !v)}
@@ -248,7 +248,7 @@ export default function ProfilePage() {
         <div className="flex items-center justify-end gap-3">
           {saved && (
             <span className="flex items-center gap-1.5 text-sm text-green-600 font-medium animate-fade-in">
-              <Check className="w-4 h-4" /> Saved successfully
+              <Check className="w-4 h-4" /> Uspješno sačuvano
             </span>
           )}
           <button
@@ -256,7 +256,7 @@ export default function ProfilePage() {
             disabled={isSubmitting || !isDirty}
             className="btn-primary"
           >
-            {isSubmitting ? 'Saving…' : 'Save Changes'}
+            {isSubmitting ? 'Čuvanje…' : 'Spremi promjene'}
           </button>
         </div>
       </form>

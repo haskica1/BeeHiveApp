@@ -33,6 +33,18 @@ public class OrgManagementController : ControllerBase
         return Ok(members);
     }
 
+    /// <summary>Creates a new ApiaryAdmin or Beekeeper member in the caller's organization. OrgAdmin only.</summary>
+    [HttpPost("members")]
+    [Authorize(Roles = Roles.OrganizationAdmin)]
+    [ProducesResponseType(typeof(OrgMemberDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> CreateMember([FromBody] CreateOrgMemberDto dto)
+    {
+        var created = await _service.CreateMemberAsync(dto);
+        return CreatedAtAction(nameof(GetMember), new { id = created.Id }, created);
+    }
+
     /// <summary>Returns a single member with their current assignments.</summary>
     [HttpGet("members/{id:int}")]
     [ProducesResponseType(typeof(OrgMemberDto), StatusCodes.Status200OK)]

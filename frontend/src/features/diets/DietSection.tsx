@@ -52,7 +52,7 @@ function DietCard({ diet }: { diet: Diet }) {
           {diet.foodTypeName}
           {diet.foodType === 5 && diet.customFoodType ? ` — ${diet.customFoodType}` : ''}
           {' · '}
-          Started {format(new Date(diet.startDate), 'dd MMM yyyy')}
+          Početo {format(new Date(diet.startDate), 'dd MMM yyyy')}
         </p>
 
         {/* Mini progress bar */}
@@ -89,33 +89,33 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
   const visibleFinished = showAll ? finished : finished.slice(0, 2)
 
   const addAction = canManageThisDiet
-    ? <Link to={`/diets/new?beehiveId=${beehiveId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Add Diet</Link>
+    ? <Link to={`/diets/new?beehiveId=${beehiveId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Dodaj dijetu</Link>
     : null
 
   return (
     <CollapsibleSection
-      title="Feeding Programmes"
+      title="Programi hranjenja"
       icon={<Leaf className="w-5 h-5 text-honey-500" />}
       count={diets.length}
       action={addAction}
     >
       {isLoading ? (
-        <LoadingSpinner message="Loading diets…" />
+        <LoadingSpinner message="Učitavanje dijeta…" />
       ) : diets.length === 0 ? (
         <div className="card text-center py-8 text-gray-400 dark:text-slate-500">
           <Leaf className="w-10 h-10 mx-auto mb-3 text-gray-200 dark:text-slate-700" />
-          <p className="font-medium text-gray-500 dark:text-slate-400">No feeding programmes yet</p>
+          <p className="font-medium text-gray-500 dark:text-slate-400">Nema programa hranjenja</p>
           <p className="text-sm mt-1">
             {canManageThisDiet
-              ? 'Create a diet to track feeding schedules for this hive.'
-              : 'No feeding programmes have been scheduled yet.'}
+              ? 'Napravite dijetu za praćenje rasporeda hranjenja ove košnice.'
+              : 'Još nema zakazanih programa hranjenja.'}
           </p>
           {canManageThisDiet && (
             <Link
               to={`/diets/new?beehiveId=${beehiveId}`}
               className="btn-primary text-sm mt-4 inline-flex"
             >
-              <Plus className="w-4 h-4" /> Add First Diet
+              <Plus className="w-4 h-4" /> Dodaj prvu dijetu
             </Link>
           )}
         </div>
@@ -132,7 +132,7 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
           {finished.length > 0 && (
             <div>
               <p className="text-xs font-semibold text-gray-400 dark:text-slate-500 uppercase tracking-wide mb-2">
-                Completed / Stopped
+                Završeno / Zaustavljeno
               </p>
               <div className="space-y-3 opacity-75">
                 {visibleFinished.map(d => <DietCard key={d.id} diet={d} />)}
@@ -143,8 +143,8 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
                   className="mt-2 text-sm text-honey-600 dark:text-honey-400 hover:text-honey-700 dark:hover:text-honey-300 font-medium"
                 >
                   {showAll
-                    ? 'Show less'
-                    : `Show ${finished.length - 2} more…`}
+                    ? 'Prikaži manje'
+                    : `Prikaži još ${finished.length - 2}…`}
                 </button>
               )}
             </div>
