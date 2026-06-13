@@ -8,5 +8,6 @@ internal sealed class OpenMeteoResponse
     [JsonPropertyName("latitude")]  public double  Latitude  { get; set; }
     [JsonPropertyName("longitude")] public double  Longitude { get; set; }
     [JsonPropertyName("timezone")]  public string? Timezone  { get; set; }
+    [JsonPropertyName("current")]   public OpenMeteoCurrentData? Current { get; set; }
     [JsonPropertyName("daily")]     public OpenMeteoDailyData Daily { get; set; } = new();
 }

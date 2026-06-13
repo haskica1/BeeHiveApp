@@ -69,7 +69,7 @@ builder.Services.AddScoped<BeeHive.Application.Common.Interfaces.ICurrentUser, B
 builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
 {
     client.BaseAddress = new Uri("https://api.open-meteo.com/");
-    client.Timeout = TimeSpan.FromSeconds(10);
+    client.Timeout = TimeSpan.FromSeconds(30);
 });
 
 // Voice parsing service — calls Google Gemini API; key configured via Gemini:ApiKey

@@ -82,6 +82,11 @@ export interface WeatherForecast {
   latitude: number
   longitude: number
   timezone: string
+  currentTemperature?: number
+  currentApparentTemperature?: number
+  currentWeatherCode?: number
+  currentWindSpeed?: number
+  currentHumidity?: number
   daily: DailyWeather[]
 }
 
@@ -89,10 +94,15 @@ export interface DailyWeather {
   date: string
   maxTemp?: number
   minTemp?: number
+  apparentTempMax?: number
+  apparentTempMin?: number
   weatherCode?: number
   precipitationSum?: number
   maxWindSpeed?: number
   precipitationProbability?: number
+  sunrise?: string
+  sunset?: string
+  uvIndexMax?: number
 }
 
 // ── Beehive ───────────────────────────────────────────────────────────────────

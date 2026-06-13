@@ -124,7 +124,8 @@ export default function ApiaryDetailPage() {
   if (error) return <ErrorMessage message={error.message} />
   if (!apiary) return null
 
-  const today = new Date().toISOString().slice(0, 10)
+  // Use local date (not UTC) — Open-Meteo returns dates in the location's timezone
+  const today = format(new Date(), 'yyyy-MM-dd')
   const mapUrl = `https://maps.google.com/?q=${apiary.latitude},${apiary.longitude}`
 
   // ── Derived "vitals" (computed from already-loaded data — no extra requests) ──
@@ -137,10 +138,13 @@ export default function ApiaryDetailPage() {
   }).length
   const todayWeather = weather?.daily[0]
 
+  const activeWeatherCode = weather?.currentWeatherCode ?? todayWeather?.weatherCode
   const weatherValue = !apiary.hasLocation
     ? '—'
     : weatherLoading
     ? '…'
+    : weather?.currentTemperature != null
+    ? `${Math.round(weather.currentTemperature)}°C`
     : todayWeather
     ? `${Math.round(todayWeather.maxTemp ?? 0)}° / ${Math.round(todayWeather.minTemp ?? 0)}°`
     : '—'
@@ -148,10 +152,12 @@ export default function ApiaryDetailPage() {
     ? 'Nema lokacije'
     : weatherLoading
     ? 'Učitavanje…'
+    : weather?.currentTemperature != null && todayWeather
+    ? `${wmoToLabel(activeWeatherCode)} · max ${Math.round(todayWeather.maxTemp ?? 0)}°`
     : todayWeather
     ? wmoToLabel(todayWeather.weatherCode)
     : 'Nije dostupno'
-  const weatherIcon = todayWeather ? wmoToIcon(todayWeather.weatherCode) : '🌤️'
+  const weatherIcon = wmoToIcon(activeWeatherCode)
 
   // ── Beehive search ──
   const beehives = apiary.beehives ?? []
@@ -384,22 +390,51 @@ export default function ApiaryDetailPage() {
                 </div>
                 {weather.daily[0] && (
                   <div className="mt-3 bg-honey-50 dark:bg-slate-800 rounded-xl px-4 py-3 flex flex-wrap gap-4 text-sm text-gray-600 dark:text-slate-300">
-                    <span className="flex items-center gap-1.5">
-                      <Thermometer className="w-4 h-4 text-red-400" />
-                      Danas: <strong className="text-red-500">{Math.round(weather.daily[0].maxTemp ?? 0)}°C</strong>
-                      {' / '}
-                      <strong className="text-blue-400">{Math.round(weather.daily[0].minTemp ?? 0)}°C</strong>
-                    </span>
+                    {weather.currentTemperature != null ? (
+                      <span className="flex items-center gap-1.5">
+                        <Thermometer className="w-4 h-4 text-red-400" />
+                        Sada: <strong className="text-red-500">{Math.round(weather.currentTemperature)}°C</strong>
+                        {weather.currentApparentTemperature != null && (
+                          <span className="text-gray-400 dark:text-slate-500 text-xs">(osjeća se {Math.round(weather.currentApparentTemperature)}°)</span>
+                        )}
+                        <span className="text-gray-400 dark:text-slate-500 text-xs">
+                          · max {Math.round(weather.daily[0].maxTemp ?? 0)}° / min {Math.round(weather.daily[0].minTemp ?? 0)}°
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5">
+                        <Thermometer className="w-4 h-4 text-red-400" />
+                        Danas: <strong className="text-red-500">{Math.round(weather.daily[0].maxTemp ?? 0)}°C</strong>
+                        {' / '}
+                        <strong className="text-blue-400">{Math.round(weather.daily[0].minTemp ?? 0)}°C</strong>
+                      </span>
+                    )}
                     {weather.daily[0].precipitationProbability != null && (
                       <span className="flex items-center gap-1.5">
                         <Droplets className="w-4 h-4 text-blue-400" />
-                        Šansa za kišu: <strong>{Math.round(weather.daily[0].precipitationProbability)}%</strong>
+                        Kiša: <strong>{Math.round(weather.daily[0].precipitationProbability)}%</strong>
                       </span>
                     )}
-                    {weather.daily[0].maxWindSpeed != null && (
+                    {(weather.currentWindSpeed ?? weather.daily[0].maxWindSpeed) != null && (
                       <span className="flex items-center gap-1.5">
                         <Wind className="w-4 h-4 text-gray-400" />
-                        Vjetar: <strong>{Math.round(weather.daily[0].maxWindSpeed)} km/h</strong>
+                        Vjetar: <strong>{Math.round(weather.currentWindSpeed ?? weather.daily[0].maxWindSpeed ?? 0)} km/h</strong>
+                      </span>
+                    )}
+                    {weather.daily[0].sunrise && weather.daily[0].sunset && (
+                      <span className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400">
+                        🌅 {weather.daily[0].sunrise.slice(11, 16)}
+                        <span className="text-gray-400 dark:text-slate-500">/</span>
+                        🌇 {weather.daily[0].sunset.slice(11, 16)}
+                      </span>
+                    )}
+                    {weather.daily[0].uvIndexMax != null && (
+                      <span className="flex items-center gap-1.5">
+                        ☀️ UV: <strong className={
+                          weather.daily[0].uvIndexMax >= 8 ? 'text-red-500' :
+                          weather.daily[0].uvIndexMax >= 6 ? 'text-orange-500' :
+                          weather.daily[0].uvIndexMax >= 3 ? 'text-yellow-500' : 'text-green-500'
+                        }>{weather.daily[0].uvIndexMax.toFixed(1)}</strong>
                       </span>
                     )}
                     <span className="ml-auto text-xs text-gray-400 dark:text-slate-500">via Open-Meteo · {weather.timezone}</span>

@@ -13,15 +13,32 @@ internal sealed class OpenMeteoDailyData
     [JsonPropertyName("temperature_2m_min")]
     public List<double?>? Temperature2mMin { get; set; }
 
-    [JsonPropertyName("weathercode")]
-    public List<double?>? Weathercode { get; set; }
+    [JsonPropertyName("apparent_temperature_max")]
+    public List<double?>? ApparentTemperatureMax { get; set; }
+
+    [JsonPropertyName("apparent_temperature_min")]
+    public List<double?>? ApparentTemperatureMin { get; set; }
+
+    // Open-Meteo renamed this from "weathercode" to "weather_code" in API v1 (2024)
+    [JsonPropertyName("weather_code")]
+    public List<double?>? WeatherCode { get; set; }
 
     [JsonPropertyName("precipitation_sum")]
     public List<double?>? PrecipitationSum { get; set; }
 
-    [JsonPropertyName("windspeed_10m_max")]
-    public List<double?>? Windspeed10mMax { get; set; }
+    // Open-Meteo renamed this from "windspeed_10m_max" to "wind_speed_10m_max" in API v1 (2024)
+    [JsonPropertyName("wind_speed_10m_max")]
+    public List<double?>? WindSpeed10mMax { get; set; }
 
     [JsonPropertyName("precipitation_probability_max")]
     public List<double?>? PrecipitationProbabilityMax { get; set; }
+
+    [JsonPropertyName("sunrise")]
+    public List<string?>? Sunrise { get; set; }
+
+    [JsonPropertyName("sunset")]
+    public List<string?>? Sunset { get; set; }
+
+    [JsonPropertyName("uv_index_max")]
+    public List<double?>? UvIndexMax { get; set; }
 }
