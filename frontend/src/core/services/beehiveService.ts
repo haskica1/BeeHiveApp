@@ -27,6 +27,11 @@ const publicClient = axios.create({
 // ── Beehive Service ───────────────────────────────────────────────────────────
 
 export const beehiveService = {
+  getAll: async (): Promise<Beehive[]> => {
+    const res = await apiClient.get<Beehive[]>('/beehives/all')
+    return res.data
+  },
+
   getByApiary: async (apiaryId: number): Promise<Beehive[]> => {
     const res = await apiClient.get<Beehive[]>(`/beehives/by-apiary/${apiaryId}`)
     return res.data

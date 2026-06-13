@@ -27,10 +27,12 @@ export const queryKeys = {
   apiaries:           ['apiaries'] as const,
   apiary:             (id: number) => ['apiaries', id] as const,
   apiaryWeather:      (id: number) => ['apiaries', id, 'weather'] as const,
+  allBeehives:        ['beehives', 'all'] as const,
   beehivesByApiary:   (apiaryId: number) => ['beehives', 'apiary', apiaryId] as const,
   beehive:            (id: number) => ['beehives', id] as const,
   inspectionsByHive:  (beehiveId: number) => ['inspections', 'beehive', beehiveId] as const,
   inspection:         (id: number) => ['inspections', id] as const,
+  allOpenTodos:       ['todos', 'all-open'] as const,
   todosByApiary:      (apiaryId: number) => ['todos', 'apiary', apiaryId] as const,
   todosByBeehive:     (beehiveId: number) => ['todos', 'beehive', beehiveId] as const,
   assignableUsersForBeehive: (beehiveId: number) => ['todos', 'assignable-users', 'beehive', beehiveId] as const,
@@ -82,6 +84,9 @@ export const useDeleteApiary = () => {
 }
 
 // ── Beehive Hooks ─────────────────────────────────────────────────────────────
+
+export const useAllBeehives = () =>
+  useQuery({ queryKey: queryKeys.allBeehives, queryFn: beehiveService.getAll, staleTime: 1000 * 60 * 2 })
 
 export const useBeehive = (id: number) =>
   useQuery({ queryKey: queryKeys.beehive(id), queryFn: () => beehiveService.getById(id), enabled: !!id })
@@ -161,6 +166,9 @@ export const useDeleteInspection = (beehiveId: number) => {
 }
 
 // ── Todo Hooks ────────────────────────────────────────────────────────────────
+
+export const useAllOpenTodos = () =>
+  useQuery({ queryKey: queryKeys.allOpenTodos, queryFn: todoService.getAllOpen, staleTime: 1000 * 60 * 2 })
 
 export const useAssignableUsersForBeehive = (beehiveId: number) =>
   useQuery({

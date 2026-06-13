@@ -159,6 +159,37 @@ public class TodoService : ITodoService
             .Select(u => new AssignableUserDto(u.Id, $"{u.FirstName} {u.LastName}"));
     }
 
+    public async Task<IEnumerable<TodoDto>> GetAllOpenForCurrentUserAsync()
+    {
+        IEnumerable<Todo> todos;
+
+        if (_currentUser.Role == UserRole.SystemAdmin)
+        {
+            todos = (await _uow.Todos.GetAllAsync()).Where(t => !t.IsCompleted);
+        }
+        else if (_currentUser.Role == UserRole.Beekeeper)
+        {
+            var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
+            todos = assignedIds.Count > 0
+                ? await _uow.Todos.FindAsync(t => !t.IsCompleted && t.BeehiveId.HasValue && assignedIds.Contains(t.BeehiveId.Value))
+                : [];
+        }
+        else if (_currentUser.Role == UserRole.ApiaryAdmin && _currentUser.ApiaryId.HasValue)
+        {
+            todos = await _uow.Todos.GetAllOpenByApiaryAsync(_currentUser.ApiaryId.Value);
+        }
+        else if (_currentUser.OrganizationId.HasValue)
+        {
+            todos = await _uow.Todos.GetAllOpenByOrganizationAsync(_currentUser.OrganizationId.Value);
+        }
+        else
+        {
+            todos = [];
+        }
+
+        return _mapper.Map<IEnumerable<TodoDto>>(todos);
+    }
+
     // ── Authorization helpers ─────────────────────────────────────────────────
 
     /// <summary>View access to an apiary: managers within scope, or a Beekeeper assigned to it.</summary>

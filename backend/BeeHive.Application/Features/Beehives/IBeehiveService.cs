@@ -18,4 +18,7 @@ public interface IBeehiveService
 
     /// <summary>Regenerates QR codes for all beehives using the current scan URL format. Returns count updated.</summary>
     Task<int> RegenerateAllQrCodesAsync();
+
+    /// <summary>Returns all beehives accessible to the current user (role-scoped).</summary>
+    Task<IEnumerable<BeehiveDto>> GetAllForCurrentUserAsync();
 }

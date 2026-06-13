@@ -2,6 +2,11 @@ import apiClient from './apiClient'
 import type { Todo, CreateTodoPayload, UpdateTodoPayload, AssignableUser } from '../models'
 
 export const todoService = {
+  getAllOpen: async (): Promise<Todo[]> => {
+    const res = await apiClient.get<Todo[]>('/todos/all-open')
+    return res.data
+  },
+
   getByApiary: async (apiaryId: number): Promise<Todo[]> => {
     const res = await apiClient.get<Todo[]>(`/todos/by-apiary/${apiaryId}`)
     return res.data

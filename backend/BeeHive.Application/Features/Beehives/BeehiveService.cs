@@ -146,6 +146,37 @@ public class BeehiveService : IBeehiveService
     public Task<bool> CanCurrentUserAccessAsync(int beehiveId) =>
         _access.CanAccessBeehiveAsync(beehiveId);
 
+    public async Task<IEnumerable<BeehiveDto>> GetAllForCurrentUserAsync()
+    {
+        IEnumerable<Beehive> beehives;
+
+        if (_currentUser.Role == UserRole.SystemAdmin)
+        {
+            beehives = await _uow.Beehives.GetAllAsync();
+        }
+        else if (_currentUser.Role == UserRole.Beekeeper)
+        {
+            var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
+            beehives = assignedIds.Count > 0
+                ? await _uow.Beehives.FindAsync(b => assignedIds.Contains(b.Id))
+                : [];
+        }
+        else if (_currentUser.Role == UserRole.ApiaryAdmin && _currentUser.ApiaryId.HasValue)
+        {
+            beehives = await _uow.Beehives.GetByApiaryIdAsync(_currentUser.ApiaryId.Value);
+        }
+        else if (_currentUser.OrganizationId.HasValue)
+        {
+            beehives = await _uow.Beehives.GetByOrganizationAsync(_currentUser.OrganizationId.Value);
+        }
+        else
+        {
+            beehives = [];
+        }
+
+        return _mapper.Map<IEnumerable<BeehiveDto>>(beehives);
+    }
+
     public async Task<int> RegenerateAllQrCodesAsync()
     {
         var beehives = await _uow.Beehives.GetAllWithUniqueIdAsync();

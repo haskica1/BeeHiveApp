@@ -53,6 +53,15 @@ public class TodosController : ControllerBase
         return Ok(todos);
     }
 
+    /// <summary>Returns all open (non-completed) to-do items accessible to the current user (role-scoped). Used by global search.</summary>
+    [HttpGet("all-open")]
+    [ProducesResponseType(typeof(IEnumerable<TodoDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAllOpen()
+    {
+        var todos = await _service.GetAllOpenForCurrentUserAsync();
+        return Ok(todos);
+    }
+
     /// <summary>Returns a single to-do item by ID.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(TodoDto), StatusCodes.Status200OK)]

@@ -11,4 +11,7 @@ public interface ITodoService
     Task<TodoDto> UpdateAsync(int id, UpdateTodoDto dto);
     Task DeleteAsync(int id);
     Task<IEnumerable<AssignableUserDto>> GetAssignableUsersForBeehiveAsync(int beehiveId);
+
+    /// <summary>Returns all open (non-completed) todos accessible to the current user (role-scoped).</summary>
+    Task<IEnumerable<TodoDto>> GetAllOpenForCurrentUserAsync();
 }

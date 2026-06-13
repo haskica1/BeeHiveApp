@@ -70,6 +70,15 @@ public class BeehivesController : ControllerBase
         return Ok(new { updated = count, message = $"QR codes regenerated for {count} beehive(s)." });
     }
 
+    /// <summary>Returns all beehives accessible to the current user (role-scoped). Used by global search.</summary>
+    [HttpGet("all")]
+    [ProducesResponseType(typeof(IEnumerable<BeehiveDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAll()
+    {
+        var beehives = await _service.GetAllForCurrentUserAsync();
+        return Ok(beehives);
+    }
+
     /// <summary>Returns the beehives in the apiary visible to the caller (Beekeepers see only assigned hives).</summary>
     [HttpGet("by-apiary/{apiaryId:int}")]
     [ProducesResponseType(typeof(IEnumerable<BeehiveDto>), StatusCodes.Status200OK)]

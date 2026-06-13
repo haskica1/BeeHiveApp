@@ -2,9 +2,9 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Search, CornerDownLeft, Home, LayoutDashboard, Users,
-  ReceiptText, CalendarDays, BarChart2, Settings,
+  ReceiptText, CalendarDays, BarChart2, Settings, ClipboardList,
 } from 'lucide-react'
-import { useApiaries } from '../../core/services/queries'
+import { useApiaries, useAllBeehives, useAllOpenTodos } from '../../core/services/queries'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
 interface CommandItem {
@@ -20,6 +20,8 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const navigate = useNavigate()
   const { isSystemAdmin, isOrgAdmin, isAdmin } = usePermissions()
   const { data: apiaries = [] } = useApiaries()
+  const { data: allBeehives = [] } = useAllBeehives()
+  const { data: allOpenTodos = [] } = useAllOpenTodos()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -27,7 +29,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
   const canSeeMembers = isOrgAdmin || isAdmin
   const canSeeExpenses = isSystemAdmin || isOrgAdmin || isAdmin
 
-  const items = useMemo<CommandItem[]>(() => {
+  const baseItems = useMemo<CommandItem[]>(() => {
     const go = (to: string) => () => { onClose(); navigate(to) }
     const nav: CommandItem[] = []
     if (isSystemAdmin) nav.push({ id: 'admin', label: 'Kontrolna ploča', icon: <LayoutDashboard className="w-4 h-4" />, group: 'Navigacija', run: go('/admin') })
@@ -49,11 +51,45 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
     return [...nav, ...ap]
   }, [apiaries, isSystemAdmin, canSeeMembers, canSeeExpenses, navigate, onClose])
 
+  const apiaryNameById = useMemo(() => {
+    const map: Record<number, string> = {}
+    for (const a of apiaries) map[a.id] = a.name
+    return map
+  }, [apiaries])
+
+  const beehiveItems = useMemo<CommandItem[]>(() => {
+    const go = (to: string) => () => { onClose(); navigate(to) }
+    return allBeehives.map(b => ({
+      id: `bh-${b.id}`,
+      label: b.name,
+      hint: apiaryNameById[b.apiaryId],
+      icon: <span className="text-base leading-none">🐝</span>,
+      group: 'Košnice',
+      run: go(`/beehives/${b.id}`),
+    }))
+  }, [allBeehives, apiaryNameById, navigate, onClose])
+
+  const todoItems = useMemo<CommandItem[]>(() => {
+    const go = (to: string) => () => { onClose(); navigate(to) }
+    return allOpenTodos.map(t => {
+      const dest = t.beehiveId ? `/beehives/${t.beehiveId}` : t.apiaryId ? `/apiaries/${t.apiaryId}` : '/apiaries'
+      return {
+        id: `td-${t.id}`,
+        label: t.title,
+        hint: t.priorityName,
+        icon: <ClipboardList className="w-4 h-4" />,
+        group: 'Zadaci',
+        run: go(dest),
+      }
+    })
+  }, [allOpenTodos, navigate, onClose])
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()
-    if (!q) return items
-    return items.filter(i => i.label.toLowerCase().includes(q) || i.group.toLowerCase().includes(q))
-  }, [items, query])
+    if (!q) return baseItems
+    const match = (i: CommandItem) => i.label.toLowerCase().includes(q) || i.group.toLowerCase().includes(q)
+    return [...baseItems, ...beehiveItems, ...todoItems].filter(match)
+  }, [baseItems, beehiveItems, todoItems, query])
 
   useEffect(() => { setActive(0) }, [query, open])
   useEffect(() => {
@@ -95,7 +131,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             ref={inputRef}
             value={query}
             onChange={e => setQuery(e.target.value)}
-            placeholder="Pretraži stranice i pčelinjake…"
+            placeholder="Pretraži stranice, pčelinjake, košnice i zadatke…"
             className="flex-1 py-3.5 bg-transparent outline-none text-sm text-gray-800 dark:text-slate-100 placeholder:text-gray-400 dark:placeholder:text-slate-500"
           />
           <kbd className="text-[10px] font-mono text-gray-400 dark:text-slate-500 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-0.5">ESC</kbd>
