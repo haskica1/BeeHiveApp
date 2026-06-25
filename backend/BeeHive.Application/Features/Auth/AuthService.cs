@@ -5,6 +5,7 @@ using System.Text;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Auth.DTOs;
+using BeeHive.Application.Features.Notifications;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
 using Microsoft.Extensions.Configuration;
@@ -16,11 +17,13 @@ public class AuthService : IAuthService
 {
     private readonly IUnitOfWork _uow;
     private readonly IConfiguration _config;
+    private readonly INotificationService _notifications;
 
-    public AuthService(IUnitOfWork uow, IConfiguration config)
+    public AuthService(IUnitOfWork uow, IConfiguration config, INotificationService notifications)
     {
         _uow = uow;
         _config = config;
+        _notifications = notifications;
     }
 
     public async Task<LoginResponseDto> LoginAsync(LoginDto dto)
@@ -34,6 +37,63 @@ public class AuthService : IAuthService
         // Beekeepers need their assigned-beehive ids included in the response.
         if (user.Role == UserRole.Beekeeper)
             user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id) ?? user;
+
+        return await IssueTokensAsync(user);
+    }
+
+    public async Task<LoginResponseDto> RegisterAsync(RegisterDto dto)
+    {
+        var email = dto.Email.Trim().ToLower();
+
+        var existing = await _uow.Users.GetByEmailAsync(email);
+        if (existing != null)
+            throw new BusinessRuleException($"A user with email '{dto.Email}' already exists.");
+
+        var now = DateTime.UtcNow;
+
+        // The registrant becomes the Organization Admin of a brand-new organisation.
+        // OrganizationAdmin requires an organisation and must NOT have an apiary
+        // (mirrors AdminService's role/org/apiary consistency rules).
+        var organization = new Organization
+        {
+            Name = dto.OrganizationName.Trim(),
+            Description = string.IsNullOrWhiteSpace(dto.OrganizationDescription)
+                ? null
+                : dto.OrganizationDescription.Trim(),
+            CreatedAt = now,
+        };
+
+        var user = new User
+        {
+            FirstName = dto.FirstName.Trim(),
+            LastName = dto.LastName.Trim(),
+            Email = email,
+            PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+            Role = UserRole.OrganizationAdmin,
+            Organization = organization,
+            CreatedAt = now,
+        };
+
+        // Insert the organisation (creator still null) and the user together. We must NOT set
+        // Organization.CreatedBy here: org → CreatedById → user → OrganizationId → org is a cycle
+        // EF can't order within a single INSERT batch (it throws "circular dependency detected").
+        // Adding the user pulls in the org via its navigation, so both rows are created atomically.
+        await _uow.Users.AddAsync(user);
+        await _uow.SaveChangesAsync();
+
+        // Now that the user has an id, stamp it as the organisation's creator — a plain UPDATE on
+        // the still-tracked org. CreatedById is nullable, so even if this save failed the org + user
+        // would remain valid.
+        organization.CreatedById = user.Id;
+        await _uow.SaveChangesAsync();
+
+        // Welcome notification, mirroring admin-created accounts. Email delivery is currently
+        // disabled in NotificationService, so this only writes the in-app notification.
+        await _notifications.NotifyAsync(
+            user.Id,
+            "Welcome to BeeHive!",
+            $"Your organization '{organization.Name}' is ready. You are its Organization Admin — start by adding your first apiary.",
+            NotificationType.AccountCreated);
 
         return await IssueTokensAsync(user);
     }

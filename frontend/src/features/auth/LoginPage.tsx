@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Moon, Sun } from 'lucide-react'
 import clsx from 'clsx'
@@ -212,6 +212,14 @@ export default function LoginPage() {
                 </span>
               </button>
             </form>
+
+            {/* Link to register */}
+            <p className="mt-6 text-center text-sm text-gray-500 dark:text-slate-400">
+              Nemate račun?{' '}
+              <Link to="/register" className="font-semibold text-honey-600 dark:text-honey-400 hover:text-honey-700 dark:hover:text-honey-300 transition-colors">
+                Registrujte se
+              </Link>
+            </p>
 
           </div>
         </div>

@@ -6,6 +6,7 @@ import ProtectedRoute from './shared/components/ProtectedRoute'
 import AdminRoute from './shared/components/AdminRoute'
 import RoleRoute from './shared/components/RoleRoute'
 import LoginPage from './features/auth/LoginPage'
+import RegisterPage from './features/auth/RegisterPage'
 import ApiaryListPage from './features/apiaries/ApiaryListPage'
 import ApiaryDetailPage from './features/apiaries/ApiaryDetailPage'
 import ApiaryFormPage from './features/apiaries/ApiaryFormPage'
@@ -41,6 +42,7 @@ export default function App() {
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
           <Route path="/scan/:uniqueId" element={<ScanPage />} />
 
           {/* Protected routes — redirect to /login if not authenticated */}

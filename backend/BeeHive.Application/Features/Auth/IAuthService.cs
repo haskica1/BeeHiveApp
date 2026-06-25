@@ -8,6 +8,13 @@ public interface IAuthService
     Task<LoginResponseDto> LoginAsync(LoginDto dto);
 
     /// <summary>
+    /// Registers a new self-service account: creates a brand-new organisation and the registrant
+    /// as its Organization Admin, then immediately issues tokens (auto-login). Throws if the email
+    /// is already taken.
+    /// </summary>
+    Task<LoginResponseDto> RegisterAsync(RegisterDto dto);
+
+    /// <summary>
     /// Rotates a valid refresh token: revokes it and issues a fresh access + refresh token pair.
     /// Reuse of an already-rotated token revokes the user's whole active token set.
     /// </summary>

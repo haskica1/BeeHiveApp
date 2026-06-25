@@ -26,6 +26,15 @@ export interface LoginResponse extends AuthUser {
   accessTokenExpiresAt: string
 }
 
+export interface RegisterPayload {
+  firstName: string
+  lastName: string
+  email: string
+  password: string
+  organizationName: string
+  organizationDescription?: string
+}
+
 const TOKEN_KEY = 'beehive_token'
 const REFRESH_KEY = 'beehive_refresh_token'
 const USER_KEY = 'beehive_user'
@@ -47,6 +56,16 @@ function persistSession(data: LoginResponse): void {
 export const authService = {
   async login(email: string, password: string): Promise<LoginResponse> {
     const { data } = await authApi.post<LoginResponse>('/auth/login', { email, password })
+    persistSession(data)
+    return data
+  },
+
+  /**
+   * Creates a new account + organisation and signs the user in immediately
+   * (the API returns the same token payload as login).
+   */
+  async register(payload: RegisterPayload): Promise<LoginResponse> {
+    const { data } = await authApi.post<LoginResponse>('/auth/register', payload)
     persistSession(data)
     return data
   },

@@ -1,5 +1,6 @@
 using BeeHive.Application.Features.Auth;
 using BeeHive.Application.Features.Auth.DTOs;
+using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
@@ -12,10 +13,12 @@ namespace BeeHive.API.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
+    private readonly IValidator<RegisterDto> _registerValidator;
 
-    public AuthController(IAuthService authService)
+    public AuthController(IAuthService authService, IValidator<RegisterDto> registerValidator)
     {
         _authService = authService;
+        _registerValidator = registerValidator;
     }
 
     /// <summary>Authenticates a user and returns a JWT token. Rate-limited per client IP.</summary>
@@ -28,6 +31,27 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
         var result = await _authService.LoginAsync(dto);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Registers a new account and its organisation, then returns tokens (auto-login).
+    /// The registrant becomes the Organization Admin. Rate-limited per client IP.
+    /// </summary>
+    [HttpPost("register")]
+    [AllowAnonymous]
+    [EnableRateLimiting("register")]
+    [ProducesResponseType(typeof(LoginResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
+    {
+        var validation = await _registerValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        var result = await _authService.RegisterAsync(dto);
         return Ok(result);
     }
 

@@ -1,10 +1,11 @@
 import { createContext, useCallback, useContext, useState } from 'react'
-import { authService, type AuthUser, type LoginResponse } from '../services/authService'
+import { authService, type AuthUser, type LoginResponse, type RegisterPayload } from '../services/authService'
 
 interface AuthContextValue {
   user: AuthUser | null
   isAuthenticated: boolean
   login: (email: string, password: string) => Promise<LoginResponse>
+  register: (payload: RegisterPayload) => Promise<LoginResponse>
   logout: () => void
   updateUser: (partial: Pick<AuthUser, 'firstName' | 'lastName' | 'email'>) => void
 }
@@ -28,6 +29,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return response
   }, [])
 
+  const register = useCallback(async (payload: RegisterPayload): Promise<LoginResponse> => {
+    const response = await authService.register(payload)
+    setUser({
+      email: response.email,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      role: response.role,
+      organizationId: response.organizationId,
+      organizationName: response.organizationName,
+      assignedBeehiveIds: response.assignedBeehiveIds ?? [],
+    })
+    return response
+  }, [])
+
   const logout = useCallback(() => {
     authService.logout()
     setUser(null)
@@ -39,7 +54,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )
