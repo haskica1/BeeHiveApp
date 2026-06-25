@@ -148,7 +148,7 @@ export default function InspectionFormPage() {
     navigate(`/beehives/${resolvedBeehiveId}`)
   }
 
-  if (isEditing && isLoading) return <LoadingSpinner message="Učitavanje inspekcije…" />
+  if (isEditing && isLoading) return <LoadingSpinner message="Učitavanje pregleda…" />
 
   const mutationError = createMutation.error ?? updateMutation.error
   const backUrl = `/beehives/${resolvedBeehiveId}`
@@ -157,7 +157,7 @@ export default function InspectionFormPage() {
     <div className="animate-fade-in max-w-lg mx-auto">
       <FormHeader
         icon="📋"
-        title={isEditing ? 'Uredi inspekciju' : 'Zabilježi inspekciju'}
+        title={isEditing ? 'Uredi pregled' : 'Zabilježi pregled'}
         onBack={() => navigate(backUrl)}
         backLabel="Nazad na košnicu"
       />
@@ -200,28 +200,62 @@ export default function InspectionFormPage() {
                       'Vaš govor će se prikazati ovdje'
                     )}
                   </label>
-                  <textarea
-                    readOnly
-                    rows={6}
-                    value={voice.liveTranscript}
-                    placeholder={
-                      isRecording
-                        ? 'Slušam…'
-                        : 'Kliknite "Počni snimanje" i govorite na bosanskom jeziku.\n\nPrimjer: "Pregledao sam košnicu danas, leglo je zdravo, matica se vidi, med je na visokom nivou, dodao sam supericu."'
-                    }
-                    className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed resize-none
-                      bg-gray-50 dark:bg-slate-800/60 text-gray-800 dark:text-slate-200
-                      placeholder:text-gray-400 dark:placeholder:text-slate-500
-                      transition-colors
+                  {voice.hasSpeechSupport ? (
+                    <>
+                      <textarea
+                        readOnly
+                        rows={6}
+                        value={voice.liveTranscript}
+                        placeholder={
+                          isRecording
+                            ? 'Slušam…'
+                            : 'Kliknite "Počni snimanje" i govorite na bosanskom jeziku.\n\nPrimjer: "Pregledao sam košnicu danas, leglo je zdravo, matica se vidi, med je na visokom nivou, dodao sam supericu."'
+                        }
+                        className={`w-full rounded-xl border px-4 py-3 text-sm leading-relaxed resize-none
+                          bg-gray-50 dark:bg-slate-800/60 text-gray-800 dark:text-slate-200
+                          placeholder:text-gray-400 dark:placeholder:text-slate-500
+                          transition-colors
+                          ${isRecording
+                            ? 'border-red-300 dark:border-red-500/40 ring-2 ring-red-100 dark:ring-red-500/10'
+                            : 'border-gray-200 dark:border-slate-700'
+                          }`}
+                      />
+                      {voice.liveTranscript.trim() === '' && isDone && (
+                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5">
+                          Tekst nije prepoznat. Provjerite dozvole mikrofona ili snimite ponovo.
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <div className={`w-full rounded-xl border px-4 py-5 text-sm
+                      bg-gray-50 dark:bg-slate-800/60
                       ${isRecording
                         ? 'border-red-300 dark:border-red-500/40 ring-2 ring-red-100 dark:ring-red-500/10'
                         : 'border-gray-200 dark:border-slate-700'
                       }`}
-                  />
-                  {voice.liveTranscript.trim() === '' && isDone && (
-                    <p className="text-xs text-amber-600 dark:text-amber-400 mt-1.5">
-                      Tekst nije prepoznat. Provjerite dozvole mikrofona ili snimite ponovo.
-                    </p>
+                    >
+                      {isRecording ? (
+                        <p className="text-gray-500 dark:text-slate-400 text-center">
+                          Snimanje u toku — govorite normalno.
+                          <br />
+                          <span className="text-xs mt-1 block text-gray-400 dark:text-slate-500">
+                            Pregled teksta nije podržan u ovom pretraživaču. Snimak će biti obrađen na serveru.
+                          </span>
+                        </p>
+                      ) : isDone ? (
+                        <p className="text-gray-500 dark:text-slate-400 text-center">
+                          Snimak je spreman za obradu.
+                        </p>
+                      ) : (
+                        <p className="text-gray-400 dark:text-slate-500">
+                          Kliknite "Počni snimanje" i govorite na bosanskom jeziku.{'\n\n'}Primjer: "Pregledao sam košnicu danas, leglo je zdravo, matica se vidi, med je na visokom nivou, dodao sam supericu."
+                          <br /><br />
+                          <span className="text-xs text-gray-400 dark:text-slate-500">
+                            Pregled teksta nije podržan u ovom pretraživaču — snimak će biti automatski transkribovan na serveru.
+                          </span>
+                        </p>
+                      )}
+                    </div>
                   )}
                 </div>
 
@@ -313,7 +347,7 @@ export default function InspectionFormPage() {
               {/* Date */}
               <div>
                 <label className="form-label" htmlFor="date">
-                  Datum inspekcije <span className="text-red-500">*</span>
+                  Datum pregleda <span className="text-red-500">*</span>
                 </label>
                 <input
                   id="date"
@@ -321,7 +355,7 @@ export default function InspectionFormPage() {
                   className="form-input"
                   max={new Date().toISOString().split('T')[0]}
                   {...register('date', {
-                    required: 'Datum inspekcije je obavezan',
+                    required: 'Datum pregleda je obavezan',
                     validate: v => v <= new Date().toISOString().split('T')[0] || 'Datum ne može biti u budućnosti',
                   })}
                 />
@@ -390,7 +424,7 @@ export default function InspectionFormPage() {
                   ) : isEditing ? (
                     'Spremi promjene'
                   ) : (
-                    'Zabilježi inspekciju'
+                    'Zabilježi pregled'
                   )}
                 </button>
               </div>

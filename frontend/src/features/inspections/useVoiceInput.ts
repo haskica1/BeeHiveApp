@@ -6,6 +6,7 @@ interface UseVoiceInputReturn {
   state: VoiceInputState
   liveTranscript: string
   errorMessage: string | null
+  hasSpeechSupport: boolean
   startRecording: () => Promise<void>
   stopRecording: () => Promise<Blob>
   resetTranscript: () => void
@@ -24,20 +25,28 @@ export function useVoiceInput(): UseVoiceInputReturn {
   const recognitionRef = useRef<any>(null)
   const isRecordingRef = useRef(false)
   const finalTextRef   = useRef('')
+  const langIdxRef     = useRef(0)
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
+  const hasSpeechSupport = Boolean(SR)
+
+  // Fallback chain: Bosnian → Croatian → Serbian → English
+  const LANG_CHAIN = ['bs-BA', 'hr-HR', 'sr-RS', 'en-US']
 
   // ── Speech recognition helpers ────────────────────────────────────────────
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   function buildRecognition(): any | null {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const SR = (window as any).SpeechRecognition ?? (window as any).webkitSpeechRecognition
     if (!SR) return null
+
+    langIdxRef.current = 0
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const rec: any = new SR()
     rec.continuous     = true
     rec.interimResults = true
-    rec.lang           = 'bs-BA'   // Bosnian; browser may fall back to hr/sr
+    rec.lang           = LANG_CHAIN[0]
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onresult = (event: any) => {
@@ -53,16 +62,22 @@ export function useVoiceInput(): UseVoiceInputReturn {
       setLiveTranscript(finalTextRef.current + interim)
     }
 
-    // Chrome stops recognition after silence — restart while still recording
+    // Browser stops recognition after silence — restart while still recording
     rec.onend = () => {
       if (isRecordingRef.current) {
+        rec.lang = LANG_CHAIN[langIdxRef.current]
         try { rec.start() } catch { /* already starting */ }
       }
     }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     rec.onerror = (e: any) => {
-      if (e.error !== 'no-speech' && e.error !== 'aborted') {
+      if (e.error === 'language-not-supported') {
+        // Try next language in chain; onend will restart with it
+        if (langIdxRef.current < LANG_CHAIN.length - 1) {
+          langIdxRef.current++
+        }
+      } else if (e.error !== 'no-speech' && e.error !== 'aborted') {
         // non-fatal — audio recording continues unaffected
         console.warn('SpeechRecognition error:', e.error)
       }
@@ -154,5 +169,5 @@ export function useVoiceInput(): UseVoiceInputReturn {
     setState('idle')
   }, [])
 
-  return { state, liveTranscript, errorMessage, startRecording, stopRecording, resetTranscript, reset }
+  return { state, liveTranscript, errorMessage, hasSpeechSupport, startRecording, stopRecording, resetTranscript, reset }
 }

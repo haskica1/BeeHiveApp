@@ -1,7 +1,9 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
+import { ArrowLeft, Download, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
 import { format, parseISO, isPast, isToday } from 'date-fns'
+import { bs } from 'date-fns/locale'
+import { jsPDF } from 'jspdf'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
   useTodosByApiary, useCreateTodo, useUpdateTodo, useDeleteTodo,
@@ -19,6 +21,55 @@ import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import type { Beehive, DailyWeather } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
+
+// ── QR PDF helpers ────────────────────────────────────────────────────────────
+
+function addQrPage(doc: jsPDF, name: string, uniqueId: string, qrBase64: string, sizeMm: { w: number; h: number }, isFirst: boolean) {
+  if (!isFirst) doc.addPage()
+  const pageW = doc.internal.pageSize.getWidth()
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(22)
+  doc.setTextColor(180, 120, 20)
+  doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
+
+  doc.setDrawColor(180, 120, 20)
+  doc.setLineWidth(0.5)
+  doc.line(20, 27, pageW - 20, 27)
+
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(16)
+  doc.setTextColor(40, 40, 40)
+  doc.text(name, pageW / 2, 40, { align: 'center' })
+
+  const imgX = (pageW - sizeMm.w) / 2
+  const imgY = 50
+  doc.addImage(`data:image/png;base64,${qrBase64}`, 'PNG', imgX, imgY, sizeMm.w, sizeMm.h)
+
+  const labelY = imgY + sizeMm.h + 8
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(120, 120, 120)
+  doc.text('Unique ID', pageW / 2, labelY, { align: 'center' })
+
+  doc.setFont('courier', 'normal')
+  doc.setFontSize(10)
+  doc.setTextColor(60, 60, 60)
+  doc.text(uniqueId, pageW / 2, labelY + 7, { align: 'center' })
+
+  doc.setFont('helvetica', 'italic')
+  doc.setFontSize(8)
+  doc.setTextColor(160, 160, 160)
+  doc.text(`Generated ${format(new Date(), 'dd MMM yyyy')}`, pageW / 2, 285, { align: 'center' })
+}
+
+function downloadAllQrPdf(apiaryName: string, beehives: Beehive[], sizeMm: { w: number; h: number }) {
+  const withQr = beehives.filter(b => b.qrCodeBase64 && b.uniqueId)
+  if (!withQr.length) return
+  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
+  withQr.forEach((b, i) => addQrPage(doc, b.name, b.uniqueId!, b.qrCodeBase64!, sizeMm, i === 0))
+  doc.save(`${apiaryName.replace(/\s+/g, '-')}-qr-kodovi.pdf`)
+}
 
 // ── WMO weather code → emoji + label ─────────────────────────────────────────
 
@@ -65,9 +116,9 @@ function DayCard({ day, isToday }: { day: DailyWeather; isToday: boolean }) {
         : 'bg-white border-gray-100 hover:border-honey-200 dark:bg-slate-800 dark:border-slate-700 dark:hover:border-honey-500/40'
     }`}>
       <p className="text-xs font-semibold text-gray-500 dark:text-slate-400 uppercase tracking-wide">
-        {isToday ? 'Danas' : format(date, 'EEE')}
+        {isToday ? 'Danas' : format(date, 'EEE', { locale: bs })}
       </p>
-      <p className="text-[11px] text-gray-400 dark:text-slate-500">{format(date, 'MMM d')}</p>
+      <p className="text-[11px] text-gray-400 dark:text-slate-500">{format(date, 'MMM d', { locale: bs })}</p>
       <span className="text-3xl my-1" title={wmoToLabel(day.weatherCode)}>
         {wmoToIcon(day.weatherCode)}
       </span>
@@ -113,6 +164,8 @@ export default function ApiaryDetailPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
   const [hiveQuery, setHiveQuery] = useState('')
+  const [qrAllOpen, setQrAllOpen] = useState(false)
+  const [qrAllSize, setQrAllSize] = useState({ w: 60, h: 60 })
 
   const handleDeleteBeehive = async () => {
     if (!deleteTarget) return
@@ -229,7 +282,7 @@ export default function ApiaryDetailPage() {
         />
         <VitalCard
           icon="📋"
-          label="Inspekcije"
+          label="Pregledi"
           value={String(totalInspections)}
           sub="ukupno"
           gradient="from-amber-400 to-orange-500"
@@ -262,9 +315,20 @@ export default function ApiaryDetailPage() {
             icon="🏠"
             count={apiary.beehiveCount}
             action={
-              canManageHives
-                ? <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Dodaj košnicu</Link>
-                : undefined
+              (beehives.length > 0 || canManageHives) ? (
+                <div className="flex items-center gap-2">
+                  {beehives.length > 0 && (
+                    <button onClick={() => setQrAllOpen(true)} className="btn-secondary text-sm">
+                      <Download className="w-4 h-4" /> QR kodovi
+                    </button>
+                  )}
+                  {canManageHives && (
+                    <Link to={`/beehives/new?apiaryId=${apiaryId}`} className="btn-primary text-sm">
+                      <Plus className="w-4 h-4" /> Dodaj košnicu
+                    </Link>
+                  )}
+                </div>
+              ) : undefined
             }
           >
             {beehives.length === 0 ? (
@@ -334,7 +398,7 @@ export default function ApiaryDetailPage() {
                           <span className="badge bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300">{beehive.materialName}</span>
                         </div>
                         <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
-                          📋 {beehive.inspectionCount} {beehive.inspectionCount === 1 ? 'inspekcija' : 'inspekcija'}
+                          📋 {beehive.inspectionCount} {beehive.inspectionCount === 1 ? 'pregled' : 'pregleda'}
                         </p>
                       </div>
                     </div>
@@ -503,11 +567,76 @@ export default function ApiaryDetailPage() {
       <ConfirmDialog
         isOpen={!!deleteTarget}
         title="Obriši košnicu"
-        message={`Obrisati "${deleteTarget?.name}"? Svi zapisi o inspekcijama će također biti uklonjeni.`}
+        message={`Obrisati "${deleteTarget?.name}"? Svi zapisi o pregledima će također biti uklonjeni.`}
         onConfirm={handleDeleteBeehive}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}
       />
+
+      {/* QR download all modal */}
+      {qrAllOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+          onClick={() => setQrAllOpen(false)}
+        >
+          <div
+            className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 animate-fade-in"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="text-center mb-4">
+              <h2 className="font-display text-xl font-bold text-gray-800 dark:text-slate-100">Preuzmi QR kodove</h2>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{apiary.name}</p>
+            </div>
+
+            <p className="text-sm text-gray-500 dark:text-slate-400 mb-4">
+              Odaberite dimenzije QR koda u PDF-u (u milimetrima):
+            </p>
+
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              <div>
+                <label className="form-label text-xs">Širina (mm)</label>
+                <input
+                  type="number"
+                  min={20}
+                  max={200}
+                  className="form-input text-sm"
+                  value={qrAllSize.w}
+                  onChange={e => setQrAllSize(s => ({ ...s, w: Math.max(20, Math.min(200, Number(e.target.value))) }))}
+                />
+              </div>
+              <div>
+                <label className="form-label text-xs">Visina (mm)</label>
+                <input
+                  type="number"
+                  min={20}
+                  max={200}
+                  className="form-input text-sm"
+                  value={qrAllSize.h}
+                  onChange={e => setQrAllSize(s => ({ ...s, h: Math.max(20, Math.min(200, Number(e.target.value))) }))}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button
+                onClick={() => setQrAllOpen(false)}
+                className="btn-secondary flex-1 text-sm py-2 px-3"
+              >
+                Odustani
+              </button>
+              <button
+                onClick={() => {
+                  downloadAllQrPdf(apiary.name, beehives, qrAllSize)
+                  setQrAllOpen(false)
+                }}
+                className="btn-primary flex-1 text-sm py-2 px-3"
+              >
+                <Download className="w-4 h-4" /> Preuzmi PDF
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

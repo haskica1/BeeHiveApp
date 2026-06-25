@@ -18,10 +18,10 @@ export enum BeehiveType {
 }
 
 export const BeehiveTypeLabels: Record<BeehiveType, string> = {
-  [BeehiveType.Langstroth]:  'Langstroth',
-  [BeehiveType.DadantBlatt]: 'Dadant-Blatt',
-  [BeehiveType.Warré]:       'Warré',
-  [BeehiveType.TopBar]:      'Top Bar',
+  [BeehiveType.Langstroth]:  'LR (Langstroth-Rutova) košnica',
+  [BeehiveType.DadantBlatt]: 'DB (Dadan-Blatt) košnica',
+  [BeehiveType.Warré]:       'AŽ (Alberti-Žnideršič) košnica',
+  [BeehiveType.TopBar]:      'Pološka košnica',
   [BeehiveType.Other]:       'Ostalo',
 }
 
@@ -34,7 +34,7 @@ export enum BeehiveMaterial {
 export const BeehiveMaterialLabels: Record<BeehiveMaterial, string> = {
   [BeehiveMaterial.Wood]:        'Drvo',
   [BeehiveMaterial.Plastic]:     'Plastika',
-  [BeehiveMaterial.Polystyrene]: 'Polistiren',
+  [BeehiveMaterial.Polystyrene]: 'Ostalo',
 }
 
 export enum HoneyLevel {

@@ -194,7 +194,7 @@ export default function ApiaryListPage() {
       <ConfirmDialog
         isOpen={!!deleteTarget}
         title="Obriši pčelinjak"
-        message={`Jeste li sigurni da želite obrisati "${deleteTarget?.name}"? Ovo će također obrisati sve košnice i zapise o inspekcijama. Ova radnja se ne može poništiti.`}
+        message={`Jeste li sigurni da želite obrisati "${deleteTarget?.name}"? Ovo će također obrisati sve košnice i zapise o pregledima. Ova radnja se ne može poništiti.`}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}

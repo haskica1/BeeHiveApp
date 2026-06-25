@@ -119,12 +119,12 @@ export default function StatsPage() {
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 stagger mb-8">
         <VitalCard icon="🏡" label="Pčelinjaci"    value={String(stats.totalApiaries)}    gradient="from-honey-400 to-honey-600" />
         <VitalCard icon="🐝" label="Košnice"      value={String(stats.totalBeehives)}    gradient="from-amber-400 to-orange-500" />
-        <VitalCard icon="🔍" label="Inspekcije"   value={String(stats.totalInspections)} gradient="from-emerald-400 to-teal-600" />
-        <VitalCard icon="🌿" label="Aktivne dijete" value={String(stats.activeDiets)}    gradient="from-violet-400 to-indigo-600" />
+        <VitalCard icon="🔍" label="Pregledi"   value={String(stats.totalInspections)} gradient="from-emerald-400 to-teal-600" />
+        <VitalCard icon="🌿" label="Aktivna prehrana" value={String(stats.activeDiets)}    gradient="from-violet-400 to-indigo-600" />
       </div>
 
       {/* ── Inspections over time ─────────────────────────────────────────────── */}
-      <Section title="Inspekcije — posljednjih 12 mjeseci" icon="📋">
+      <Section title="Pregledi — posljednjih 12 mjeseci" icon="📋">
         {!hasInspectionData ? <EmptyChart /> : (
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={stats.inspectionsByMonth} margin={{ top: 5, right: 10, left: -10, bottom: 0 }}>
@@ -141,7 +141,7 @@ export default function StatsPage() {
               <Area
                 type="monotone"
                 dataKey="count"
-                name="Inspekcije"
+                name="Pregledi"
                 stroke="#f59e0b"
                 strokeWidth={2.5}
                 fill={`url(#${HONEY_GRADIENT_ID})`}

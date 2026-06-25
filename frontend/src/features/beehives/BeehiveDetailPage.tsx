@@ -26,54 +26,43 @@ import { usePermissions } from '../../core/hooks/usePermissions'
 
 // ── PDF download helper ───────────────────────────────────────────────────────
 
-function downloadQrPdf(beehiveName: string, uniqueId: string, qrBase64: string) {
+function downloadQrPdf(beehiveName: string, uniqueId: string, qrBase64: string, sizeMm: { w: number; h: number }) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-
   const pageW = doc.internal.pageSize.getWidth()
 
-  // Title
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(22)
-  doc.setTextColor(180, 120, 20)        // honey colour
+  doc.setTextColor(180, 120, 20)
   doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
 
-  // Divider
   doc.setDrawColor(180, 120, 20)
   doc.setLineWidth(0.5)
   doc.line(20, 27, pageW - 20, 27)
 
-  // Beehive name
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(16)
   doc.setTextColor(40, 40, 40)
   doc.text(beehiveName, pageW / 2, 40, { align: 'center' })
 
-  // QR code image — centre it
-  const imgSize = 100
-  const imgX = (pageW - imgSize) / 2
-  doc.addImage(`data:image/png;base64,${qrBase64}`, 'PNG', imgX, 50, imgSize, imgSize)
+  const imgX = (pageW - sizeMm.w) / 2
+  const imgY = 50
+  doc.addImage(`data:image/png;base64,${qrBase64}`, 'PNG', imgX, imgY, sizeMm.w, sizeMm.h)
 
-  // Unique ID label
+  const labelY = imgY + sizeMm.h + 8
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(9)
   doc.setTextColor(120, 120, 120)
-  doc.text('Unique ID', pageW / 2, 158, { align: 'center' })
+  doc.text('Unique ID', pageW / 2, labelY, { align: 'center' })
 
   doc.setFont('courier', 'normal')
   doc.setFontSize(10)
   doc.setTextColor(60, 60, 60)
-  doc.text(uniqueId, pageW / 2, 165, { align: 'center' })
+  doc.text(uniqueId, pageW / 2, labelY + 7, { align: 'center' })
 
-  // Footer
   doc.setFont('helvetica', 'italic')
   doc.setFontSize(8)
   doc.setTextColor(160, 160, 160)
-  doc.text(
-    `Generated ${format(new Date(), 'dd MMM yyyy')}`,
-    pageW / 2,
-    285,
-    { align: 'center' },
-  )
+  doc.text(`Generated ${format(new Date(), 'dd MMM yyyy')}`, pageW / 2, 285, { align: 'center' })
 
   doc.save(`beehive-${beehiveName.replace(/\s+/g, '-')}-qr.pdf`)
 }
@@ -98,6 +87,7 @@ export default function BeehiveDetailPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
+  const [qrSize, setQrSize] = useState({ w: 60, h: 60 })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
@@ -137,14 +127,14 @@ export default function BeehiveDetailPage() {
     : 'from-red-400 to-rose-600'
 
   const lastInspLabel =
-    lastInspDays == null ? 'Nema inspekcija'
+    lastInspDays == null ? 'Nema pregleda'
     : lastInspDays === 0 ? 'Danas'
     : lastInspDays === 1 ? 'Jučer'
     : `Prije ${lastInspDays} dana`
 
   const addInspectionBtn = (
     <Link to={`/inspections/new?beehiveId=${beehiveId}`} className="btn-primary text-sm">
-      <Plus className="w-4 h-4" /> Dodaj inspekciju
+      <Plus className="w-4 h-4" /> Dodaj pregled
     </Link>
   )
 
@@ -221,7 +211,7 @@ export default function BeehiveDetailPage() {
         />
         <VitalCard
           icon="🌿"
-          label="Aktivne dijete"
+          label="Aktivna prehrana"
           value={String(activeDiets)}
           sub={`${diets.length} ukupno`}
           gradient="from-emerald-400 to-teal-600"
@@ -235,18 +225,18 @@ export default function BeehiveDetailPage() {
         <div className="lg:col-span-7 xl:col-span-8 space-y-6">
           {/* Inspection history (timeline) */}
           <CollapsibleSection
-            title="Historija inspekcija"
+            title="Historija pregleda"
             icon="📋"
             count={beehive.inspectionCount}
             action={canManageThisHive ? addInspectionBtn : undefined}
           >
             {!inspections.length ? (
               <EmptyState
-                title="Nema inspekcija"
-                description="Zabilježite vašu prvu inspekciju za ovu košnicu."
+                title="Nema pregleda"
+                description="Zabilježite vaš prvi pregled za ovu košnicu."
                 action={
                   <Link to={`/inspections/new?beehiveId=${beehiveId}`} className="btn-primary text-sm">
-                    <Plus className="w-4 h-4" /> Zabilježi inspekciju
+                    <Plus className="w-4 h-4" /> Zabilježi pregled
                   </Link>
                 }
               />
@@ -300,7 +290,7 @@ export default function BeehiveDetailPage() {
                 label="Osnovan"
                 value={format(new Date(beehive.dateCreated), 'dd MMM yyyy')}
               />
-              <DetailTile icon="📋" label="Inspekcije" value={String(beehive.inspectionCount)} />
+              <DetailTile icon="📋" label="Pregledi" value={String(beehive.inspectionCount)} />
             </div>
 
             {beehive.notes && (
@@ -327,8 +317,8 @@ export default function BeehiveDetailPage() {
       {/* Delete inspection confirmation */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
-        title="Obriši inspekciju"
-        message="Jeste li sigurni da želite obrisati ovaj zapis inspekcije? Ova radnja se ne može poništiti."
+        title="Obriši pregled"
+        message="Jeste li sigurni da želite obrisati ovaj zapis pregleda? Ova radnja se ne može poništiti."
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteMutation.isPending}
@@ -355,7 +345,32 @@ export default function BeehiveDetailPage() {
               className="w-full max-w-[240px] mx-auto block rounded-lg border border-gray-100 bg-white p-2"
             />
 
-            <div className="flex gap-3 mt-6">
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div>
+                <label className="form-label text-xs">Širina (mm)</label>
+                <input
+                  type="number"
+                  min={20}
+                  max={200}
+                  className="form-input text-sm"
+                  value={qrSize.w}
+                  onChange={e => setQrSize(s => ({ ...s, w: Math.max(20, Math.min(200, Number(e.target.value))) }))}
+                />
+              </div>
+              <div>
+                <label className="form-label text-xs">Visina (mm)</label>
+                <input
+                  type="number"
+                  min={20}
+                  max={200}
+                  className="form-input text-sm"
+                  value={qrSize.h}
+                  onChange={e => setQrSize(s => ({ ...s, h: Math.max(20, Math.min(200, Number(e.target.value))) }))}
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-4">
               <button
                 onClick={() => setQrOpen(false)}
                 className="btn-secondary flex-1 text-sm py-2 px-3"
@@ -364,7 +379,7 @@ export default function BeehiveDetailPage() {
               </button>
               <button
                 onClick={() =>
-                  downloadQrPdf(beehive.name, beehive.uniqueId!, beehive.qrCodeBase64!)
+                  downloadQrPdf(beehive.name, beehive.uniqueId!, beehive.qrCodeBase64!, qrSize)
                 }
                 className="btn-primary flex-1 text-sm py-2 px-3"
               >
