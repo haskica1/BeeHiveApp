@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { differenceInDays, format, isPast, isToday, parseISO } from 'date-fns'
-import { jsPDF } from 'jspdf'
+import { downloadBeehiveQrPdf } from '../../shared/utils/qrPdf'
 import {
   useBeehive, useDeleteInspection,
   useTodosByBeehive, useCreateTodo, useUpdateTodo, useDeleteTodo,
@@ -23,49 +23,6 @@ import DietSection from '../diets/DietSection'
 import { DietStatus, HoneyLevel } from '../../core/models'
 import type { Inspection } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
-
-// ── PDF download helper ───────────────────────────────────────────────────────
-
-function downloadQrPdf(beehiveName: string, uniqueId: string, qrBase64: string, sizeMm: { w: number; h: number }) {
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-  const pageW = doc.internal.pageSize.getWidth()
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(22)
-  doc.setTextColor(180, 120, 20)
-  doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
-
-  doc.setDrawColor(180, 120, 20)
-  doc.setLineWidth(0.5)
-  doc.line(20, 27, pageW - 20, 27)
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
-  doc.setTextColor(40, 40, 40)
-  doc.text(beehiveName, pageW / 2, 40, { align: 'center' })
-
-  const imgX = (pageW - sizeMm.w) / 2
-  const imgY = 50
-  doc.addImage(`data:image/png;base64,${qrBase64}`, 'PNG', imgX, imgY, sizeMm.w, sizeMm.h)
-
-  const labelY = imgY + sizeMm.h + 8
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(120, 120, 120)
-  doc.text('Unique ID', pageW / 2, labelY, { align: 'center' })
-
-  doc.setFont('courier', 'normal')
-  doc.setFontSize(10)
-  doc.setTextColor(60, 60, 60)
-  doc.text(uniqueId, pageW / 2, labelY + 7, { align: 'center' })
-
-  doc.setFont('helvetica', 'italic')
-  doc.setFontSize(8)
-  doc.setTextColor(160, 160, 160)
-  doc.text(`Generated ${format(new Date(), 'dd MMM yyyy')}`, pageW / 2, 285, { align: 'center' })
-
-  doc.save(`beehive-${beehiveName.replace(/\s+/g, '-')}-qr.pdf`)
-}
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
@@ -373,9 +330,7 @@ export default function BeehiveDetailPage() {
                 Zatvori
               </button>
               <button
-                onClick={() =>
-                  downloadQrPdf(beehive.name, beehive.uniqueId!, beehive.qrCodeBase64!, qrSize)
-                }
+                onClick={() => downloadBeehiveQrPdf(beehive, qrSize)}
                 className="btn-primary flex-1 text-sm py-2 px-3"
               >
                 <Download className="w-4 h-4" /> Preuzmi PDF

@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, Download, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
 import { format, parseISO, isPast, isToday } from 'date-fns'
 import { bs } from 'date-fns/locale'
-import { jsPDF } from 'jspdf'
+import { downloadBeehivesQrPdf } from '../../shared/utils/qrPdf'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
   useTodosByApiary, useCreateTodo, useUpdateTodo, useDeleteTodo,
@@ -21,78 +21,6 @@ import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import type { Beehive, DailyWeather } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
-
-// ── QR PDF helpers ────────────────────────────────────────────────────────────
-
-function downloadAllQrPdf(apiaryName: string, beehives: Beehive[], sizeMm: { w: number; h: number }) {
-  const withQr = beehives.filter(b => b.qrCodeBase64 && b.uniqueId)
-  if (!withQr.length) return
-
-  const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-  const pageW = doc.internal.pageSize.getWidth()
-
-  // Card = name(7) + QR(sizeMm.h) + uniqueId(14) = sizeMm.h + 21
-  const cardH = sizeMm.h + 21
-  const cardGap = 14
-  const contentTop = 32
-  const footerY = 285
-  // Fit 2 per page only if both cards + gap fit in available space
-  const perPage = contentTop + 2 * cardH + cardGap <= footerY ? 2 : 1
-
-  function drawPageShell(isFirst: boolean) {
-    if (!isFirst) doc.addPage()
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(22)
-    doc.setTextColor(180, 120, 20)
-    doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
-    doc.setDrawColor(180, 120, 20)
-    doc.setLineWidth(0.5)
-    doc.line(20, 27, pageW - 20, 27)
-    doc.setFont('helvetica', 'italic')
-    doc.setFontSize(8)
-    doc.setTextColor(160, 160, 160)
-    doc.text(`Generated ${format(new Date(), 'dd MMM yyyy')}`, pageW / 2, footerY, { align: 'center' })
-  }
-
-  function drawCard(b: Beehive, top: number) {
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(13)
-    doc.setTextColor(40, 40, 40)
-    doc.text(b.name, pageW / 2, top, { align: 'center' })
-
-    const qrX = (pageW - sizeMm.w) / 2
-    const qrY = top + 7
-    doc.addImage(`data:image/png;base64,${b.qrCodeBase64}`, 'PNG', qrX, qrY, sizeMm.w, sizeMm.h)
-
-    const idY = qrY + sizeMm.h + 4
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(120, 120, 120)
-    doc.text('Unique ID', pageW / 2, idY, { align: 'center' })
-    doc.setFont('courier', 'normal')
-    doc.setFontSize(9)
-    doc.setTextColor(60, 60, 60)
-    doc.text(b.uniqueId!, pageW / 2, idY + 5, { align: 'center' })
-  }
-
-  withQr.forEach((b, i) => {
-    const slot = i % perPage
-    if (slot === 0) drawPageShell(i === 0)
-
-    const cardTop = contentTop + slot * (cardH + cardGap)
-    drawCard(b, cardTop)
-
-    // Light divider between the two cards on the same page
-    if (slot === 0 && perPage === 2 && i + 1 < withQr.length) {
-      const divY = contentTop + cardH + cardGap / 2
-      doc.setDrawColor(220, 220, 220)
-      doc.setLineWidth(0.3)
-      doc.line(30, divY, pageW - 30, divY)
-    }
-  })
-
-  doc.save(`${apiaryName.replace(/\s+/g, '-')}-qr-kodovi.pdf`)
-}
 
 // ── WMO weather code → emoji + label ─────────────────────────────────────────
 
@@ -644,7 +572,7 @@ export default function ApiaryDetailPage() {
               </button>
               <button
                 onClick={() => {
-                  downloadAllQrPdf(apiary.name, beehives, qrAllSize)
+                  downloadBeehivesQrPdf(apiary.name, beehives, qrAllSize)
                   setQrAllOpen(false)
                 }}
                 className="btn-primary flex-1 text-sm py-2 px-3"

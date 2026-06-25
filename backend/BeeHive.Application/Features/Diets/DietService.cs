@@ -1,6 +1,7 @@
 using AutoMapper;
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Localization;
 using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Diets.DTOs;
 using BeeHive.Domain.Entities;
@@ -284,15 +285,15 @@ public class DietService : IDietService
         Name                   = d.Name,
         StartDate              = d.StartDate,
         Reason                 = d.Reason,
-        ReasonName             = FormatReason(d.Reason),
+        ReasonName             = BsLabels.Label(d.Reason),
         CustomReason           = d.CustomReason,
         DurationDays           = d.DurationDays,
         FrequencyDays          = d.FrequencyDays,
         FoodType               = d.FoodType,
-        FoodTypeName           = FormatFoodType(d.FoodType),
+        FoodTypeName           = BsLabels.Label(d.FoodType),
         CustomFoodType         = d.CustomFoodType,
         Status                 = d.Status,
-        StatusName             = d.Status.ToString(),
+        StatusName             = BsLabels.Label(d.Status),
         EarlyCompletionComment = d.EarlyCompletionComment,
         BeehiveId              = d.BeehiveId,
         TotalEntries           = d.FeedingEntries.Count,
@@ -307,15 +308,15 @@ public class DietService : IDietService
         Name                   = d.Name,
         StartDate              = d.StartDate,
         Reason                 = d.Reason,
-        ReasonName             = FormatReason(d.Reason),
+        ReasonName             = BsLabels.Label(d.Reason),
         CustomReason           = d.CustomReason,
         DurationDays           = d.DurationDays,
         FrequencyDays          = d.FrequencyDays,
         FoodType               = d.FoodType,
-        FoodTypeName           = FormatFoodType(d.FoodType),
+        FoodTypeName           = BsLabels.Label(d.FoodType),
         CustomFoodType         = d.CustomFoodType,
         Status                 = d.Status,
-        StatusName             = d.Status.ToString(),
+        StatusName             = BsLabels.Label(d.Status),
         EarlyCompletionComment = d.EarlyCompletionComment,
         BeehiveId              = d.BeehiveId,
         TotalEntries           = d.FeedingEntries.Count,
@@ -333,32 +334,9 @@ public class DietService : IDietService
         Id             = e.Id,
         ScheduledDate  = e.ScheduledDate,
         Status         = e.Status,
-        StatusName     = e.Status.ToString(),
+        StatusName     = BsLabels.Label(e.Status),
         CompletionDate = e.CompletionDate,
         DietId         = e.DietId,
     };
 
-    private static string FormatReason(DietReason r) => r switch
-    {
-        DietReason.LackOfFood               => "Lack of Food",
-        DietReason.WinterFeeding            => "Winter Feeding",
-        DietReason.SpringStimulation        => "Spring Stimulation",
-        DietReason.NewSwarmSupport          => "New Swarm Support",
-        DietReason.PostHarvestRecovery      => "Post-Harvest Recovery",
-        DietReason.DroughtConditions        => "Drought Conditions",
-        DietReason.WeakColonySupport        => "Weak Colony Support",
-        DietReason.QueenIntroductionSupport => "Queen Introduction Support",
-        DietReason.Custom                   => "Custom",
-        _                                   => r.ToString(),
-    };
-
-    private static string FormatFoodType(FoodType ft) => ft switch
-    {
-        FoodType.SugarSyrup     => "Sugar Syrup",
-        FoodType.Fondant        => "Fondant",
-        FoodType.Pollen         => "Pollen",
-        FoodType.ProteinPatties => "Protein Patties",
-        FoodType.Custom         => "Custom",
-        _                       => ft.ToString(),
-    };
 }

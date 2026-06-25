@@ -261,7 +261,7 @@ export default function StatsPage() {
                 {stats.honeyLevelDistribution.map((entry, i) => (
                   <Cell
                     key={i}
-                    fill={entry.name === 'High' ? '#10b981' : entry.name === 'Medium' ? '#f59e0b' : '#ef4444'}
+                    fill={entry.name === 'Visoko' ? '#10b981' : entry.name === 'Srednje' ? '#f59e0b' : '#ef4444'}
                   />
                 ))}
               </Bar>
@@ -335,9 +335,9 @@ export default function StatsPage() {
                   label={PieLabel}
                 >
                   {stats.dietsByStatus.map((entry, i) => {
-                    const c = entry.name === 'Completed' ? '#10b981'
-                      : entry.name === 'In Progress' ? '#6366f1'
-                      : entry.name === 'Stopped Early' ? '#ef4444'
+                    const c = entry.name === 'Završeno' ? '#10b981'
+                      : entry.name === 'U toku' ? '#6366f1'
+                      : entry.name === 'Prijevremeno prekinuto' ? '#ef4444'
                       : '#9ca3af'
                     return <Cell key={i} fill={c} />
                   })}
@@ -394,8 +394,8 @@ export default function StatsPage() {
           <div className="flex flex-wrap gap-3 mt-4">
             {(stats.todosByPriority as PriorityStats[]).map((p) => {
               const pct = p.total > 0 ? Math.round((p.completed / p.total) * 100) : 0
-              const color = p.priority === 'High' ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
-                : p.priority === 'Medium' ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
+              const color = p.priority === 'Visok' ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
+                : p.priority === 'Srednji' ? 'bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
                 : 'bg-gray-100 text-gray-600 dark:bg-slate-700 dark:text-slate-300'
               return (
                 <div key={p.priority} className={`flex items-center gap-2 px-3 py-1.5 rounded-xl text-sm font-medium ${color}`}>

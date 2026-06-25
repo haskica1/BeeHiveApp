@@ -1,4 +1,5 @@
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Localization;
 using BeeHive.Application.Features.Stats.DTOs;
 using BeeHive.Domain.Enums;
 
@@ -62,13 +63,13 @@ public class StatsService : IStatsService
 
         var byType = beehives
             .GroupBy(b => b.Type)
-            .Select(g => new NameValueDto(FormatEnum(g.Key.ToString()), g.Count()))
+            .Select(g => new NameValueDto(BsLabels.Label(g.Key), g.Count()))
             .OrderByDescending(x => x.Value)
             .ToList();
 
         var byMaterial = beehives
             .GroupBy(b => b.Material)
-            .Select(g => new NameValueDto(FormatEnum(g.Key.ToString()), g.Count()))
+            .Select(g => new NameValueDto(BsLabels.Label(g.Key), g.Count()))
             .OrderByDescending(x => x.Value)
             .ToList();
 
@@ -76,7 +77,7 @@ public class StatsService : IStatsService
 
         var honeyDist = inspections
             .GroupBy(i => i.HoneyLevel)
-            .Select(g => new NameValueDto(FormatEnum(g.Key.ToString()), g.Count()))
+            .Select(g => new NameValueDto(BsLabels.Label(g.Key), g.Count()))
             .OrderBy(x => x.Name)
             .ToList();
 
@@ -118,17 +119,13 @@ public class StatsService : IStatsService
 
         var dietsByStatus = diets
             .GroupBy(d => d.Status)
-            .Select(g => new NameValueDto(FormatEnum(g.Key.ToString()), g.Count()))
+            .Select(g => new NameValueDto(BsLabels.Label(g.Key), g.Count()))
             .OrderByDescending(x => x.Value)
             .ToList();
 
         var dietsByFoodType = diets
             .GroupBy(d => d.FoodType)
-            .Select(g => new NameValueDto(
-                g.Key == FoodType.Custom
-                    ? "Custom"
-                    : FormatEnum(g.Key.ToString()),
-                g.Count()))
+            .Select(g => new NameValueDto(BsLabels.Label(g.Key), g.Count()))
             .OrderByDescending(x => x.Value)
             .ToList();
 
@@ -157,7 +154,7 @@ public class StatsService : IStatsService
         var todosByPriority = todos
             .GroupBy(t => t.Priority)
             .Select(g => new PriorityStatsDto(
-                FormatEnum(g.Key.ToString()),
+                BsLabels.Label(g.Key),
                 g.Count(),
                 g.Count(t => t.IsCompleted)))
             .OrderByDescending(x => x.Total)
@@ -187,19 +184,6 @@ public class StatsService : IStatsService
 
     // ── Helpers ────────────────────────────────────────────────────────────────
 
-    private static string FormatEnum(string raw)
-    {
-        // "DadantBlatt" → "Dadant Blatt", "InProgress" → "In Progress"
-        var result = new System.Text.StringBuilder();
-        for (int i = 0; i < raw.Length; i++)
-        {
-            if (i > 0 && char.IsUpper(raw[i]))
-                result.Append(' ');
-            result.Append(raw[i]);
-        }
-        return result.ToString();
-    }
-
     private static IReadOnlyList<(int Year, int Month, string Label)> GenerateLast12Months()
     {
         var list = new List<(int, int, string)>();
@@ -207,7 +191,7 @@ public class StatsService : IStatsService
         for (int i = 11; i >= 0; i--)
         {
             var d = now.AddMonths(-i);
-            list.Add((d.Year, d.Month, d.ToString("MMM yy")));
+            list.Add((d.Year, d.Month, BsLabels.MonthShort(d.Year, d.Month)));
         }
         return list;
     }

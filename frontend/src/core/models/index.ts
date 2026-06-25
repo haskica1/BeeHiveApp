@@ -34,7 +34,7 @@ export enum BeehiveMaterial {
 export const BeehiveMaterialLabels: Record<BeehiveMaterial, string> = {
   [BeehiveMaterial.Wood]:        'Drvo',
   [BeehiveMaterial.Plastic]:     'Plastika',
-  [BeehiveMaterial.Polystyrene]: 'Ostalo',
+  [BeehiveMaterial.Polystyrene]: 'Stiropor',
 }
 
 export enum HoneyLevel {
