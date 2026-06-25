@@ -11,7 +11,7 @@ namespace BeeHive.API.Controllers;
 /// the service layer (managers within scope, or a Beekeeper assigned to the hive).
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/feedings")]
 [Produces("application/json")]
 [Authorize]
 public class DietsController : ControllerBase

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Moon, Sparkles, Sun } from 'lucide-react'
+import { ArrowRight, Eye, EyeOff, Loader2, Lock, Mail, Moon, Sun } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
@@ -16,23 +16,10 @@ interface LoginForm {
 
 const FEATURES = [
   { icon: '🏡', title: 'Pčelinjaci',    desc: 'Organizirajte svaki pčelinjak na jednom mjestu' },
-  { icon: '🍯', title: 'Inspekcije',    desc: 'Pratite zdravlje kolonija tokom vremena' },
+  { icon: '🍯', title: 'Pregledi',    desc: 'Pratite zdravlje kolonija tokom vremena' },
   { icon: '🌿', title: 'Planovi ishrane', desc: 'Kreirajte planove ishrane koji se odvijaju sami' },
 ]
 
-// ── Demo accounts (tap to fill the form) ────────────────────────────────────────
-
-const DEMO_ACCOUNTS = [
-  { label: 'Sistem Admin',           email: 'sysadmin@beehive.com',     password: 'SysAdmin123!', tone: 'purple' as const },
-  { label: 'Golden Hive Co · Admin', email: 'admin@goldenhive.com',     password: 'Admin123!',    tone: 'honey' as const },
-  { label: 'Mountain Bees · Admin',  email: 'admin@mountainbees.com',   password: 'Admin123!',    tone: 'sky' as const },
-]
-
-const TONE_STYLES: Record<'purple' | 'honey' | 'sky', string> = {
-  purple: 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300',
-  honey:  'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300',
-  sky:    'bg-sky-100 text-sky-700 dark:bg-sky-500/20 dark:text-sky-300',
-}
 
 export default function LoginPage() {
   const { login } = useAuth()
@@ -46,7 +33,6 @@ export default function LoginPage() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<LoginForm>()
 
@@ -59,12 +45,6 @@ export default function LoginPage() {
     } catch (err) {
       setServerError(err instanceof Error ? err.message : 'Prijava neuspješna. Pokušajte ponovo.')
     }
-  }
-
-  function fillDemo(account: typeof DEMO_ACCOUNTS[number]) {
-    setServerError(null)
-    setValue('email', account.email, { shouldValidate: true })
-    setValue('password', account.password, { shouldValidate: true })
   }
 
   return (
@@ -233,34 +213,6 @@ export default function LoginPage() {
               </button>
             </form>
 
-            {/* Demo accounts — tap to fill */}
-            <div className="mt-7 pt-6 border-t border-gray-100 dark:border-slate-800">
-              <p className="flex items-center justify-center gap-1.5 text-xs text-gray-400 dark:text-slate-500 text-center mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> Tapnite demo račun da popunite formu
-              </p>
-              <div className="grid gap-2 stagger">
-                {DEMO_ACCOUNTS.map(acc => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={() => fillDemo(acc)}
-                    className="group flex items-center gap-3 px-3 py-2.5 rounded-xl border border-gray-100 dark:border-slate-800 bg-gray-50/60 dark:bg-slate-800/50 hover:bg-honey-50 dark:hover:bg-slate-800 hover:border-honey-200 dark:hover:border-slate-700 transition-colors text-left"
-                  >
-                    <span className={clsx('w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0', TONE_STYLES[acc.tone])}>
-                      {acc.label[0]}
-                    </span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-xs font-semibold text-gray-700 dark:text-slate-200 truncate">{acc.label}</p>
-                      <p className="text-[11px] text-gray-400 dark:text-slate-500 truncate">{acc.email}</p>
-                    </div>
-                    <ArrowRight className="w-4 h-4 text-gray-300 dark:text-slate-600 group-hover:text-honey-500 group-hover:translate-x-0.5 transition-all shrink-0" />
-                  </button>
-                ))}
-              </div>
-              <p className="text-[11px] text-gray-400 dark:text-slate-500 text-center mt-3">
-                Lozinka org admina: <span className="font-mono">Admin123!</span>
-              </p>
-            </div>
           </div>
         </div>
       </div>

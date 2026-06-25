@@ -392,7 +392,7 @@ function FeedingCard({ entry }: { entry: CalendarFeedingEntry }) {
 
   return (
     <Link
-      to={`/diets/${entry.dietId}`}
+      to={`/feedings/${entry.dietId}`}
       className={clsx(
         'flex items-start gap-3 p-3.5 rounded-xl border transition-all group',
         completed ? 'bg-gray-50 border-gray-100 opacity-60 dark:bg-slate-800/50 dark:border-slate-800' :

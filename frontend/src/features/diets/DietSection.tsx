@@ -31,7 +31,7 @@ function DietCard({ diet }: { diet: Diet }) {
 
   return (
     <Link
-      to={`/diets/${diet.id}`}
+      to={`/feedings/${diet.id}`}
       className="card group flex items-center gap-4 hover:border-honey-300 dark:hover:border-honey-500/40 hover:shadow-md dark:hover:shadow-none transition-all animate-slide-up"
     >
       {/* Icon */}
@@ -89,33 +89,33 @@ export default function DietSection({ beehiveId }: { beehiveId: number }) {
   const visibleFinished = showAll ? finished : finished.slice(0, 2)
 
   const addAction = canManageThisDiet
-    ? <Link to={`/diets/new?beehiveId=${beehiveId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Dodaj dijetu</Link>
+    ? <Link to={`/feedings/new?beehiveId=${beehiveId}`} className="btn-primary text-sm"><Plus className="w-4 h-4" /> Dodaj prehranu</Link>
     : null
 
   return (
     <CollapsibleSection
-      title="Programi hranjenja"
+      title="Programi prehrane"
       icon={<Leaf className="w-5 h-5 text-honey-500" />}
       count={diets.length}
       action={addAction}
     >
       {isLoading ? (
-        <LoadingSpinner message="Učitavanje dijeta…" />
+        <LoadingSpinner message="Učitavanje prehrana…" />
       ) : diets.length === 0 ? (
         <div className="card text-center py-8 text-gray-400 dark:text-slate-500">
           <Leaf className="w-10 h-10 mx-auto mb-3 text-gray-200 dark:text-slate-700" />
-          <p className="font-medium text-gray-500 dark:text-slate-400">Nema programa hranjenja</p>
+          <p className="font-medium text-gray-500 dark:text-slate-400">Nema programa prehrane</p>
           <p className="text-sm mt-1">
             {canManageThisDiet
-              ? 'Napravite dijetu za praćenje rasporeda hranjenja ove košnice.'
-              : 'Još nema zakazanih programa hranjenja.'}
+              ? 'Napravite program prehrane za ovu košnicu.'
+              : 'Još nema zakazanih programa prehrane.'}
           </p>
           {canManageThisDiet && (
             <Link
-              to={`/diets/new?beehiveId=${beehiveId}`}
+              to={`/feedings/new?beehiveId=${beehiveId}`}
               className="btn-primary text-sm mt-4 inline-flex"
             >
-              <Plus className="w-4 h-4" /> Dodaj prvu dijetu
+              <Plus className="w-4 h-4" /> Dodaj prvu prehranu
             </Link>
           )}
         </div>

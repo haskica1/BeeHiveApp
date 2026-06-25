@@ -257,7 +257,7 @@ export default function StatsPage() {
               <XAxis dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} />
               <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" name="Inspekcije" radius={[6, 6, 0, 0]}>
+              <Bar dataKey="value" name="Pregledi" radius={[6, 6, 0, 0]}>
                 {stats.honeyLevelDistribution.map((entry, i) => (
                   <Cell
                     key={i}
@@ -302,7 +302,7 @@ export default function StatsPage() {
               <XAxis type="number" allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
               <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} width={120} />
               <Tooltip content={<CustomTooltip />} />
-              <Bar dataKey="value" name="Inspekcije" radius={[0, 6, 6, 0]}>
+              <Bar dataKey="value" name="Pregledi" radius={[0, 6, 6, 0]}>
                 {stats.topBeehivesByInspections.map((_, i) => (
                   <Cell key={i} fill={MULTI[i % MULTI.length]} />
                 ))}
@@ -318,7 +318,7 @@ export default function StatsPage() {
           <div className="card">
             <div className="flex items-center gap-2 mb-5">
               <span className="text-xl">🌿</span>
-              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Status dijete</h2>
+              <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100">Status prehrane</h2>
             </div>
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -362,7 +362,7 @@ export default function StatsPage() {
                 <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#6b7280' }} axisLine={false} tickLine={false} />
                 <YAxis allowDecimals={false} tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
                 <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="value" name="Dijete" radius={[6, 6, 0, 0]}>
+                <Bar dataKey="value" name="Prehrane" radius={[6, 6, 0, 0]}>
                   {stats.dietsByFoodType.map((_, i) => (
                     <Cell key={i} fill={MULTI[i % MULTI.length]} />
                   ))}

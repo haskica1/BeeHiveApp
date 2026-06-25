@@ -74,7 +74,7 @@ function EntryRow({
               ? 'text-gray-300 dark:text-slate-600 hover:text-honey-500 dark:hover:text-honey-400 cursor-pointer'
               : 'text-gray-200 dark:text-slate-700 cursor-not-allowed'
           }`}
-          title={canComplete ? 'Označi kao završeno' : 'Dijeta je završena'}
+          title={canComplete ? 'Označi kao završeno' : 'Prehrana je završena'}
         >
           <Circle className="w-5 h-5" />
         </button>
@@ -134,8 +134,8 @@ function CompleteEarlyModal({
             <AlertTriangle className="w-5 h-5 text-red-500" />
           </div>
           <div>
-            <h2 className="font-semibold text-gray-800 dark:text-slate-100">Zaustavi dijetu ranije</h2>
-            <p className="text-sm text-gray-500 dark:text-slate-400">Molimo objasnite zašto se dijeta zaustavlja ranije.</p>
+            <h2 className="font-semibold text-gray-800 dark:text-slate-100">Zaustavi prehranu ranije</h2>
+            <p className="text-sm text-gray-500 dark:text-slate-400">Molimo objasnite zašto se prehrana zaustavlja ranije.</p>
           </div>
         </div>
 
@@ -152,7 +152,7 @@ function CompleteEarlyModal({
             Otkaži
           </button>
           <button onClick={submit} className="btn-primary flex-1 bg-red-500 hover:bg-red-600" disabled={isLoading}>
-            {isLoading ? 'Zaustavljam…' : 'Zaustavi dijetu'}
+            {isLoading ? 'Zaustavljam…' : 'Zaustavi prehranu'}
           </button>
         </div>
       </div>
@@ -246,7 +246,7 @@ export default function DietDetailPage() {
                 <button onClick={() => setShowCompleteEarly(true)} className="btn-secondary text-sm">Zaustavi ranije</button>
               )}
               {canEdit && (
-                <Link to={`/diets/${dietId}/edit`} className="btn-secondary text-sm"><Pencil className="w-4 h-4" /> Uredi</Link>
+                <Link to={`/feedings/${dietId}/edit`} className="btn-secondary text-sm"><Pencil className="w-4 h-4" /> Uredi</Link>
               )}
             </div>
           </div>
@@ -362,8 +362,8 @@ export default function DietDetailPage() {
       {/* Delete confirm */}
       <ConfirmDialog
         isOpen={showDeleteConfirm}
-        title="Obriši dijetu"
-        message="Da li ste sigurni da želite obrisati ovu dijetu? Ova radnja ne može biti poništena."
+        title="Obriši prehranu"
+        message="Da li ste sigurni da želite obrisati ovu prehranu? Ova radnja ne može biti poništena."
         onConfirm={handleDelete}
         onCancel={() => setShowDeleteConfirm(false)}
         isLoading={deleteMutation.isPending}

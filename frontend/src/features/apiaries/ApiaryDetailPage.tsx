@@ -24,50 +24,73 @@ import { usePermissions } from '../../core/hooks/usePermissions'
 
 // ── QR PDF helpers ────────────────────────────────────────────────────────────
 
-function addQrPage(doc: jsPDF, name: string, uniqueId: string, qrBase64: string, sizeMm: { w: number; h: number }, isFirst: boolean) {
-  if (!isFirst) doc.addPage()
-  const pageW = doc.internal.pageSize.getWidth()
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(22)
-  doc.setTextColor(180, 120, 20)
-  doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
-
-  doc.setDrawColor(180, 120, 20)
-  doc.setLineWidth(0.5)
-  doc.line(20, 27, pageW - 20, 27)
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(16)
-  doc.setTextColor(40, 40, 40)
-  doc.text(name, pageW / 2, 40, { align: 'center' })
-
-  const imgX = (pageW - sizeMm.w) / 2
-  const imgY = 50
-  doc.addImage(`data:image/png;base64,${qrBase64}`, 'PNG', imgX, imgY, sizeMm.w, sizeMm.h)
-
-  const labelY = imgY + sizeMm.h + 8
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setTextColor(120, 120, 120)
-  doc.text('Unique ID', pageW / 2, labelY, { align: 'center' })
-
-  doc.setFont('courier', 'normal')
-  doc.setFontSize(10)
-  doc.setTextColor(60, 60, 60)
-  doc.text(uniqueId, pageW / 2, labelY + 7, { align: 'center' })
-
-  doc.setFont('helvetica', 'italic')
-  doc.setFontSize(8)
-  doc.setTextColor(160, 160, 160)
-  doc.text(`Generated ${format(new Date(), 'dd MMM yyyy')}`, pageW / 2, 285, { align: 'center' })
-}
-
 function downloadAllQrPdf(apiaryName: string, beehives: Beehive[], sizeMm: { w: number; h: number }) {
   const withQr = beehives.filter(b => b.qrCodeBase64 && b.uniqueId)
   if (!withQr.length) return
+
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
-  withQr.forEach((b, i) => addQrPage(doc, b.name, b.uniqueId!, b.qrCodeBase64!, sizeMm, i === 0))
+  const pageW = doc.internal.pageSize.getWidth()
+
+  // Card = name(7) + QR(sizeMm.h) + uniqueId(14) = sizeMm.h + 21
+  const cardH = sizeMm.h + 21
+  const cardGap = 14
+  const contentTop = 32
+  const footerY = 285
+  // Fit 2 per page only if both cards + gap fit in available space
+  const perPage = contentTop + 2 * cardH + cardGap <= footerY ? 2 : 1
+
+  function drawPageShell(isFirst: boolean) {
+    if (!isFirst) doc.addPage()
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(22)
+    doc.setTextColor(180, 120, 20)
+    doc.text('BeeHive', pageW / 2, 22, { align: 'center' })
+    doc.setDrawColor(180, 120, 20)
+    doc.setLineWidth(0.5)
+    doc.line(20, 27, pageW - 20, 27)
+    doc.setFont('helvetica', 'italic')
+    doc.setFontSize(8)
+    doc.setTextColor(160, 160, 160)
+    doc.text(`Generated ${format(new Date(), 'dd MMM yyyy')}`, pageW / 2, footerY, { align: 'center' })
+  }
+
+  function drawCard(b: Beehive, top: number) {
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
+    doc.setTextColor(40, 40, 40)
+    doc.text(b.name, pageW / 2, top, { align: 'center' })
+
+    const qrX = (pageW - sizeMm.w) / 2
+    const qrY = top + 7
+    doc.addImage(`data:image/png;base64,${b.qrCodeBase64}`, 'PNG', qrX, qrY, sizeMm.w, sizeMm.h)
+
+    const idY = qrY + sizeMm.h + 4
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(8)
+    doc.setTextColor(120, 120, 120)
+    doc.text('Unique ID', pageW / 2, idY, { align: 'center' })
+    doc.setFont('courier', 'normal')
+    doc.setFontSize(9)
+    doc.setTextColor(60, 60, 60)
+    doc.text(b.uniqueId!, pageW / 2, idY + 5, { align: 'center' })
+  }
+
+  withQr.forEach((b, i) => {
+    const slot = i % perPage
+    if (slot === 0) drawPageShell(i === 0)
+
+    const cardTop = contentTop + slot * (cardH + cardGap)
+    drawCard(b, cardTop)
+
+    // Light divider between the two cards on the same page
+    if (slot === 0 && perPage === 2 && i + 1 < withQr.length) {
+      const divY = contentTop + cardH + cardGap / 2
+      doc.setDrawColor(220, 220, 220)
+      doc.setLineWidth(0.3)
+      doc.line(30, divY, pageW - 30, divY)
+    }
+  })
+
   doc.save(`${apiaryName.replace(/\s+/g, '-')}-qr-kodovi.pdf`)
 }
 
@@ -258,7 +281,7 @@ export default function ApiaryDetailPage() {
             <div className="flex gap-2 shrink-0">
               {apiary.hasLocation && (
                 <a href={mapUrl} target="_blank" rel="noreferrer" className="btn-secondary text-sm">
-                  <MapPin className="w-4 h-4" /> Mapa
+                  <MapPin className="w-4 h-4" /> Karta
                 </a>
               )}
               {canManageApiaries && (
@@ -523,7 +546,7 @@ export default function ApiaryDetailPage() {
             <div className="grid grid-cols-2 gap-3">
               <DetailTile icon="📅" label="Osnovan" value={format(new Date(apiary.createdAt), 'dd MMM yyyy')} />
               <DetailTile icon="🐝" label="Košnice" value={String(apiary.beehiveCount)} />
-              <DetailTile icon="📋" label="Inspekcije" value={String(totalInspections)} />
+              <DetailTile icon="📋" label="Pregledi" value={String(totalInspections)} />
               <DetailTile
                 icon="📍"
                 label="Lokacija"
@@ -540,7 +563,7 @@ export default function ApiaryDetailPage() {
                     {apiary.latitude?.toFixed(5)}, {apiary.longitude?.toFixed(5)}
                   </span>
                   <a href={mapUrl} target="_blank" rel="noreferrer" className="ml-auto shrink-0 text-honey-600 dark:text-honey-400 hover:underline font-medium">
-                    Mapa
+                    Karta
                   </a>
                 </div>
               ) : canManageApiaries ? (
@@ -575,14 +598,9 @@ export default function ApiaryDetailPage() {
 
       {/* QR download all modal */}
       {qrAllOpen && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
-          onClick={() => setQrAllOpen(false)}
-        >
-          <div
-            className="bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full mx-4 animate-fade-in"
-            onClick={e => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setQrAllOpen(false)} />
+          <div className="relative bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full animate-fade-in">
             <div className="text-center mb-4">
               <h2 className="font-display text-xl font-bold text-gray-800 dark:text-slate-100">Preuzmi QR kodove</h2>
               <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">{apiary.name}</p>

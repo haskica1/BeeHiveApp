@@ -105,7 +105,7 @@ export default function DietFormPage() {
         customFoodType: foodType === FoodType.Custom ? customFood.trim() : undefined,
       }
       await updateMutation.mutateAsync(payload)
-      navigate(`/diets/${dietId}`)
+      navigate(`/feedings/${dietId}`)
     } else {
       const payload: CreateDietPayload = {
         name: name.trim(),
@@ -119,25 +119,25 @@ export default function DietFormPage() {
         beehiveId,
       }
       const created = await createMutation.mutateAsync(payload)
-      navigate(`/diets/${created.id}`)
+      navigate(`/feedings/${created.id}`)
     }
   }
 
   const isSaving = createMutation.isPending || updateMutation.isPending
 
-  if (isEdit && loadingExisting) return <LoadingSpinner message="Učitavanje dijete…" />
-  if (isEdit && !existing && !loadingExisting) return <ErrorMessage message="Dijeta nije pronađena." />
+  if (isEdit && loadingExisting) return <LoadingSpinner message="Učitavanje prehrane…" />
+  if (isEdit && !existing && !loadingExisting) return <ErrorMessage message="Prehrana nije pronađena." />
 
   const backHref = isEdit
-    ? `/diets/${dietId}`
+    ? `/feedings/${dietId}`
     : `/beehives/${beehiveId}`
 
   return (
     <div className="animate-fade-in max-w-2xl mx-auto">
       <FormHeader
         icon="🌿"
-        title={isEdit ? 'Uredi dijetu' : 'Nova dijeta'}
-        subtitle={isEdit ? 'Ažuriraj program hranjenja' : 'Kreiraj program hranjenja'}
+        title={isEdit ? 'Uredi prehranu' : 'Nova prehrana'}
+        subtitle={isEdit ? 'Ažuriraj program prehrane' : 'Kreiraj program prehrane'}
         onBack={() => navigate(backHref)}
       />
 
@@ -148,10 +148,10 @@ export default function DietFormPage() {
           <h3 className="font-semibold text-gray-700 dark:text-slate-200 text-sm uppercase tracking-wide">Osnovne informacije</h3>
 
           <div>
-            <label className="form-label">Naziv dijete *</label>
+            <label className="form-label">Naziv prehrane *</label>
             <input
               className={`form-input ${errors.name ? 'border-red-400' : ''}`}
-              placeholder="npr. Proljetna stimulativna dijeta"
+              placeholder="npr. Proljetna stimulativna prehrana"
               value={name}
               onChange={e => setName(e.target.value)}
             />
@@ -274,7 +274,7 @@ export default function DietFormPage() {
         <div className="flex gap-3 justify-end pb-8">
           <Link to={backHref} className="btn-secondary">Otkaži</Link>
           <button type="submit" className="btn-primary" disabled={isSaving}>
-            {isSaving ? 'Čuvanje…' : isEdit ? 'Spremi promjene' : 'Kreiraj dijetu'}
+            {isSaving ? 'Čuvanje…' : isEdit ? 'Spremi promjene' : 'Kreiraj prehranu'}
           </button>
         </div>
       </form>

@@ -73,11 +73,11 @@ export default function App() {
               <Route path="inspections/:id/edit"   element={<InspectionFormPage />} />
 
               {/* Diet detail — all authenticated users */}
-              <Route path="diets/:id" element={<DietDetailPage />} />
+              <Route path="feedings/:id" element={<DietDetailPage />} />
 
               {/* Diet create/edit — all authenticated users (User allowed for assigned hives) */}
-              <Route path="diets/new"      element={<DietFormPage />} />
-              <Route path="diets/:id/edit" element={<DietFormPage />} />
+              <Route path="feedings/new"      element={<DietFormPage />} />
+              <Route path="feedings/:id/edit" element={<DietFormPage />} />
 
               {/* Profile — all authenticated users */}
               <Route path="profile" element={<ProfilePage />} />

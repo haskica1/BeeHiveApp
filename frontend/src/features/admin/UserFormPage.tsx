@@ -219,9 +219,9 @@ export default function UserFormPage() {
               <option value="SystemAdmin">Sistem Admin</option>
             </select>
             <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
-              {selectedRole === 'OrganizationAdmin' && 'Može upravljati svim pčelinjacima, košnicama, dijetama, inspekcijama i zadacima u organizaciji.'}
-              {selectedRole === 'ApiaryAdmin' && 'Ograničen na jedan pčelinjak — može upravljati košnicama, dijetama, inspekcijama i zadacima.'}
-              {selectedRole === 'Beekeeper' && 'Može kreirati inspekcije, upravljati zadacima dodijeljenih košnica i pregledati dijete.'}
+              {selectedRole === 'OrganizationAdmin' && 'Može upravljati svim pčelinjacima, košnicama, programima prehrane, pregledima i zadacima u organizaciji.'}
+              {selectedRole === 'ApiaryAdmin' && 'Ograničen na jedan pčelinjak — može upravljati košnicama, programima prehrane, pregledima i zadacima.'}
+              {selectedRole === 'Beekeeper' && 'Može kreirati preglede, upravljati zadacima dodijeljenih košnica i pregledavati programe prehrane.'}
               {selectedRole === 'SystemAdmin' && 'Puni pristup platformi — nije potrebna organizacija.'}
             </p>
           </div>
