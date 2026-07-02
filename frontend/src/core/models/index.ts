@@ -181,6 +181,95 @@ export interface ParseVoiceResult {
   notes?: string | null
 }
 
+// ── Queen ─────────────────────────────────────────────────────────────────────
+
+export enum QueenMarkColor {
+  White  = 1,
+  Yellow = 2,
+  Red    = 3,
+  Green  = 4,
+  Blue   = 5,
+}
+
+export const QueenMarkColorLabels: Record<QueenMarkColor, string> = {
+  [QueenMarkColor.White]:  'Bijela',
+  [QueenMarkColor.Yellow]: 'Žuta',
+  [QueenMarkColor.Red]:    'Crvena',
+  [QueenMarkColor.Green]:  'Zelena',
+  [QueenMarkColor.Blue]:   'Plava',
+}
+
+export enum QueenOrigin {
+  Purchased   = 1,
+  OwnBreeding = 2,
+  Swarm       = 3,
+  Supersedure = 4,
+  Unknown     = 99,
+}
+
+export const QueenOriginLabels: Record<QueenOrigin, string> = {
+  [QueenOrigin.Purchased]:   'Kupljena',
+  [QueenOrigin.OwnBreeding]: 'Vlastiti uzgoj',
+  [QueenOrigin.Swarm]:       'Rojenje',
+  [QueenOrigin.Supersedure]: 'Tiha zamjena',
+  [QueenOrigin.Unknown]:     'Nepoznato',
+}
+
+export enum QueenStatus {
+  Active   = 1,
+  Replaced = 2,
+  Died     = 3,
+  Missing  = 4,
+}
+
+export const QueenStatusLabels: Record<QueenStatus, string> = {
+  [QueenStatus.Active]:   'Aktivna',
+  [QueenStatus.Replaced]: 'Zamijenjena',
+  [QueenStatus.Died]:     'Uginula',
+  [QueenStatus.Missing]:  'Nestala',
+}
+
+export interface Queen {
+  id: number
+  year: number
+  markColor: QueenMarkColor
+  markColorName: string
+  isMarked: boolean
+  isClipped: boolean
+  origin: QueenOrigin
+  originName: string
+  status: QueenStatus
+  statusName: string
+  introducedDate: string
+  endDate?: string
+  notes?: string
+  beehiveId: number
+  createdAt: string
+}
+
+export interface CreateQueenPayload {
+  year: number
+  /** Omitted/null → backend derives the color from the year. */
+  markColor?: QueenMarkColor | null
+  isMarked: boolean
+  isClipped: boolean
+  origin: QueenOrigin
+  introducedDate: string
+  notes?: string
+}
+
+export interface UpdateQueenPayload {
+  year: number
+  markColor: QueenMarkColor
+  isMarked: boolean
+  isClipped: boolean
+  origin: QueenOrigin
+  status: QueenStatus
+  introducedDate: string
+  endDate?: string | null
+  notes?: string
+}
+
 // ── Todo ──────────────────────────────────────────────────────────────────────
 
 export enum TodoPriority {

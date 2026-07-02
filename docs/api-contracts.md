@@ -117,6 +117,21 @@ HTTP `200 OK`, `201 Created`, `204 No Content` — response body is the DTO dire
 
 ---
 
+### Queens
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/beehives/{beehiveId}/queens` | `QueenDto[]` (newest introduction first) |
+| POST | `/beehives/{beehiveId}/queens` | `201 + QueenDto` — new queen is Active; existing active queen auto-closed as Replaced (atomic) |
+| PUT | `/queens/{id}` | `200 + QueenDto` — `422` when activating while another queen is active |
+| DELETE | `/queens/{id}` | `204` |
+
+**QueenDto:** `{ id, beehiveId, year, markColor, markColorName, isMarked, isClipped, origin, originName, status, statusName, introducedDate, endDate?, notes?, createdAt }`
+
+**Create body:** `{ year, markColor?, isMarked, isClipped, origin, introducedDate, notes? }` — `markColor` omitted → derived from `year` (international color code).
+
+---
+
 ### Todos
 
 | Method | Path | Returns |

@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiaryService } from '../services/apiaryService'
 import { beehiveService, inspectionService } from '../services/beehiveService'
+import { queenService } from '../services/queenService'
 import { todoService } from '../services/todoService'
 import { dietService } from '../services/dietService'
 import { statsService } from '../services/statsService'
@@ -12,6 +13,8 @@ import type {
   UpdateBeehivePayload,
   CreateInspectionPayload,
   UpdateInspectionPayload,
+  CreateQueenPayload,
+  UpdateQueenPayload,
   CreateTodoPayload,
   UpdateTodoPayload,
   CreateDietPayload,
@@ -32,6 +35,7 @@ export const queryKeys = {
   beehive:            (id: number) => ['beehives', id] as const,
   inspectionsByHive:  (beehiveId: number) => ['inspections', 'beehive', beehiveId] as const,
   inspection:         (id: number) => ['inspections', id] as const,
+  queensByBeehive:    (beehiveId: number) => ['queens', 'beehive', beehiveId] as const,
   allOpenTodos:       ['todos', 'all-open'] as const,
   todosByApiary:      (apiaryId: number) => ['todos', 'apiary', apiaryId] as const,
   todosByBeehive:     (beehiveId: number) => ['todos', 'beehive', beehiveId] as const,
@@ -162,6 +166,40 @@ export const useDeleteInspection = (beehiveId: number) => {
       qc.invalidateQueries({ queryKey: queryKeys.inspectionsByHive(beehiveId) })
       qc.invalidateQueries({ queryKey: queryKeys.beehive(beehiveId) })
     },
+  })
+}
+
+// ── Queen Hooks ───────────────────────────────────────────────────────────────
+
+export const useQueensByBeehive = (beehiveId: number) =>
+  useQuery({
+    queryKey: queryKeys.queensByBeehive(beehiveId),
+    queryFn: () => queenService.getByBeehive(beehiveId),
+    enabled: !!beehiveId,
+  })
+
+export const useCreateQueen = (beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CreateQueenPayload) => queenService.create(beehiveId, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.queensByBeehive(beehiveId) }),
+  })
+}
+
+export const useUpdateQueen = (beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: UpdateQueenPayload }) =>
+      queenService.update(id, payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.queensByBeehive(beehiveId) }),
+  })
+}
+
+export const useDeleteQueen = (beehiveId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (id: number) => queenService.delete(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.queensByBeehive(beehiveId) }),
   })
 }
 

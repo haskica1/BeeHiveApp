@@ -54,6 +54,15 @@
   → Llama 3.3 70B field extraction → `{date, honeyLevel, broodStatus, notes}` + transcript.
   15 MB size limit + 10/min rate limit. Frontend records via `useVoiceInput`.
 
+### Queens (Matice)
+- Per-beehive queen tracking via `/api/beehives/{id}/queens` + `/api/queens/{id}` — active queen + full history
+- At most one Active queen per hive (service rule **and** partial unique DB index);
+  registering a new queen atomically closes the old one as Replaced
+- Mark color derived from birth year (international code) when not supplied; Bosnian labels via `BsLabels`
+- "Matica" card on `BeehiveDetailPage` (`QueenSection`): color dot, season badge (≥ 3. sezona = warning),
+  replace/history/edit modals; access = same as inspections (assigned Beekeepers included)
+- Covered by unit tests (`QueenServiceTests`, `QueenMarkColorHelperTests`)
+
 ### Diets (Feeding Programs)
 - Full CRUD via `/api/diets`; entries auto-generated from duration + frequency
 - State machine: `NotStarted → InProgress → Completed | StoppedEarly`
@@ -114,6 +123,17 @@
 ## Pending / Not Yet Implemented
 
 > Add items here when planned but not yet built.
+
+**Specced — see `docs/specs/README.md` for priority order and full specs:**
+
+- SPEC-01 AI Advisor (chat savjetnik, voice+text, hive context)
+- SPEC-02 Harvest Log (vrcanje i prinosi)
+- SPEC-04 Smart Alerts & Weekly AI Summary
+- SPEC-05 Inspection Photos & AI Frame Analysis
+- SPEC-06 Learning Module (edukacija)
+- SPEC-07 Offline Inspections (outbox sync)
+
+**Unspecced ideas:**
 
 - Multi-language support (UI is Bosnian-only; no i18n framework)
 - Reports/analytics export (PDF exists only for QR labels)

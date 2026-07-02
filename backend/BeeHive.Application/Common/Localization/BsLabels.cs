@@ -76,6 +76,35 @@ public static class BsLabels
         _                       => t.ToString(),
     };
 
+    public static string Label(QueenMarkColor c) => c switch
+    {
+        QueenMarkColor.White  => "Bijela",
+        QueenMarkColor.Yellow => "Žuta",
+        QueenMarkColor.Red    => "Crvena",
+        QueenMarkColor.Green  => "Zelena",
+        QueenMarkColor.Blue   => "Plava",
+        _                     => c.ToString(),
+    };
+
+    public static string Label(QueenOrigin o) => o switch
+    {
+        QueenOrigin.Purchased   => "Kupljena",
+        QueenOrigin.OwnBreeding => "Vlastiti uzgoj",
+        QueenOrigin.Swarm       => "Rojenje",
+        QueenOrigin.Supersedure => "Tiha zamjena",
+        QueenOrigin.Unknown     => "Nepoznato",
+        _                       => o.ToString(),
+    };
+
+    public static string Label(QueenStatus s) => s switch
+    {
+        QueenStatus.Active   => "Aktivna",
+        QueenStatus.Replaced => "Zamijenjena",
+        QueenStatus.Died     => "Uginula",
+        QueenStatus.Missing  => "Nestala",
+        _                    => s.ToString(),
+    };
+
     public static string Label(BeehiveMaterial m) => m switch
     {
         BeehiveMaterial.Wood        => "Drvo",

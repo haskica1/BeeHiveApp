@@ -12,6 +12,8 @@
 - Read `context.md` — confirm the feature doesn't already exist.
 - Read `ignore.md` — confirm you are not touching frozen code.
 - Read the relevant `features/<name>.md` if the feature already exists.
+- **If the task implements a planned feature, read its spec in `specs/` first** — the spec is the
+  source of truth for scope, contracts, and acceptance criteria (see `specs/README.md`).
 
 ### 3. Check Architecture
 - Read `architecture.md` — confirm which layers need to change.

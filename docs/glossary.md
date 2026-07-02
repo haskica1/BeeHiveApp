@@ -16,6 +16,8 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | Todo | `Todo` | A task reminder scoped to either an Apiary or a Beehive (never both). |
 | Organization | `Organization` | The top-level tenant. Each organization has its own users and apiaries. |
 | User | `User` | A person with access to one Organization. Has role Admin or SystemAdmin. |
+| Queen | `Queen` | The queen bee of a colony. Called *matica* in Bosnian. A Beehive has at most one Active queen; older records form the replacement history. |
+| Supersedure | `QueenOrigin.Supersedure` | *Tiha zamjena* — the colony replaces its queen on its own, without beekeeper intervention or swarming. |
 | QR Code | `qrCode` | A Base64 PNG image encoding a Beehive's `uniqueId`. Used for physical hive scanning. |
 | Unique ID | `uniqueId` | A Guid assigned to a Beehive at creation. Stable, never changes. Encoded in the QR code. |
 
@@ -41,6 +43,8 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | `FeedingEntryStatus` | `Pending` | Scheduled but not yet done. |
 | | `Completed` | Marked as done by the user. |
 | `HoneyLevel` | `Low / Medium / High` | Estimated honey store level observed during an inspection. |
+| `QueenStatus` | `Active` | The hive's current queen (at most one per hive). |
+| | `Replaced / Died / Missing` | Historical states; `EndDate` records when the queen stopped being active. |
 | `TodoPriority` | `Low / Medium / High` | Urgency of a task. |
 
 ---

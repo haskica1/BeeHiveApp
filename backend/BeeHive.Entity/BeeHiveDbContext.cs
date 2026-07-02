@@ -19,6 +19,7 @@ public class BeeHiveDbContext : DbContext
     public DbSet<Beehive> Beehives => Set<Beehive>();
     public DbSet<UserBeehive> UserBeehives => Set<UserBeehive>();
     public DbSet<Inspection> Inspections => Set<Inspection>();
+    public DbSet<Queen> Queens => Set<Queen>();
     public DbSet<Todo> Todos => Set<Todo>();
     public DbSet<Diet> Diets => Set<Diet>();
     public DbSet<FeedingEntry> FeedingEntries => Set<FeedingEntry>();

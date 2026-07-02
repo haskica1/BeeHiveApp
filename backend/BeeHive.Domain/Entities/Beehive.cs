@@ -31,4 +31,5 @@ public class Beehive : BaseEntity
     public ICollection<Inspection> Inspections { get; set; } = new List<Inspection>();
     public ICollection<Diet> Diets { get; set; } = new List<Diet>();
     public ICollection<UserBeehive> AssignedUsers { get; set; } = new List<UserBeehive>();
+    public ICollection<Queen> Queens { get; set; } = new List<Queen>();
 }
