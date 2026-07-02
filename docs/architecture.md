@@ -32,7 +32,7 @@ Application → Entity / Infrastructure     (FORBIDDEN — depends only on its o
 ## Backend Layers
 
 ### BeeHive.Domain
-- `BaseEntity`: `Id (Guid)`, `CreatedAt`, `UpdatedAt`
+- `BaseEntity`: `Id (int)`, `CreatedAt`, `UpdatedAt`
 - All entities inherit `BaseEntity`
 - Contains enums, no logic beyond simple property rules
 - **No dependencies on other layers**
@@ -47,6 +47,8 @@ Application → Entity / Infrastructure     (FORBIDDEN — depends only on its o
 
 ### BeeHive.Infrastructure (external services)
 - `EmailService` (MailKit/SMTP) and other outbound integrations
+- `ChannelEmailQueue` (`IEmailQueue`) + `EmailNotificationWorker` (`BackgroundService`) —
+  notification emails are delivered off the request path (see ADR-021)
 - Registered via `AddInfrastructure()`
 
 ### BeeHive.Application
@@ -61,7 +63,10 @@ Application → Entity / Infrastructure     (FORBIDDEN — depends only on its o
 - Controllers: thin — validate input → call service → return HTTP result (no authorization logic; that lives in the service layer via `IAccessGuard`)
 - `CurrentUser` implements `ICurrentUser` from JWT claims via `IHttpContextAccessor`
 - `GlobalExceptionMiddleware` — maps exceptions to Problem Details (RFC 7807); `ForbiddenAccessException` → 403
-- JWT Bearer auth — all endpoints require `[Authorize]` except `POST /api/auth/login` and the public QR scan lookup
+- JWT Bearer auth — all endpoints require `[Authorize]` except `POST /api/auth/{login,register,refresh,logout}` and the public QR scan lookup
+- Rate limiting (fixed window per IP): login/register 5/min, refresh 20/min, parse-voice 10/min
+- Startup: config guards (fail fast on missing `Jwt:Secret` / connection string), auto-migrate,
+  then dev-only demo seed **or** production demo-account lock + `Bootstrap:*` SystemAdmin provisioning
 - CORS: configured via `AllowedOrigins`
 
 ## Frontend Architecture
@@ -89,11 +94,12 @@ Component
 
 ### Auth Flow
 
-1. `LoginPage` calls `authService.login()` → stores token + user in localStorage
+1. `LoginPage`/`RegisterPage` call `authService` → store access token (30 min) + refresh token (14 d) + user in localStorage
 2. `AuthContext` reads localStorage on mount, exposes `user` and `isAuthenticated`
 3. `apiClient` request interceptor attaches `Bearer <token>` to every request
-4. `apiClient` response interceptor catches 401 → calls `authService.logout()` → redirects to `/login`
-5. `ProtectedRoute` blocks unauthenticated users; `AdminRoute` blocks non-SystemAdmin
+4. On 401: single-flight `POST /auth/refresh` (rotates the refresh token) → replay the original request;
+   if the refresh fails → logout + redirect to `/login`
+5. `ProtectedRoute` blocks unauthenticated users; `RoleRoute`/`AdminRoute` gate by role
 
 ## Domain Hierarchy
 
@@ -112,8 +118,10 @@ Organization
 
 | Setting | Location | Value |
 |---|---|---|
-| DB connection | `appsettings.json` | PostgreSQL (Npgsql) |
-| JWT expiry | `appsettings.json` | 480 min (8h) |
-| JWT claims | `AuthService` | userId, email, role, organizationId |
-| Dev API proxy | `vite.config.ts` | `/api` → `https://localhost:62647` |
+| DB connection | env var / `appsettings.Development.json` | PostgreSQL (Npgsql); **empty in committed appsettings.json** |
+| Access token | `Jwt:AccessTokenMinutes` | 30 min |
+| Refresh token | `Jwt:RefreshTokenDays` | 14 days, rotating, stored hashed |
+| JWT claims | `AuthService` | `sub`, `email`, `role`, `jti`, `organizationId?`, `apiaryId?` |
+| Secrets | env vars / user-secrets | `Jwt__Secret`, `Smtp__Password`, `Groq__ApiKey`, `Bootstrap__*` — never committed |
+| Dev API proxy | `vite.config.ts` | `/api` → `http://localhost:62648` (local backend) |
 | PWA theme | `vite.config.ts` | Amber `#d97706` |

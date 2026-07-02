@@ -14,7 +14,8 @@ Backend: .NET 10 Clean Architecture. Frontend: React 18 + TypeScript + Vite + Ta
 - **Never** put business logic in controllers or repositories.
 - **Never** bypass `IUnitOfWork.SaveChangesAsync()` — do not call `_context.SaveChangesAsync()` directly.
 - **Never** write raw SQL — use EF Core LINQ only.
-- **Never** store secrets in code — use `appsettings.json` / env vars.
+- **Never** commit secrets anywhere — the repo is public. `appsettings*.json` keeps empty placeholders;
+  real values live in env vars (production) or user-secrets / `appsettings.Development.json` (local dev only).
 
 ## Code Generation Rules
 

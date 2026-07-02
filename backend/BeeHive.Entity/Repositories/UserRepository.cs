@@ -19,6 +19,7 @@ public class UserRepository : Repository<User>, IUserRepository
             .AsNoTracking()
             .Include(u => u.Organization)
             .Include(u => u.Apiary)
+            .Include(u => u.AssignedBeehives).ThenInclude(ub => ub.Beehive)
             .OrderBy(u => u.LastName)
             .ThenBy(u => u.FirstName)
             .ToListAsync();
@@ -50,5 +51,24 @@ public class UserRepository : Repository<User>, IUserRepository
 
         foreach (var beehiveId in beehiveIds)
             await _context.UserBeehives.AddAsync(new UserBeehive { UserId = userId, BeehiveId = beehiveId });
+    }
+
+    public async Task<HashSet<int>> GetAssignedBeehiveIdsAsync(int userId)
+    {
+        var ids = await _context.UserBeehives
+            .Where(ub => ub.UserId == userId)
+            .Select(ub => ub.BeehiveId)
+            .ToListAsync();
+        return [.. ids];
+    }
+
+    public async Task<HashSet<int>> GetAssignedApiaryIdsAsync(int userId)
+    {
+        var ids = await _context.UserBeehives
+            .Where(ub => ub.UserId == userId)
+            .Select(ub => ub.Beehive.ApiaryId)
+            .Distinct()
+            .ToListAsync();
+        return [.. ids];
     }
 }

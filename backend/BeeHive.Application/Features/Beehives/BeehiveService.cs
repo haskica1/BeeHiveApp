@@ -48,19 +48,25 @@ public class BeehiveService : IBeehiveService
         if (!await _uow.Apiaries.ExistsAsync(apiaryId))
             throw new NotFoundException(nameof(Apiary), apiaryId);
 
-        var beehives = await _uow.Beehives.GetByApiaryIdAsync(apiaryId);
+        // Managers must own the apiary; a Beekeeper is filtered to assigned hives below.
+        if (_currentUser.Role != UserRole.Beekeeper)
+            await _access.EnsureCanManageApiaryAsync(apiaryId);
 
-        // A Beekeeper only sees the beehives assigned to them within the apiary.
+        var beehives = await _uow.Beehives.GetByApiaryIdAsync(apiaryId);
+        var inspectionCounts = await _uow.Inspections.CountByBeehiveForApiaryAsync(apiaryId);
+
         if (_currentUser.Role == UserRole.Beekeeper)
         {
             var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
             beehives = beehives.Where(b => assignedIds.Contains(b.Id)).ToList();
-            return _mapper.Map<IEnumerable<BeehiveDto>>(beehives);
         }
 
-        // Managers must own the apiary.
-        await _access.EnsureCanManageApiaryAsync(apiaryId);
-        return _mapper.Map<IEnumerable<BeehiveDto>>(beehives);
+        return beehives.Select(b =>
+        {
+            var dto = _mapper.Map<BeehiveDto>(b);
+            dto.InspectionCount = inspectionCounts.GetValueOrDefault(b.Id);
+            return dto;
+        }).ToList();
     }
 
     public async Task<BeehiveDetailDto> GetByIdAsync(int id)
@@ -143,6 +149,34 @@ public class BeehiveService : IBeehiveService
         return new BeehiveScanDto { Id = beehive.Id, Name = beehive.Name, ApiaryId = beehive.ApiaryId };
     }
 
+    public async Task<IEnumerable<BeehiveQrDto>> GetQrCodesByApiaryAsync(int apiaryId)
+    {
+        if (!await _uow.Apiaries.ExistsAsync(apiaryId))
+            throw new NotFoundException(nameof(Apiary), apiaryId);
+
+        if (_currentUser.Role != UserRole.Beekeeper)
+            await _access.EnsureCanManageApiaryAsync(apiaryId);
+
+        var beehives = await _uow.Beehives.FindAsync(b => b.ApiaryId == apiaryId);
+
+        if (_currentUser.Role == UserRole.Beekeeper)
+        {
+            var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
+            beehives = beehives.Where(b => assignedIds.Contains(b.Id));
+        }
+
+        return beehives
+            .OrderBy(b => b.Name)
+            .Select(b => new BeehiveQrDto
+            {
+                Id           = b.Id,
+                Name         = b.Name,
+                UniqueId     = b.UniqueId,
+                QrCodeBase64 = b.QrCodeBase64,
+            })
+            .ToList();
+    }
+
     public Task<bool> CanCurrentUserAccessAsync(int beehiveId) =>
         _access.CanAccessBeehiveAsync(beehiveId);
 
@@ -212,8 +246,8 @@ public class BeehiveService : IBeehiveService
             {
                 await _notifications.NotifyAsync(
                     orgAdmin.Id,
-                    "New beehive created",
-                    $"Admin {creator.FirstName} {creator.LastName} created beehive '{beehive.Name}' in apiary '{apiary.Name}'.",
+                    "Nova košnica",
+                    $"Admin {creator.FirstName} {creator.LastName} je dodao/la košnicu '{beehive.Name}' u pčelinjak '{apiary.Name}'.",
                     NotificationType.BeehiveCreated,
                     beehive.Id, nameof(Beehive));
             }
@@ -227,8 +261,8 @@ public class BeehiveService : IBeehiveService
             {
                 await _notifications.NotifyAsync(
                     admin.Id,
-                    "New beehive created",
-                    $"Organization Admin {creator.FirstName} {creator.LastName} created beehive '{beehive.Name}' in your apiary '{apiary.Name}'.",
+                    "Nova košnica",
+                    $"Administrator organizacije {creator.FirstName} {creator.LastName} je dodao/la košnicu '{beehive.Name}' u vaš pčelinjak '{apiary.Name}'.",
                     NotificationType.BeehiveCreated,
                     beehive.Id, nameof(Beehive));
             }
@@ -242,8 +276,8 @@ public class BeehiveService : IBeehiveService
             {
                 await _notifications.NotifyAsync(
                     orgAdmin.Id,
-                    "New beehive created",
-                    $"System Admin created beehive '{beehive.Name}' in apiary '{apiary.Name}'.",
+                    "Nova košnica",
+                    $"Sistemski administrator je dodao košnicu '{beehive.Name}' u pčelinjak '{apiary.Name}'.",
                     NotificationType.BeehiveCreated,
                     beehive.Id, nameof(Beehive));
             }

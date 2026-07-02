@@ -5,11 +5,92 @@ using Microsoft.EntityFrameworkCore;
 namespace BeeHive.Entity.Seed;
 
 /// <summary>
-/// Runs after migrations to ensure seed users exist with properly hashed passwords.
-/// Safe to call on every startup — checks before inserting.
+/// Runs after migrations. In Development it seeds demo users with well-known passwords;
+/// in Production it locks those demo accounts and provisions the real SystemAdmin
+/// from configuration instead. Safe to call on every startup.
 /// </summary>
 public static class DatabaseInitializer
 {
+    /// <summary>
+    /// Emails of the demo accounts created by <see cref="SeedUsersAsync"/>. Their passwords are
+    /// public (committed to this repository), so production must never let them log in.
+    /// </summary>
+    private static readonly string[] DemoAccountEmails =
+    [
+        "sysadmin@beehive.com", "sysadmin2@beehive.com",
+        "admin@goldenhive.com", "admin2@goldenhive.com",
+        "admin@mountainbees.com", "admin2@mountainbees.com",
+        "orgadmin@goldenhive.com", "orgadmin2@goldenhive.com",
+        "orgadmin@mountainbees.com", "orgadmin2@mountainbees.com",
+        "user1@goldenhive.com", "user2@goldenhive.com",
+        "user1@mountainbees.com", "user2@mountainbees.com",
+    ];
+
+    /// <summary>
+    /// Makes the demo accounts unusable: replaces their passwords with an unguessable random
+    /// value and revokes their active refresh tokens. Runs on every production startup, so the
+    /// accounts stay locked even if a demo seeder ever re-creates them.
+    /// </summary>
+    public static async Task LockDemoAccountsAsync(BeeHiveDbContext context)
+    {
+        var demoUsers = await context.Users
+            .Where(u => DemoAccountEmails.Contains(u.Email))
+            .ToListAsync();
+        if (demoUsers.Count == 0) return;
+
+        // One shared random hash is enough — no one is meant to know this password.
+        var lockedHash = Hash(Convert.ToHexString(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32)));
+        foreach (var user in demoUsers)
+            user.PasswordHash = lockedHash;
+
+        var demoUserIds = demoUsers.Select(u => u.Id).ToList();
+        var now = DateTime.UtcNow;
+        var activeTokens = await context.RefreshTokens
+            .Where(t => demoUserIds.Contains(t.UserId) && t.RevokedAt == null)
+            .ToListAsync();
+        foreach (var token in activeTokens)
+            token.RevokedAt = now;
+
+        await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Ensures a SystemAdmin with the configured email exists and uses the configured password
+    /// (create-or-update, so rotating the env var rotates the password on the next deploy).
+    /// No-ops when either value is missing. Use a dedicated email — an existing account with
+    /// this email is promoted to SystemAdmin and detached from its organization.
+    /// </summary>
+    public static async Task EnsureBootstrapAdminAsync(BeeHiveDbContext context, string? email, string? password)
+    {
+        if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) return;
+
+        var normalized = email.Trim().ToLower();
+        var admin = await context.Users.FirstOrDefaultAsync(u => u.Email == normalized);
+
+        if (admin == null)
+        {
+            context.Users.Add(new User
+            {
+                FirstName    = "System",
+                LastName     = "Admin",
+                Email        = normalized,
+                PasswordHash = Hash(password),
+                Role         = UserRole.SystemAdmin,
+                CreatedAt    = DateTime.UtcNow
+            });
+        }
+        else
+        {
+            admin.Role         = UserRole.SystemAdmin;
+            admin.PasswordHash = Hash(password);
+            // SystemAdmin must not belong to an organization/apiary (AdminService consistency rule).
+            admin.OrganizationId = null;
+            admin.ApiaryId       = null;
+        }
+
+        await context.SaveChangesAsync();
+    }
+
     public static async Task SeedUsersAsync(BeeHiveDbContext context)
     {
         // Fix any Admin users that were seeded without an ApiaryId (e.g. from an older

@@ -14,11 +14,13 @@ public class GlobalExceptionMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<GlobalExceptionMiddleware> _logger;
+    private readonly IHostEnvironment _env;
 
-    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger)
+    public GlobalExceptionMiddleware(RequestDelegate next, ILogger<GlobalExceptionMiddleware> logger, IHostEnvironment env)
     {
         _next = next;
         _logger = logger;
+        _env = env;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -30,11 +32,11 @@ public class GlobalExceptionMiddleware
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception: {Message}", ex.Message);
-            await HandleExceptionAsync(context, ex);
+            await HandleExceptionAsync(context, ex, _env.IsDevelopment());
         }
     }
 
-    private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private static async Task HandleExceptionAsync(HttpContext context, Exception exception, bool includeDetails)
     {
         context.Response.ContentType = "application/json";
 
@@ -65,7 +67,9 @@ public class GlobalExceptionMiddleware
                 "Business Rule Violation",
                 new Dictionary<string, string[]> { ["detail"] = [bre.Message] }
             ),
-            _ => (
+            // Exception type/message/inner details are only exposed in Development —
+            // in production they can leak table names, connection info, etc.
+            _ when includeDetails => (
                 HttpStatusCode.InternalServerError,
                 "An unexpected error occurred",
                 new Dictionary<string, string[]>
@@ -73,6 +77,14 @@ public class GlobalExceptionMiddleware
                     ["detail"] = [$"{exception.GetType().Name}: {exception.Message}"],
                     ["innerException"] = [exception.InnerException?.Message ?? "none"],
                     ["innerInnerException"] = [exception.InnerException?.InnerException?.Message ?? "none"]
+                }
+            ),
+            _ => (
+                HttpStatusCode.InternalServerError,
+                "An unexpected error occurred",
+                new Dictionary<string, string[]>
+                {
+                    ["detail"] = ["An unexpected error occurred. Please try again later."]
                 }
             )
         };

@@ -25,20 +25,14 @@ public class OrgManagementService : IOrgManagementService
         if (_currentUser.OrganizationId is not int orgId)
             return [];
 
+        // AssignedBeehives (+ Beehive names) are included by the repository — one query
+        // for all members instead of an extra round-trip per Beekeeper.
         var users = await _uow.Users.GetAllWithOrganizationAsync();
-        var orgUsers = users.Where(u =>
-            u.OrganizationId == orgId &&
-            u.Role is UserRole.Beekeeper or UserRole.ApiaryAdmin);
-
-        var dtos = new List<OrgMemberDto>();
-        foreach (var u in orgUsers)
-        {
-            var withBeehives = u.Role == UserRole.Beekeeper
-                ? await _uow.Users.GetByIdWithAssignedBeehivesAsync(u.Id)
-                : u;
-            dtos.Add(MapMember(withBeehives ?? u));
-        }
-        return dtos;
+        return users
+            .Where(u => u.OrganizationId == orgId &&
+                        u.Role is UserRole.Beekeeper or UserRole.ApiaryAdmin)
+            .Select(MapMember)
+            .ToList();
     }
 
     public async Task<OrgMemberDto> GetMemberAsync(int memberId)
@@ -101,8 +95,8 @@ public class OrgManagementService : IOrgManagementService
             if (beehive == null) continue;
             await _notifications.NotifyAsync(
                 memberId,
-                "Beehive assigned",
-                $"You have been assigned to beehive '{beehive.Name}'.",
+                "Košnica dodijeljena",
+                $"Dodijeljeni ste košnici '{beehive.Name}'.",
                 NotificationType.BeehiveAssigned,
                 beehiveId, nameof(Beehive));
         }
@@ -112,8 +106,8 @@ public class OrgManagementService : IOrgManagementService
             var beehive = await _uow.Beehives.GetByIdAsync(beehiveId);
             await _notifications.NotifyAsync(
                 memberId,
-                "Beehive unassigned",
-                $"You have been unassigned from beehive '{beehive?.Name ?? "Unknown"}'.",
+                "Košnica uklonjena",
+                $"Uklonjeni ste s košnice '{beehive?.Name ?? "Nepoznato"}'.",
                 NotificationType.BeehiveUnassigned,
                 beehiveId, nameof(Beehive));
         }
@@ -155,8 +149,8 @@ public class OrgManagementService : IOrgManagementService
         {
             await _notifications.NotifyAsync(
                 memberId,
-                "Apiary assigned",
-                $"You have been assigned as Admin for apiary '{newApiary.Name}'.",
+                "Pčelinjak dodijeljen",
+                $"Dodijeljeni ste kao Admin pčelinjaka '{newApiary.Name}'.",
                 NotificationType.ApiaryAssigned,
                 dto.ApiaryId.Value, nameof(Apiary));
         }
@@ -164,8 +158,8 @@ public class OrgManagementService : IOrgManagementService
         {
             await _notifications.NotifyAsync(
                 memberId,
-                "Apiary unassigned",
-                "You have been unassigned from your apiary.",
+                "Pčelinjak uklonjen",
+                "Uklonjeni ste s vašeg pčelinjaka.",
                 NotificationType.ApiaryUnassigned);
         }
 

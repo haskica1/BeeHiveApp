@@ -17,7 +17,6 @@ public class BeehiveRepository : Repository<Beehive>, IBeehiveRepository
     public async Task<IEnumerable<Beehive>> GetByApiaryIdAsync(int apiaryId) =>
         await _context.Beehives
             .AsNoTracking()
-            .Include(b => b.Inspections)
             .Include(b => b.CreatedBy)
             .Where(b => b.ApiaryId == apiaryId)
             .OrderBy(b => b.Name)

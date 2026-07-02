@@ -90,6 +90,17 @@ public class BeehivesController : ControllerBase
         return Ok(beehives);
     }
 
+    /// <summary>Returns the QR codes of the apiary's beehives, for label printing/export.</summary>
+    [HttpGet("by-apiary/{apiaryId:int}/qr-codes")]
+    [ProducesResponseType(typeof(IEnumerable<BeehiveQrDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetQrCodesByApiary(int apiaryId)
+    {
+        var qrCodes = await _service.GetQrCodesByApiaryAsync(apiaryId);
+        return Ok(qrCodes);
+    }
+
     /// <summary>Returns a single beehive including all its inspections, scoped to the caller's access.</summary>
     [HttpGet("{id:int}")]
     [ProducesResponseType(typeof(BeehiveDetailDto), StatusCodes.Status200OK)]

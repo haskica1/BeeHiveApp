@@ -41,9 +41,11 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      // Proxy API calls to the .NET backend during development
+      // Proxy API calls to the LOCAL .NET backend during development.
+      // Pointing this at the deployed backend would make local dev mutate production data;
+      // to test against production deliberately, set VITE_API_URL instead.
       '/api': {
-        target: 'https://beehiveapp-y076.onrender.com',
+        target: 'http://localhost:62648',
         changeOrigin: true,
         secure: false
       }

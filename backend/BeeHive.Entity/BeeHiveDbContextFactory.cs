@@ -22,8 +22,10 @@ public class BeeHiveDbContextFactory : IDesignTimeDbContextFactory<BeeHiveDbCont
             .AddJsonFile(Path.Combine(basePath, "appsettings.Development.json"), optional: true)
             .Build();
 
-        var connectionString = configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+        var connectionString = configuration.GetConnectionString("DefaultConnection");
+        if (string.IsNullOrWhiteSpace(connectionString))
+            throw new InvalidOperationException(
+                "Connection string 'DefaultConnection' not found — set it in appsettings.Development.json.");
 
         var optionsBuilder = new DbContextOptionsBuilder<BeeHiveDbContext>();
         optionsBuilder.UseNpgsql(connectionString);

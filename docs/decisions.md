@@ -191,3 +191,66 @@
 
 **Alternatives considered:**
 - Grouped-per-feature files — fewer files, but harder to locate a specific type as features grow.
+
+## ADR-017: Refresh-Token Rotation (supersedes the auth part of ADR-003)
+
+**Decision:** Access token shortened to 30 minutes; a rotating refresh token (14 days) is issued alongside it. Refresh tokens are stored **hashed** (SHA-256); every refresh revokes the presented token and links its replacement; presenting an already-rotated token revokes the user's entire active set (theft detection). Client keeps tokens in localStorage and refreshes via a single-flight 401 interceptor.
+
+**Why:** ADR-003's 8-hour token was a large theft window with no revocation story. Rotation bounds the damage of a leaked access token to 30 minutes and makes refresh-token theft self-defeating.
+
+**Notes:** localStorage (vs. httpOnly cookie) is a known XSS trade-off, accepted for now because rotation + reuse detection bound the damage; revisit if requirements tighten. Contract locked by `AuthServiceTests`.
+
+---
+
+## ADR-018: Explicit Validation Calls in Controllers (supersedes ADR-004's auto-validation)
+
+**Decision:** Controllers call `await _validator.ValidateAsync(dto)` explicitly and return `BadRequest(validation.ToDictionary())`. FluentValidation's ASP.NET auto-validation is deliberately **not** enabled.
+
+**Why:** Preserves the exact `errors`-dictionary response shape the frontend forms rely on, and follows FluentValidation's own guidance (auto-validation is deprecated by its authors). The per-action boilerplate (~6 lines) is the accepted cost; a shared action filter is a possible future refinement, not a requirement.
+
+---
+
+## ADR-019: Per-Feature Mapping Profiles + Manual Mapping for Computed DTOs (supersedes ADR-005's single MappingProfile)
+
+**Decision:** Each feature owns a `<Feature>MappingProfile`. DTOs whose fields are computed (Diets progress counts, Admin aggregates) are mapped **manually** in the service instead of forcing AutoMapper.
+
+**Why:** One shared `MappingProfile.cs` had become a merge hotspot and hid feature coupling. Manual mapping where projections are computed keeps the intent visible; AutoMapper remains the default for plain property copies.
+
+---
+
+## ADR-020: No Secrets in the Repository; Dev-Only Demo Seed + Production Bootstrap Admin
+
+**Decision:** `appsettings.json` carries empty placeholders only. Real values come from environment variables in production (`Jwt__Secret`, `Smtp__Password`, `Groq__ApiKey`, `ConnectionStrings__DefaultConnection`, `Bootstrap__SysAdminEmail`, `Bootstrap__SysAdminPassword`) and from `appsettings.Development.json`/user-secrets locally. `Program.cs` fails fast when required values are missing. Demo users (public passwords) are seeded **only in Development**; every production startup locks the demo accounts (random password hash + refresh-token revocation) and provisions the real SystemAdmin from the `Bootstrap:*` values.
+
+**Why:** The repository is public. A committed JWT secret means anyone can forge tokens; committed demo SystemAdmin credentials meant anyone could log into production. Both actually happened and were rotated on 2026-07-02.
+
+---
+
+## ADR-021: Notification Email via In-Memory Queue + Background Worker
+
+**Decision:** `NotificationService` persists the in-app notification, then enqueues `(userId, title, message)` onto an unbounded `System.Threading.Channels` queue. `EmailNotificationWorker` (a `BackgroundService` in Infrastructure) dequeues, resolves the recipient in its own DI scope, and sends via MailKit. Email is skipped unless `Smtp:Host` and `Smtp:Password` are configured.
+
+**Why:** Synchronous SMTP inside the request pipeline caused request timeouts, so delivery had been disabled entirely. Queue + worker restores email without adding a message broker; losing queued mail on process shutdown is acceptable because the in-app notification is already persisted (email is best-effort).
+
+**Alternatives considered:**
+- Hangfire / Quartz — persistent retries, but a heavy dependency for best-effort mail.
+- `Task.Run` fire-and-forget — no backpressure, swallows failures, unscoped DbContext hazards.
+
+---
+
+## ADR-022: Lean List Payloads — Counts in SQL, QR Codes On Demand
+
+**Decision:** List endpoints never carry derived heavy data: inspection/beehive counts are computed in the database (`GROUP BY` / `Select(x => x.Collection.Count)`) instead of `Include`-ing full child rows, and the Base64 QR PNG lives only on the beehive **detail** DTO plus a dedicated `GET /api/beehives/by-apiary/{id}/qr-codes` endpoint used by label export.
+
+**Why:** Apiary/beehive lists previously loaded every inspection row of the organization and a ~KB QR blob per hive on every request — the heaviest queries in the app, on the most-visited pages, only to display counts.
+
+---
+
+## ADR-023: Bosnian as the Single UI Language (`BsLabels`)
+
+**Decision:** All user-facing strings the API produces — `*Name` enum label fields, calendar labels, and notification titles/messages — are Bosnian, sourced from `Common/Localization/BsLabels` on the backend and the matching label maps in `core/models/index.ts` on the frontend. Logs, code, docs, and Swagger stay English.
+
+**Why:** The UI is Bosnian; mixed English fragments (enum `.ToString()`, English notifications) looked broken. `BsLabels` already existed for Stats — it is now the single source instead of per-service formatting.
+
+**Alternatives considered:**
+- Full i18n framework — over-engineered while the product is single-language; revisit if a second language is needed.

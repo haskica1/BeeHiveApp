@@ -3,6 +3,7 @@ import apiClient from './apiClient'
 import type {
   Beehive,
   BeehiveDetail,
+  BeehiveQr,
   CreateBeehivePayload,
   UpdateBeehivePayload,
   Inspection,
@@ -34,6 +35,12 @@ export const beehiveService = {
 
   getByApiary: async (apiaryId: number): Promise<Beehive[]> => {
     const res = await apiClient.get<Beehive[]>(`/beehives/by-apiary/${apiaryId}`)
+    return res.data
+  },
+
+  /** QR codes for label printing — loaded only when the user exports, not with the list. */
+  getQrCodesByApiary: async (apiaryId: number): Promise<BeehiveQr[]> => {
+    const res = await apiClient.get<BeehiveQr[]>(`/beehives/by-apiary/${apiaryId}/qr-codes`)
     return res.data
   },
 

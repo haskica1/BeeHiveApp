@@ -1,4 +1,5 @@
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Localization;
 using BeeHive.Application.Features.Calendar.DTOs;
 using BeeHive.Domain.Enums;
 
@@ -60,9 +61,7 @@ public class CalendarService : ICalendarService
         }
         else if (role == UserRole.Beekeeper && userId.HasValue)
         {
-            var user        = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId.Value);
-            var assignedIds = user?.AssignedBeehives?.Select(ub => ub.BeehiveId).ToHashSet()
-                              ?? new HashSet<int>();
+            var assignedIds = await _uow.Users.GetAssignedBeehiveIdsAsync(userId.Value);
 
             var beehives = assignedIds.Count > 0
                 ? (await _uow.Beehives.FindAsync(b => assignedIds.Contains(b.Id))).ToList()
@@ -120,7 +119,7 @@ public class CalendarService : ICalendarService
                 Notes        = t.Notes,
                 DueDate      = t.DueDate,
                 Priority     = (int)t.Priority,
-                PriorityName = FormatEnum(t.Priority.ToString()),
+                PriorityName = BsLabels.Label(t.Priority),
                 IsCompleted  = t.IsCompleted,
                 ApiaryId     = t.ApiaryId,
                 ApiaryName   = t.ApiaryId.HasValue && apiaryNames.TryGetValue(t.ApiaryId.Value, out var an) ? an : null,
@@ -135,14 +134,14 @@ public class CalendarService : ICalendarService
                 Id            = e.Id,
                 ScheduledDate = e.ScheduledDate,
                 Status        = (int)e.Status,
-                StatusName    = e.Status.ToString(),
+                StatusName    = BsLabels.Label(e.Status),
                 DietId        = d.Id,
                 DietName      = d.Name,
                 BeehiveId     = d.BeehiveId,
-                BeehiveName   = beehiveNames.TryGetValue(d.BeehiveId, out var bName) ? bName : $"Beehive {d.BeehiveId}",
+                BeehiveName   = beehiveNames.TryGetValue(d.BeehiveId, out var bName) ? bName : $"Košnica {d.BeehiveId}",
                 FoodTypeName  = d.FoodType == FoodType.Custom
-                    ? (d.CustomFoodType ?? "Custom")
-                    : FormatEnum(d.FoodType.ToString()),
+                    ? (d.CustomFoodType ?? "Vlastito")
+                    : BsLabels.Label(d.FoodType),
             }))
             .ToList();
 
@@ -151,17 +150,5 @@ public class CalendarService : ICalendarService
             Todos          = calendarTodos,
             FeedingEntries = calendarEntries,
         };
-    }
-
-    private static string FormatEnum(string raw)
-    {
-        var result = new System.Text.StringBuilder();
-        for (int i = 0; i < raw.Length; i++)
-        {
-            if (i > 0 && char.IsUpper(raw[i]))
-                result.Append(' ');
-            result.Append(raw[i]);
-        }
-        return result.ToString();
     }
 }

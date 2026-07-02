@@ -18,5 +18,4 @@ public class BeehiveDto
     public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }
     public Guid? UniqueId { get; set; }
-    public string? QrCodeBase64 { get; set; }
 }

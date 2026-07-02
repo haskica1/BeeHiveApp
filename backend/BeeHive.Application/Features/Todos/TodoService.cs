@@ -237,7 +237,7 @@ public class TodoService : ITodoService
         }
 
         var apiary = apiaryId.HasValue ? await _uow.Apiaries.GetByIdAsync(apiaryId.Value) : null;
-        var context = apiary != null ? $" in apiary '{apiary.Name}'" : string.Empty;
+        var context = apiary != null ? $" u pčelinjaku '{apiary.Name}'" : string.Empty;
 
         // Notify creator's superior (same cascading rule as beehive creation)
         if (creator.Role == UserRole.ApiaryAdmin)
@@ -250,8 +250,8 @@ public class TodoService : ITodoService
                 if (orgAdmin.Id == creator.Id) continue;
                 await _notifications.NotifyAsync(
                     orgAdmin.Id,
-                    "New TODO created",
-                    $"Admin {creator.FirstName} {creator.LastName} created todo '{todo.Title}'{context}.",
+                    "Novi zadatak",
+                    $"Admin {creator.FirstName} {creator.LastName} je kreirao/la zadatak '{todo.Title}'{context}.",
                     NotificationType.TodoCreated,
                     todo.Id, nameof(Todo));
             }
@@ -266,8 +266,8 @@ public class TodoService : ITodoService
                 if (admin.Id == creator.Id) continue;
                 await _notifications.NotifyAsync(
                     admin.Id,
-                    "New TODO created",
-                    $"Organization Admin {creator.FirstName} {creator.LastName} created todo '{todo.Title}'{context}.",
+                    "Novi zadatak",
+                    $"Administrator organizacije {creator.FirstName} {creator.LastName} je kreirao/la zadatak '{todo.Title}'{context}.",
                     NotificationType.TodoCreated,
                     todo.Id, nameof(Todo));
             }
@@ -278,8 +278,8 @@ public class TodoService : ITodoService
         {
             await _notifications.NotifyAsync(
                 todo.AssignedToId.Value,
-                "TODO assigned to you",
-                $"'{todo.Title}' has been assigned to you{context}.",
+                "Zadatak vam je dodijeljen",
+                $"Zadatak '{todo.Title}' vam je dodijeljen{context}.",
                 NotificationType.TodoCreated,
                 todo.Id, nameof(Todo));
         }

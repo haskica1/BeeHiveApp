@@ -1,5 +1,11 @@
 import { jsPDF } from 'jspdf'
-import type { Beehive } from '../../core/models'
+
+/** Minimal data a QR card needs — satisfied by both BeehiveDetail and BeehiveQr. */
+export interface QrCardData {
+  name: string
+  uniqueId?: string
+  qrCodeBase64?: string
+}
 
 // ── QR PDF — one beehive = one self-contained card that fills the whole page ───
 //
@@ -27,7 +33,7 @@ function fitFontSize(doc: jsPDF, text: string, maxWidthMm: number, maxHeightMm: 
 }
 
 /** Draws a single beehive card filling the current (already card-sized) page. */
-function drawCard(doc: jsPDF, beehive: Beehive) {
+function drawCard(doc: jsPDF, beehive: QrCardData) {
   const W = doc.internal.pageSize.getWidth()
   const H = doc.internal.pageSize.getHeight()
 
@@ -82,7 +88,7 @@ function pageSpec(sizeMm: { w: number; h: number }) {
 }
 
 /** Download a single-beehive QR card PDF. */
-export function downloadBeehiveQrPdf(beehive: Beehive, sizeMm: { w: number; h: number }) {
+export function downloadBeehiveQrPdf(beehive: QrCardData, sizeMm: { w: number; h: number }) {
   if (!beehive.qrCodeBase64 || !beehive.uniqueId) return
   const { format, orientation } = pageSpec(sizeMm)
   const doc = new jsPDF({ unit: 'mm', format, orientation })
@@ -91,7 +97,7 @@ export function downloadBeehiveQrPdf(beehive: Beehive, sizeMm: { w: number; h: n
 }
 
 /** Download one QR card per beehive — one card = one page, all pages the same card size. */
-export function downloadBeehivesQrPdf(filename: string, beehives: Beehive[], sizeMm: { w: number; h: number }) {
+export function downloadBeehivesQrPdf(filename: string, beehives: QrCardData[], sizeMm: { w: number; h: number }) {
   const withQr = beehives.filter(b => b.qrCodeBase64 && b.uniqueId)
   if (!withQr.length) return
   const { format, orientation } = pageSpec(sizeMm)

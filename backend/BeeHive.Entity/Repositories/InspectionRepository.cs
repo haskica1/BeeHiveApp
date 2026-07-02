@@ -14,4 +14,11 @@ public class InspectionRepository : Repository<Inspection>, IInspectionRepositor
             .Where(i => i.BeehiveId == beehiveId)
             .OrderByDescending(i => i.Date)
             .ToListAsync();
+
+    public async Task<Dictionary<int, int>> CountByBeehiveForApiaryAsync(int apiaryId) =>
+        await _context.Inspections
+            .Where(i => i.Beehive.ApiaryId == apiaryId)
+            .GroupBy(i => i.BeehiveId)
+            .Select(g => new { BeehiveId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.BeehiveId, x => x.Count);
 }

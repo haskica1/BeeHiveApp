@@ -4,6 +4,7 @@ import { ArrowLeft, Download, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Ther
 import { format, parseISO, isPast, isToday } from 'date-fns'
 import { bs } from 'date-fns/locale'
 import { downloadBeehivesQrPdf } from '../../shared/utils/qrPdf'
+import { beehiveService } from '../../core/services/beehiveService'
 import {
   useApiary, useApiaryWeather, useDeleteBeehive,
   useTodosByApiary, useCreateTodo, useUpdateTodo, useDeleteTodo,
@@ -117,6 +118,20 @@ export default function ApiaryDetailPage() {
   const [hiveQuery, setHiveQuery] = useState('')
   const [qrAllOpen, setQrAllOpen] = useState(false)
   const [qrAllSize, setQrAllSize] = useState({ w: 60, h: 60 })
+  const [qrAllLoading, setQrAllLoading] = useState(false)
+
+  // QR codes are not part of the list payload — fetch them only when the user exports.
+  const handleQrExport = async () => {
+    if (!apiary) return
+    setQrAllLoading(true)
+    try {
+      const qrCodes = await beehiveService.getQrCodesByApiary(apiaryId)
+      downloadBeehivesQrPdf(apiary.name, qrCodes, qrAllSize)
+      setQrAllOpen(false)
+    } finally {
+      setQrAllLoading(false)
+    }
+  }
 
   const handleDeleteBeehive = async () => {
     if (!deleteTarget) return
@@ -571,13 +586,11 @@ export default function ApiaryDetailPage() {
                 Odustani
               </button>
               <button
-                onClick={() => {
-                  downloadBeehivesQrPdf(apiary.name, beehives, qrAllSize)
-                  setQrAllOpen(false)
-                }}
-                className="btn-primary flex-1 text-sm py-2 px-3"
+                onClick={handleQrExport}
+                disabled={qrAllLoading}
+                className="btn-primary flex-1 text-sm py-2 px-3 disabled:opacity-60"
               >
-                <Download className="w-4 h-4" /> Preuzmi PDF
+                <Download className="w-4 h-4" /> {qrAllLoading ? 'Pripremam…' : 'Preuzmi PDF'}
               </button>
             </div>
           </div>

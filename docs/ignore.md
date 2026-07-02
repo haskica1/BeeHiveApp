@@ -7,25 +7,25 @@
 
 ## Database Migrations
 
-**Path:** `backend/BeeHive.Infrastructure/Migrations/`
+**Path:** `backend/BeeHive.Entity/Migrations/`
 
 **Rule:** Never edit, rename, or delete existing migration files.
 
 **Why:** EF Core migration history is sequential. Editing past migrations corrupts the schema version chain and breaks `dotnet ef database update` for all environments.
 
-**Allowed:** Adding new migration files only (`dotnet ef migrations add <Name>`).
+**Allowed:** Adding new migration files only (`dotnet ef migrations add <Name>` from `backend/BeeHive.Entity`).
 
 ---
 
 ## BeeHiveDbContext — Existing Entity Configurations
 
-**Path:** `backend/BeeHive.Infrastructure/BeeHiveDbContext.cs`
+**Path:** `backend/BeeHive.Entity/BeeHiveDbContext.cs` + `backend/BeeHive.Entity/Configurations/`
 
-**Rule:** Do not change existing `OnModelCreating` configurations, column types, or table names.
+**Rule:** Do not change existing entity configurations, column types, or table names.
 
 **Why:** Any change requires a migration. Accidental renames cause data loss on `UPDATE`.
 
-**Allowed:** Adding new `DbSet<T>` properties and new entity configurations for new tables.
+**Allowed:** Adding new `DbSet<T>` properties and new `IEntityTypeConfiguration<T>` files for new tables.
 
 ---
 
@@ -33,17 +33,17 @@
 
 **Path:** `backend/BeeHive.API/Middleware/GlobalExceptionMiddleware.cs`
 
-**Rule:** Do not add new exception types or change existing HTTP status mappings without a deliberate decision.
+**Rule:** Do not add new exception types or change existing HTTP status mappings without a deliberate decision. Do not re-expose exception details in production responses.
 
-**Why:** The exception-to-status mapping is the contract the frontend relies on. Changing it silently breaks error handling across all features.
+**Why:** The exception-to-status mapping is the contract the frontend relies on. Detailed 500 bodies leak internals — they are Development-only by design.
 
 **Allowed:** Adding a mapping for a genuinely new exception type; update `decisions.md` when doing so.
 
 ---
 
-## MappingProfile — Existing Maps
+## Mapping Profiles — Existing Maps
 
-**Path:** `backend/BeeHive.Application/Common/MappingProfile.cs`
+**Path:** `backend/BeeHive.Application/Features/<Feature>/<Feature>MappingProfile.cs` (one per feature)
 
 **Rule:** Do not modify existing `CreateMap` entries. Only append new ones.
 
@@ -55,13 +55,23 @@
 
 ## AuthService — JWT Claim Structure
 
-**Path:** `backend/BeeHive.Application/Auth/AuthService.cs`
+**Path:** `backend/BeeHive.Application/Features/Auth/AuthService.cs`
 
-**Rule:** Do not rename or remove existing JWT claims (`userId`, `email`, `role`, `organizationId`).
+**Rule:** Do not rename or remove existing JWT claims (`sub`, `email`, `role`, `jti`, `organizationId`, `apiaryId`).
 
-**Why:** The frontend reads these claims from localStorage. The backend reads them in every controller via `User.FindFirst(...)`. Renaming one breaks both without a compile error.
+**Why:** `CurrentUser` (API layer) and the frontend both read these claims. Renaming one breaks both without a compile error.
 
 **Allowed:** Adding new claims if a feature needs them; document in `api-contracts.md`.
+
+---
+
+## Refresh-Token Rotation Logic
+
+**Path:** `backend/BeeHive.Application/Features/Auth/AuthService.cs` (`RefreshAsync`, `IssueTokensAsync`)
+
+**Rule:** Do not weaken rotation: tokens are stored hashed, a presented token is always revoked on refresh, and reuse of a rotated token revokes the user's whole active set.
+
+**Why:** This is the theft-detection mechanism. `BeeHive.Application.Tests/AuthServiceTests.cs` locks the contract — tests failing here means a security regression.
 
 ---
 
@@ -69,7 +79,7 @@
 
 **Path:** `frontend/src/core/services/apiClient.ts`
 
-**Rule:** Do not change the 401 handling logic (auto-logout + redirect) or the token attachment pattern.
+**Rule:** Do not change the 401 handling (single-flight refresh → replay → logout on failure) or the token attachment pattern.
 
 **Why:** This is the auth backbone of the frontend. Changing it breaks session management for every request in the app.
 
@@ -89,15 +99,25 @@
 
 ---
 
-## DatabaseInitializer (Seed Data)
+## DatabaseInitializer (Seed & Production Lock)
 
-**Path:** `backend/BeeHive.Infrastructure/DatabaseInitializer.cs` (or similar)
+**Path:** `backend/BeeHive.Entity/Seed/DatabaseInitializer.cs`
 
-**Rule:** Do not change the default SystemAdmin credentials or the seed organization structure.
+**Rule:** Do not re-enable demo seeding in production, and do not remove `LockDemoAccountsAsync` / `EnsureBootstrapAdminAsync` from the production startup path in `Program.cs`.
 
-**Why:** Dev/test environments depend on known seed data. Changing it breaks existing local setups.
+**Why:** Demo credentials are public (committed to this repository). Production locks them on every startup and provisions the real SystemAdmin from `Bootstrap:*` env vars.
 
-**Allowed:** Adding new seed data for new features; document in `context.md`.
+**Allowed:** Adding new demo data for Development; document in `context.md`.
+
+---
+
+## Committed Configuration — No Secrets
+
+**Path:** `backend/BeeHive.API/appsettings.json` (+ `appsettings.Development.json`)
+
+**Rule:** Never commit real secrets (JWT secret, SMTP password, API keys, production connection strings). Placeholders stay empty; real values come from env vars or user-secrets.
+
+**Why:** The repository is public. A committed secret is a compromised secret (this happened once — everything was rotated).
 
 ---
 
@@ -105,11 +125,13 @@
 
 | Area | Path | Rule |
 |---|---|---|
-| Migrations | `Infrastructure/Migrations/` | Never edit existing files |
-| DbContext configurations | `BeeHiveDbContext.cs` | Never change existing entity configs |
-| Exception middleware | `Middleware/GlobalExceptionMiddleware.cs` | Never change existing status mappings |
-| AutoMapper | `MappingProfile.cs` | Never modify existing maps |
-| JWT claims | `Auth/AuthService.cs` | Never rename or remove claims |
-| Axios interceptors | `apiClient.ts` | Never change auth/401 logic |
-| Frontend models | `core/models/index.ts` | Never rename/remove interface properties |
-| Seed data | `DatabaseInitializer.cs` | Never change default credentials |
+| Migrations | `BeeHive.Entity/Migrations/` | Never edit existing files |
+| DbContext configurations | `BeeHive.Entity/BeeHiveDbContext.cs`, `Configurations/` | Never change existing entity configs |
+| Exception middleware | `BeeHive.API/Middleware/GlobalExceptionMiddleware.cs` | Never change mappings; details stay dev-only |
+| AutoMapper | `Features/<F>/<F>MappingProfile.cs` | Never modify existing maps |
+| JWT claims | `Features/Auth/AuthService.cs` | Never rename or remove claims |
+| Refresh rotation | `Features/Auth/AuthService.cs` | Never weaken rotation/reuse detection |
+| Axios interceptors | `frontend/src/core/services/apiClient.ts` | Never change auth/401 logic |
+| Frontend models | `frontend/src/core/models/index.ts` | Never rename/remove interface properties |
+| Seed & lock | `BeeHive.Entity/Seed/DatabaseInitializer.cs` | Demo seed dev-only; keep production lock |
+| Secrets | `appsettings*.json` | Never commit real secrets |

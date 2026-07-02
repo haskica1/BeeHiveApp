@@ -121,11 +121,19 @@ export interface Beehive {
   createdByName?: string
   createdAt: string
   uniqueId?: string
-  qrCodeBase64?: string
 }
 
 export interface BeehiveDetail extends Beehive {
+  qrCodeBase64?: string
   inspections: Inspection[]
+}
+
+/** QR payload for label printing — fetched on demand via /beehives/by-apiary/{id}/qr-codes. */
+export interface BeehiveQr {
+  id: number
+  name: string
+  uniqueId?: string
+  qrCodeBase64?: string
 }
 
 export interface CreateBeehivePayload {

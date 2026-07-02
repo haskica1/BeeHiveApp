@@ -14,6 +14,25 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── Configuration guards ──────────────────────────────────────────────────────
+// Secrets are intentionally NOT committed to the repository. Locally they come from
+// appsettings.Development.json / user-secrets; in production from environment variables
+// (e.g. ConnectionStrings__DefaultConnection, Jwt__Secret). Fail fast with a clear
+// message instead of a cryptic error deep in the request pipeline.
+string RequireConfig(string key)
+{
+    var value = builder.Configuration[key];
+    if (string.IsNullOrWhiteSpace(value))
+        throw new InvalidOperationException(
+            $"Configuration value '{key}' is missing. Set the environment variable " +
+            $"'{key.Replace(":", "__")}' (or provide it via user-secrets / appsettings.Development.json).");
+    return value;
+}
+
+RequireConfig("ConnectionStrings:DefaultConnection");
+if (RequireConfig("Jwt:Secret").Length < 32)
+    throw new InvalidOperationException("Jwt:Secret must be at least 32 characters long (HS256 key).");
+
 // ── Services ───────────────────────────��─────────────────────────────────────
 
 builder.Services.AddControllers().AddJsonOptions(o =>
@@ -72,10 +91,11 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
-// Voice parsing service — calls Google Gemini API; key configured via Gemini:ApiKey
+// Voice parsing service — Groq API (Whisper transcription + Llama field extraction);
+// key configured via Groq:ApiKey. Longer timeout: audio upload + two model calls.
 builder.Services.AddHttpClient<IVoiceParsingService, VoiceParsingService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(30);
+    client.Timeout = TimeSpan.FromSeconds(60);
 });
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
@@ -153,6 +173,18 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
             }));
+
+    // Voice parsing calls a paid external API (Groq) per request — throttle so a single
+    // client cannot burn through the quota.
+    options.AddPolicy("voice-parse", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
 });
 
 // Health check — liveness probe at /health for the deployment platform.
@@ -185,7 +217,22 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<BeeHiveDbContext>();
     await db.Database.MigrateAsync();
-    await DatabaseInitializer.SeedUsersAsync(db);
+
+    if (app.Environment.IsDevelopment())
+    {
+        // Demo accounts use well-known passwords committed to the (public) repo — dev only.
+        await DatabaseInitializer.SeedUsersAsync(db);
+    }
+    else
+    {
+        // Production: demo accounts must be unusable; the real SystemAdmin is provisioned
+        // from Bootstrap:SysAdminEmail / Bootstrap:SysAdminPassword environment variables.
+        await DatabaseInitializer.LockDemoAccountsAsync(db);
+        await DatabaseInitializer.EnsureBootstrapAdminAsync(
+            db,
+            app.Configuration["Bootstrap:SysAdminEmail"],
+            app.Configuration["Bootstrap:SysAdminPassword"]);
+    }
 }
 
 app.Run();

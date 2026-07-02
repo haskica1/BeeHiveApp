@@ -29,25 +29,31 @@ public class ApiaryService : IApiaryService
         if (_currentUser.OrganizationId is not int organizationId)
             return [];
 
-        var apiaries = await _uow.Apiaries.GetAllByOrganizationAsync(organizationId);
+        IEnumerable<(Apiary Apiary, int BeehiveCount)> rows =
+            await _uow.Apiaries.GetByOrganizationWithCountsAsync(organizationId);
 
         switch (_currentUser.Role)
         {
             // An ApiaryAdmin only sees their assigned apiary.
             case UserRole.ApiaryAdmin:
-                apiaries = _currentUser.ApiaryId is int apiaryId
-                    ? apiaries.Where(a => a.Id == apiaryId)
+                rows = _currentUser.ApiaryId is int apiaryId
+                    ? rows.Where(r => r.Apiary.Id == apiaryId)
                     : [];
                 break;
 
             // A Beekeeper only sees apiaries that contain a beehive assigned to them.
             case UserRole.Beekeeper:
                 var assignedApiaryIds = await _access.GetAssignedApiaryIdsAsync();
-                apiaries = apiaries.Where(a => assignedApiaryIds.Contains(a.Id));
+                rows = rows.Where(r => assignedApiaryIds.Contains(r.Apiary.Id));
                 break;
         }
 
-        return _mapper.Map<IEnumerable<ApiaryDto>>(apiaries);
+        return rows.Select(r =>
+        {
+            var dto = _mapper.Map<ApiaryDto>(r.Apiary);
+            dto.BeehiveCount = r.BeehiveCount;
+            return dto;
+        }).ToList();
     }
 
     /// <inheritdoc />
@@ -56,11 +62,17 @@ public class ApiaryService : IApiaryService
         var apiary = await _uow.Apiaries.GetWithBeehivesAsync(id)
             ?? throw new NotFoundException(nameof(Apiary), id);
 
+        // Inspection counts come from a grouped query — the rows themselves are never loaded.
+        var inspectionCounts = await _uow.Inspections.CountByBeehiveForApiaryAsync(id);
+
+        var dto = _mapper.Map<ApiaryDetailDto>(apiary);
+        foreach (var hive in dto.Beehives)
+            hive.InspectionCount = inspectionCounts.GetValueOrDefault(hive.Id);
+
         // A Beekeeper may view an apiary only through the beehives assigned to them.
         if (_currentUser.Role == UserRole.Beekeeper)
         {
             var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
-            var dto = _mapper.Map<ApiaryDetailDto>(apiary);
             var visible = dto.Beehives.Where(b => assignedIds.Contains(b.Id)).ToList();
             if (visible.Count == 0)
                 throw new ForbiddenAccessException();
@@ -72,7 +84,7 @@ public class ApiaryService : IApiaryService
 
         // Managers must own the apiary (same org / same apiary).
         _access.EnsureCanManageApiary(apiary.Id, apiary.OrganizationId);
-        return _mapper.Map<ApiaryDetailDto>(apiary);
+        return dto;
     }
 
     /// <inheritdoc />

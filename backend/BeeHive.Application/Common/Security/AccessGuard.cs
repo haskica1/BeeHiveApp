@@ -95,14 +95,12 @@ public sealed class AccessGuard : IAccessGuard
     public async Task<HashSet<int>> GetAssignedBeehiveIdsAsync()
     {
         if (_user.UserId is not int userId) return [];
-        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId);
-        return user?.AssignedBeehives.Select(ub => ub.BeehiveId).ToHashSet() ?? [];
+        return await _uow.Users.GetAssignedBeehiveIdsAsync(userId);
     }
 
     public async Task<HashSet<int>> GetAssignedApiaryIdsAsync()
     {
         if (_user.UserId is not int userId) return [];
-        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(userId);
-        return user?.AssignedBeehives.Select(ub => ub.Beehive.ApiaryId).ToHashSet() ?? [];
+        return await _uow.Users.GetAssignedApiaryIdsAsync(userId);
     }
 }

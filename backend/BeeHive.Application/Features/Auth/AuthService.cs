@@ -34,10 +34,6 @@ public class AuthService : IAuthService
         if (!BCrypt.Net.BCrypt.Verify(dto.Password, user.PasswordHash))
             throw new BusinessRuleException("Invalid email or password.");
 
-        // Beekeepers need their assigned-beehive ids included in the response.
-        if (user.Role == UserRole.Beekeeper)
-            user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(user.Id) ?? user;
-
         return await IssueTokensAsync(user);
     }
 
@@ -87,12 +83,11 @@ public class AuthService : IAuthService
         organization.CreatedById = user.Id;
         await _uow.SaveChangesAsync();
 
-        // Welcome notification, mirroring admin-created accounts. Email delivery is currently
-        // disabled in NotificationService, so this only writes the in-app notification.
+        // Welcome notification, mirroring admin-created accounts.
         await _notifications.NotifyAsync(
             user.Id,
-            "Welcome to BeeHive!",
-            $"Your organization '{organization.Name}' is ready. You are its Organization Admin — start by adding your first apiary.",
+            "Dobrodošli u BeeHive!",
+            $"Vaša organizacija '{organization.Name}' je spremna. Vi ste njen administrator — počnite dodavanjem prvog pčelinjaka.",
             NotificationType.AccountCreated);
 
         return await IssueTokensAsync(user);
@@ -117,7 +112,7 @@ public class AuthService : IAuthService
         if (stored.ExpiresAt <= DateTime.UtcNow)
             throw new UnauthorizedException("Refresh token has expired.");
 
-        var user = await _uow.Users.GetByIdWithAssignedBeehivesAsync(stored.UserId)
+        var user = await _uow.Users.GetByIdWithOrganizationAsync(stored.UserId)
             ?? throw new UnauthorizedException("User no longer exists.");
 
         // Rotate: revoke the presented token and link it to the replacement issued below.
@@ -164,7 +159,7 @@ public class AuthService : IAuthService
         await _uow.SaveChangesAsync();
 
         IReadOnlyList<int> assignedBeehiveIds = user.Role == UserRole.Beekeeper
-            ? user.AssignedBeehives.Select(ub => ub.BeehiveId).ToList()
+            ? [.. await _uow.Users.GetAssignedBeehiveIdsAsync(user.Id)]
             : [];
 
         return new LoginResponseDto(

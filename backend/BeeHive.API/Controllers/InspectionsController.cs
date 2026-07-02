@@ -3,6 +3,7 @@ using BeeHive.Application.Features.Inspections.DTOs;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace BeeHive.API.Controllers;
 
@@ -103,8 +104,14 @@ public class InspectionsController : ControllerBase
     /// </summary>
     [HttpPost("parse-voice")]
     [Consumes("multipart/form-data")]
+    [EnableRateLimiting("voice-parse")]
+    // Voice notes are short recordings — 15 MB is generous. Without a cap any authenticated
+    // user could push the Kestrel default (~30 MB) per request straight to the paid Groq API.
+    [RequestSizeLimit(15_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 15_000_000)]
     [ProducesResponseType(typeof(ParseVoiceResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> ParseVoice(IFormFile? audio)
     {
         if (audio == null || audio.Length == 0)

@@ -20,8 +20,7 @@ public class EmailService : IEmailService
 
     public async Task SendAsync(string toEmail, string toName, string subject, string htmlBody)
     {
-        var host = _config["Smtp:Host"];
-        if (string.IsNullOrWhiteSpace(host))
+        if (!IsConfigured())
         {
             _logger.LogDebug("SMTP not configured — skipping email to {Email}", toEmail);
             return;
@@ -33,12 +32,16 @@ public class EmailService : IEmailService
     /// <summary>Sends email and optionally re-throws on failure (used by the test endpoint).</summary>
     public async Task SendAsync(string toEmail, string toName, string subject, string htmlBody, bool suppressErrors)
     {
-        var host = _config["Smtp:Host"];
-        if (string.IsNullOrWhiteSpace(host))
-            throw new InvalidOperationException("SMTP is not configured. Set Smtp:Host in appsettings.");
+        if (!IsConfigured())
+            throw new InvalidOperationException(
+                "SMTP is not configured. Set Smtp:Host and Smtp:Password (environment variables in production).");
 
         await SendCoreAsync(toEmail, toName, subject, htmlBody, suppressErrors);
     }
+
+    private bool IsConfigured() =>
+        !string.IsNullOrWhiteSpace(_config["Smtp:Host"]) &&
+        !string.IsNullOrWhiteSpace(_config["Smtp:Password"]);
 
     private async Task SendCoreAsync(string toEmail, string toName, string subject, string htmlBody, bool suppressErrors)
     {

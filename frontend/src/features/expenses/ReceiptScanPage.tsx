@@ -8,7 +8,8 @@ import { FormHeader } from '../../shared/components'
 // Tesseract.js is loaded lazily to avoid pulling the WASM bundle unless the user visits this page
 async function runOcr(imageFile: File): Promise<string> {
   const { createWorker } = await import('tesseract.js')
-  const worker = await createWorker('eng')
+  // 'hrv' reads š/č/ž/đ on local receipts correctly; the 'eng' model mangles them.
+  const worker = await createWorker('hrv')
   const { data } = await worker.recognize(imageFile)
   await worker.terminate()
   return data.text

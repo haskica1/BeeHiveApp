@@ -7,18 +7,30 @@
 
 ## Authentication
 
-All endpoints require `Authorization: Bearer <jwt>` except `POST /api/auth/login`.
+All endpoints require `Authorization: Bearer <jwt>` except
+`POST /api/auth/{login, register, refresh, logout}` and `GET /api/beehives/scan/{uniqueId}`.
+
+**Endpoints:**
+
+| Method | Endpoint | Notes |
+|---|---|---|
+| POST | `/auth/login` | 5/min per IP; returns access + refresh token |
+| POST | `/auth/register` | 5/min per IP; creates a new organization + OrganizationAdmin |
+| POST | `/auth/refresh` | 20/min per IP; rotates the refresh token (reuse revokes the whole set) |
+| POST | `/auth/logout` | revokes the presented refresh token (idempotent) |
 
 **JWT Claims:**
 
 | Claim | Key | Description |
 |---|---|---|
-| User ID | `userId` | Guid |
+| User ID | `sub` | int |
 | Email | `email` | string |
-| Role | `role` | `Admin` or `SystemAdmin` |
-| Organization | `organizationId` | Guid |
+| Role | `role` | `SystemAdmin`, `OrganizationAdmin`, `ApiaryAdmin`, or `Beekeeper` |
+| Token ID | `jti` | Guid |
+| Organization | `organizationId` | int, absent for SystemAdmin |
+| Apiary | `apiaryId` | int, only for ApiaryAdmin |
 
-**Token lifetime:** 480 minutes (8 hours)
+**Token lifetime:** access token 30 minutes; refresh token 14 days (rotating, stored hashed).
 
 ---
 

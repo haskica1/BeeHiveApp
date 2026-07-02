@@ -1,5 +1,6 @@
 using System.Linq.Expressions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Domain.Common;
 using BeeHive.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +10,7 @@ namespace BeeHive.Entity.Repositories;
 /// Generic EF Core repository providing common CRUD operations.
 /// Concrete repositories extend this and add domain-specific queries.
 /// </summary>
-public class Repository<T> : IRepository<T> where T : class
+public class Repository<T> : IRepository<T> where T : BaseEntity
 {
     protected readonly BeeHiveDbContext _context;
     protected readonly DbSet<T> _dbSet;
@@ -48,5 +49,5 @@ public class Repository<T> : IRepository<T> where T : class
     }
 
     public async Task<bool> ExistsAsync(int id) =>
-        await _dbSet.FindAsync(id) is not null;
+        await _dbSet.AnyAsync(e => e.Id == id);
 }
