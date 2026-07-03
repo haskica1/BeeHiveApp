@@ -113,6 +113,19 @@ public static class BsLabels
         _                           => m.ToString(),
     };
 
+    public static string Label(HoneyType t) => t switch
+    {
+        HoneyType.Acacia    => "Bagrem",
+        HoneyType.Linden    => "Lipa",
+        HoneyType.Chestnut  => "Kesten",
+        HoneyType.Sunflower => "Suncokret",
+        HoneyType.Meadow    => "Livadski",
+        HoneyType.Forest    => "Šumski",
+        HoneyType.Rapeseed  => "Uljana repica",
+        HoneyType.Other     => "Ostalo",
+        _                   => t.ToString(),
+    };
+
     private static readonly string[] MonthsShort =
         { "jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec" };
 

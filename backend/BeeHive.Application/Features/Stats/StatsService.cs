@@ -160,6 +160,55 @@ public class StatsService : IStatsService
             .OrderByDescending(x => x.Total)
             .ToList();
 
+        // ── Harvests (SPEC-02) ─────────────────────────────────────────────────
+
+        var currentYear = DateTime.UtcNow.Year;
+
+        var harvests = apiaryIds.Count > 0
+            ? (await _uow.Harvests.GetByApiariesAsync(apiaryIds)).ToList()
+            : [];
+
+        var currentYearHarvests = harvests.Where(h => h.Date.Year == currentYear).ToList();
+
+        var seasonTotalKg = currentYearHarvests.Sum(h => h.Entries.Sum(e => e.QuantityKg));
+
+        var estimatedRevenue = currentYearHarvests
+            .Where(h => h.PricePerKg.HasValue)
+            .Sum(h => h.Entries.Sum(e => e.QuantityKg) * h.PricePerKg!.Value);
+
+        var kgByApiary = currentYearHarvests
+            .GroupBy(h => h.ApiaryId)
+            .Select(g => new NameDecimalDto(
+                apiaryNames.TryGetValue(g.Key, out var name) ? name : $"Pčelinjak {g.Key}",
+                g.Sum(h => h.Entries.Sum(e => e.QuantityKg))))
+            .OrderByDescending(x => x.Value)
+            .ToList();
+
+        var kgByHoneyType = currentYearHarvests
+            .GroupBy(h => h.HoneyType)
+            .Select(g => new NameDecimalDto(
+                BsLabels.Label(g.Key),
+                g.Sum(h => h.Entries.Sum(e => e.QuantityKg))))
+            .OrderByDescending(x => x.Value)
+            .ToList();
+
+        var topHivesByYield = currentYearHarvests
+            .SelectMany(h => h.Entries)
+            .GroupBy(e => e.BeehiveId)
+            .Select(g => new NameDecimalDto(
+                beehiveNamesById.TryGetValue(g.Key, out var name) ? name : $"Košnica {g.Key}",
+                g.Sum(e => e.QuantityKg)))
+            .OrderByDescending(x => x.Value)
+            .Take(5)
+            .ToList();
+
+        var yearlyYield = Enumerable.Range(0, 3)
+            .Select(offset => currentYear - 2 + offset)
+            .Select(y => new NameDecimalDto(
+                y.ToString(),
+                harvests.Where(h => h.Date.Year == y).Sum(h => h.Entries.Sum(e => e.QuantityKg))))
+            .ToList();
+
         // ── Build result ───────────────────────────────────────────────────────
 
         return new StatsDto
@@ -179,6 +228,12 @@ public class StatsService : IStatsService
             TopBeehivesByInspections = topBeehives,
             ApiariesByBeehiveCount   = apiariesByCount,
             TodosByPriority          = todosByPriority,
+            SeasonTotalKg            = seasonTotalKg,
+            EstimatedRevenue         = estimatedRevenue,
+            KgByApiary               = kgByApiary,
+            KgByHoneyType            = kgByHoneyType,
+            TopHivesByYield          = topHivesByYield,
+            YearlyYield              = yearlyYield,
         };
     }
 

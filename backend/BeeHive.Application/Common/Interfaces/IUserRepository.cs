@@ -17,4 +17,18 @@ public interface IUserRepository : IRepository<User>
 
     /// <summary>IDs of the apiaries containing the user's assigned beehives — no entities loaded.</summary>
     Task<HashSet<int>> GetAssignedApiaryIdsAsync(int userId);
+
+    // ── Recipient resolution for alerts (SPEC-04) ──
+
+    /// <summary>User ids of every Beekeeper assigned to the given beehive.</summary>
+    Task<List<int>> GetUserIdsAssignedToBeehiveAsync(int beehiveId);
+
+    /// <summary>User ids of every Beekeeper assigned to at least one beehive in the given apiary.</summary>
+    Task<List<int>> GetUserIdsAssignedToApiaryAsync(int apiaryId);
+
+    /// <summary>User ids of the OrganizationAdmins of the given organization.</summary>
+    Task<List<int>> GetOrganizationAdminIdsAsync(int organizationId);
+
+    /// <summary>User ids of the ApiaryAdmins assigned to the given apiary.</summary>
+    Task<List<int>> GetApiaryAdminIdsAsync(int apiaryId);
 }

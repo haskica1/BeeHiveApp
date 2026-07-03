@@ -19,12 +19,13 @@
 | # | Spec | One-liner | Effort | Depends on | Status |
 |---|------|-----------|--------|------------|--------|
 | 01 | [AI Advisor](SPEC-01-ai-advisor.md) | Chat savjetnik (tekst + glas) koji poznaje korisnikove košnice | M/L | — | 📋 Planned |
-| 02 | [Harvest Log](SPEC-02-harvests.md) | Evidencija vrcanja: kg meda po košnici/sezoni + profitabilnost | M | — | 📋 Planned |
+| 02 | [Harvest Log](SPEC-02-harvests.md) | Evidencija vrcanja: kg meda po košnici/sezoni + profitabilnost | M | — | ✅ Implemented (2026-07-03) |
 | 03 | [Queen Tracking](SPEC-03-queens.md) | Matice: starost, boja oznake, porijeklo, historija zamjena | S/M | — | ✅ Implemented (2026-07-02) |
-| 04 | [Smart Alerts & Weekly Summary](SPEC-04-smart-alerts.md) | Automatska upozorenja (pregledi, med, mraz, matica) + sedmični AI sažetak | M | 03 (partly) | 📋 Planned |
+| 04 | [Smart Alerts & Weekly Summary](SPEC-04-smart-alerts.md) | Automatska upozorenja (pregledi, med, mraz, matica) + sedmični AI sažetak | M | 03 (partly) | ✅ Implemented (2026-07-03) |
 | 05 | [Inspection Photos & AI Analysis](SPEC-05-inspection-photos.md) | Fotografije na pregledima + AI analiza okvira (vision) | L | — | 📋 Planned |
 | 06 | [Learning Module](SPEC-06-learning.md) | Edukacija: sezonske teme za čitanje i slušanje | M | — | 📋 Planned |
 | 07 | [Offline Inspections](SPEC-07-offline-inspections.md) | Unos pregleda bez signala — lokalni outbox + sinhronizacija | M/L | — | 📋 Planned |
+| 08 | [Treatment Log](SPEC-08-treatments.md) | Zakonska evidencija tretmana (varoa i dr.): preparat, doza, LOT, karenca + PDF registar | M | — (02/04 soft) | 📋 Planned |
 
 **Recommended order = index order.** Rationale:
 
@@ -36,6 +37,9 @@
   skipped gracefully until 03 ships).
 - **SPEC-05** is the largest (introduces object storage) — do not start it casually.
 - **SPEC-06/07** are independent and can be slotted anywhere.
+- **SPEC-08** is independent CRUD like 02/03 and can be slotted anywhere (added later, not yet
+  prioritized against 01–07); it feeds a harvest-form warning (02) and two alert rules (04),
+  all soft dependencies in both directions.
 
 ## Conventions used in the specs
 

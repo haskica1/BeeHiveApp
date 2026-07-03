@@ -15,6 +15,12 @@ const TYPE_ICONS: Record<string, string> = {
   BeehiveUnassigned:       '🐝',
   BeehiveCreated:          '🪵',
   TodoCreated:             '✅',
+  // Smart alerts & weekly summary (SPEC-04)
+  InspectionOverdue:       '⏰',
+  HoneyLevelDrop:          '📉',
+  FrostWarning:            '❄️',
+  OldQueen:                '👑',
+  WeeklySummary:           '📰',
 }
 
 export default function NotificationBell() {
@@ -126,6 +132,8 @@ function NotificationItem({
 }) {
   const icon = TYPE_ICONS[n.type] ?? '🔔'
   const time = formatDistanceToNow(new Date(n.createdAt), { addSuffix: true })
+  // The weekly summary is a multi-line bullet list — render it in full, not clamped to two lines.
+  const isMultiline = n.type === 'WeeklySummary'
 
   return (
     <div
@@ -147,7 +155,7 @@ function NotificationItem({
             <span className="w-2 h-2 rounded-full bg-honey-500 shrink-0 mt-1" />
           )}
         </div>
-        <p className="text-xs text-gray-500 dark:text-slate-400 mt-0.5 line-clamp-2">{n.message}</p>
+        <p className={clsx('text-xs text-gray-500 dark:text-slate-400 mt-0.5', isMultiline ? 'whitespace-pre-line' : 'line-clamp-2')}>{n.message}</p>
         <p className="text-[10px] text-gray-400 dark:text-slate-500 mt-1">{time}</p>
       </div>
     </div>

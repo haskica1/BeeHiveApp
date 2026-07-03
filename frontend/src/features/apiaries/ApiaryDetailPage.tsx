@@ -20,6 +20,7 @@ import {
 } from '../../shared/components'
 import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
+import { ApiaryHarvestsSection } from '../harvests/ApiaryHarvestsSection'
 import type { Beehive, DailyWeather } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
@@ -388,6 +389,9 @@ export default function ApiaryDetailPage() {
             onDelete={id => deleteTodo.mutateAsync(id)}
             isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
           />
+
+          {/* Harvests (vrcanja) */}
+          <ApiaryHarvestsSection apiaryId={apiaryId} />
 
           {/* Weather forecast */}
           <CollapsibleSection

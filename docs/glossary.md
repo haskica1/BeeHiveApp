@@ -17,6 +17,10 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | Organization | `Organization` | The top-level tenant. Each organization has its own users and apiaries. |
 | User | `User` | A person with access to one Organization. Has role Admin or SystemAdmin. |
 | Queen | `Queen` | The queen bee of a colony. Called *matica* in Bosnian. A Beehive has at most one Active queen; older records form the replacement history. |
+| Harvest | `Harvest` | A honey extraction event (*vrcanje*), apiary-scoped, dated, with one line per hive. |
+| Harvest Entry | `HarvestEntry` | The per-hive line of a Harvest: kg extracted (and optional frames) from one Beehive. |
+| Yield | `TotalKg` / *prinos* | Honey extracted, in kg — per harvest, per hive/season, or aggregated on the Stats page. |
+| Honey Type | `HoneyType` | Botanical honey variety of a harvest. English enum (`Acacia`…), Bosnian labels via `BsLabels` (Bagrem, Lipa, Kesten, Suncokret, Livadski, Šumski, Uljana repica, Ostalo). |
 | Supersedure | `QueenOrigin.Supersedure` | *Tiha zamjena* — the colony replaces its queen on its own, without beekeeper intervention or swarming. |
 | QR Code | `qrCode` | A Base64 PNG image encoding a Beehive's `uniqueId`. Used for physical hive scanning. |
 | Unique ID | `uniqueId` | A Guid assigned to a Beehive at creation. Stable, never changes. Encoded in the QR code. |
@@ -43,6 +47,8 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | `FeedingEntryStatus` | `Pending` | Scheduled but not yet done. |
 | | `Completed` | Marked as done by the user. |
 | `HoneyLevel` | `Low / Medium / High` | Estimated honey store level observed during an inspection. |
+| `NotificationType` | `InspectionOverdue / HoneyLevelDrop / FrostWarning / OldQueen` | Smart-alert notifications raised by the daily `AlertScanWorker` (SPEC-04). |
+| | `WeeklySummary` | Monday AI-written weekly digest per organization. |
 | `QueenStatus` | `Active` | The hive's current queen (at most one per hive). |
 | | `Replaced / Died / Missing` | Historical states; `EndDate` records when the queen stopped being active. |
 | `TodoPriority` | `Low / Medium / High` | Urgency of a task. |

@@ -79,6 +79,15 @@
 - Full CRUD via `/api/expenses` with line items (`ExpenseItem`)
 - Client-side receipt scanning (`ReceiptScanPage`): tesseract.js OCR (`hrv` model) + heuristic line parser
 
+### Harvests (Vrcanja)
+- Full CRUD via `/api/harvests` (apiary-scoped event + per-hive `HarvestEntry`); `HoneyType` with Bosnian `BsLabels`
+- Role scoping via `IAccessGuard`: managers write within scope; **Beekeeper read-only**, only harvests containing an assigned hive
+- Apiary immutable after creation; update replaces the entry set; entries must belong to the apiary (else 400)
+- `GET /api/harvests/hive/{id}/yield` — per-hive season + per-year totals (hive detail "Prinos" card)
+- Stats extended: `seasonTotalKg`, `estimatedRevenue`, `kgByApiary`, `kgByHoneyType`, `topHivesByYield`, `yearlyYield`
+- UI: "Vrcanja" sidebar item, `HarvestsPage` + `HarvestFormPage`, apiary/hive detail sections, StatsPage charts
+- Covered by unit tests (`HarvestServiceTests`). See `docs/features/harvests.md`.
+
 ### Calendar & Stats
 - `GET /api/calendar` — role-scoped todos + feeding entries (Bosnian labels)
 - `GET /api/stats` — org-scoped (platform-wide for SystemAdmin): totals, distributions,
@@ -92,6 +101,13 @@
 - Email silently skipped unless `Smtp:Host` + `Smtp:Password` are configured
 - `POST /api/notifications/test-email` (SystemAdmin) — direct SMTP test
 - All notification texts are in Bosnian
+- **Smart alerts (SPEC-04):** `AlertScanWorker` (BackgroundService) runs daily at `Alerts:ScanHourUtc`,
+  evaluating 4 toggleable rules — `InspectionOverdue`, `HoneyLevelDrop`, `FrostWarning` (Open-Meteo),
+  `OldQueen` (March only) — deduped against the notifications table (`ExistsRecentAsync`), delivered
+  via the existing bell + email queue
+- **Weekly AI summary:** on Mondays, a deterministic per-org digest (`WeeklyDigestBuilder`) → one Groq
+  call (`llama-3.3-70b-versatile`) → Bosnian bullet report delivered as `WeeklySummary` to OrgAdmins +
+  ApiaryAdmins; AI failure skips silently. New config block `Alerts:*`. See `docs/features/smart-alerts.md`.
 
 ### Profile
 - `GET/PUT /api/profile` — name/email + password change
@@ -127,11 +143,12 @@
 **Specced — see `docs/specs/README.md` for priority order and full specs:**
 
 - SPEC-01 AI Advisor (chat savjetnik, voice+text, hive context)
-- SPEC-02 Harvest Log (vrcanje i prinosi)
-- SPEC-04 Smart Alerts & Weekly AI Summary
 - SPEC-05 Inspection Photos & AI Frame Analysis
 - SPEC-06 Learning Module (edukacija)
 - SPEC-07 Offline Inspections (outbox sync)
+- SPEC-08 Treatment Log (evidencija tretmana — zakonska evidencija, PDF registar)
+
+**Shipped (were specced):** SPEC-02 Harvest Log ✅, SPEC-03 Queen Tracking ✅, SPEC-04 Smart Alerts & Weekly AI Summary ✅
 
 **Unspecced ideas:**
 

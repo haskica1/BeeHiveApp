@@ -132,6 +132,25 @@ HTTP `200 OK`, `201 Created`, `204 No Content` — response body is the DTO dire
 
 ---
 
+### Harvests
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/harvests?apiaryId=&year=` | `HarvestDto[]` (role-scoped; incl. `totalKg`, `entryCount`, `apiaryName`, `estimatedRevenue`) |
+| GET | `/harvests/{id}` | `HarvestDetailDto` (entries with hive names) |
+| POST | `/harvests` | `201 + HarvestDetailDto` |
+| PUT | `/harvests/{id}` | `200 + HarvestDetailDto` (apiary immutable — not in body) |
+| DELETE | `/harvests/{id}` | `204` |
+| GET | `/harvests/hive/{beehiveId}/yield` | `HiveYieldDto` `{ currentSeasonKg, byYear:[{year, kg}] }` |
+
+**Create body:** `{ apiaryId, date, honeyType, pricePerKg?, notes?, entries:[{beehiveId, quantityKg, framesExtracted?}] }`
+**Access:** apiary-scoped (like apiary management); managers write, **Beekeeper read-only** for harvests
+containing an assigned hive. Foreign/duplicate hive in `entries` → `400`.
+`GET /api/stats` gains: `seasonTotalKg`, `estimatedRevenue`, `kgByApiary[]`, `kgByHoneyType[]`,
+`topHivesByYield[]`, `yearlyYield[]`.
+
+---
+
 ### Todos
 
 | Method | Path | Returns |
@@ -185,6 +204,8 @@ HTTP `200 OK`, `201 Created`, `204 No Content` — response body is the DTO dire
 ```
 BeehiveType:     Langstroth | DadantBlatt | Warré | TopBar | Other
 BeehiveMaterial: Wood | Plastic | Polystyrene
+HoneyType:       Acacia | Linden | Chestnut | Sunflower | Meadow | Forest | Rapeseed | Other  (BsLabels: Bagrem, Lipa, …)
+NotificationType: … | InspectionOverdue=10 | HoneyLevelDrop=11 | FrostWarning=12 | OldQueen=13 | WeeklySummary=14
 HoneyLevel:      Low | Medium | High
 TodoPriority:    Low | Medium | High
 DietStatus:      NotStarted | InProgress | Completed | StoppedEarly

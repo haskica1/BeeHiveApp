@@ -11,4 +11,11 @@ public enum NotificationType
     BeehiveUnassigned      = 7,
     BeehiveCreated         = 8,
     TodoCreated            = 9,
+
+    // ── Smart alerts & weekly summary (SPEC-04) ──
+    InspectionOverdue      = 10,
+    HoneyLevelDrop         = 11,
+    FrostWarning           = 12,
+    OldQueen               = 13,
+    WeeklySummary          = 14,
 }

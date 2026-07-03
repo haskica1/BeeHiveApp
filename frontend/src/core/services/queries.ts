@@ -92,6 +92,13 @@ export const useDeleteApiary = () => {
 export const useAllBeehives = () =>
   useQuery({ queryKey: queryKeys.allBeehives, queryFn: beehiveService.getAll, staleTime: 1000 * 60 * 2 })
 
+export const useBeehivesByApiary = (apiaryId: number) =>
+  useQuery({
+    queryKey: queryKeys.beehivesByApiary(apiaryId),
+    queryFn: () => beehiveService.getByApiary(apiaryId),
+    enabled: !!apiaryId,
+  })
+
 export const useBeehive = (id: number) =>
   useQuery({ queryKey: queryKeys.beehive(id), queryFn: () => beehiveService.getById(id), enabled: !!id })
 

@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Domain.Entities;
+using BeeHive.Domain.Enums;
 using Microsoft.EntityFrameworkCore;
 
 namespace BeeHive.Entity.Repositories;
@@ -71,4 +72,30 @@ public class UserRepository : Repository<User>, IUserRepository
             .ToListAsync();
         return [.. ids];
     }
+
+    public async Task<List<int>> GetUserIdsAssignedToBeehiveAsync(int beehiveId) =>
+        await _context.UserBeehives
+            .Where(ub => ub.BeehiveId == beehiveId)
+            .Select(ub => ub.UserId)
+            .Distinct()
+            .ToListAsync();
+
+    public async Task<List<int>> GetUserIdsAssignedToApiaryAsync(int apiaryId) =>
+        await _context.UserBeehives
+            .Where(ub => ub.Beehive.ApiaryId == apiaryId)
+            .Select(ub => ub.UserId)
+            .Distinct()
+            .ToListAsync();
+
+    public async Task<List<int>> GetOrganizationAdminIdsAsync(int organizationId) =>
+        await _context.Users
+            .Where(u => u.Role == UserRole.OrganizationAdmin && u.OrganizationId == organizationId)
+            .Select(u => u.Id)
+            .ToListAsync();
+
+    public async Task<List<int>> GetApiaryAdminIdsAsync(int apiaryId) =>
+        await _context.Users
+            .Where(u => u.Role == UserRole.ApiaryAdmin && u.ApiaryId == apiaryId)
+            .Select(u => u.Id)
+            .ToListAsync();
 }

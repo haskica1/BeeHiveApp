@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using BeeHive.API.Middleware;
 using BeeHive.Application;
+using BeeHive.Application.Features.Alerts;
 using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Weather;
 using BeeHive.Entity;
@@ -94,6 +95,13 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
 // Voice parsing service — Groq API (Whisper transcription + Llama field extraction);
 // key configured via Groq:ApiKey. Longer timeout: audio upload + two model calls.
 builder.Services.AddHttpClient<IVoiceParsingService, VoiceParsingService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+
+// Weekly AI summary — Groq chat (Llama), reuses Groq:ApiKey. Runs from the AlertScanWorker
+// on Mondays; the typed HttpClient keeps the Groq call out of the request path.
+builder.Services.AddHttpClient<IWeeklySummaryService, WeeklySummaryService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });

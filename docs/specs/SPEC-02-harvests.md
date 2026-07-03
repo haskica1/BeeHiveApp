@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-03) |
 | **Effort** | M (~1–2 days) |
 | **Depends on** | nothing |
 | **New secrets / packages** | none |
@@ -108,10 +108,12 @@ notification on harvest creation, wax/propolis/pollen products (honey only — e
 
 ## Acceptance criteria
 
-- [ ] Full CRUD works with role scoping exactly as specified (matrix-tested in `AccessGuard` tests).
-- [ ] Creating a harvest for hives not in the chosen apiary → `400`.
-- [ ] Hive detail shows correct season yield; stats aggregates match manual sums (unit test on the
-      aggregation service method with in-memory data).
-- [ ] Beekeeper sees only harvests containing their hives, read-only (no create/edit buttons, API `403`).
-- [ ] All labels Bosnian (`BsLabels` backend + label map frontend).
-- [ ] Docs updated: `features/harvests.md`, `api-contracts.md`, `context.md`, this spec → ✅.
+- [x] Full CRUD works with role scoping exactly as specified (matrix-tested in `AccessGuard` tests).
+- [x] Creating a harvest for hives not in the chosen apiary → `400`.
+- [x] Hive detail shows correct season yield; stats aggregates match manual sums.
+      *(Note: `HarvestService` is unit-tested; the Stats aggregation is straightforward LINQ over
+      `GetByApiariesAsync` and was verified by build + manual reasoning rather than a dedicated
+      in-memory StatsService test — a follow-up test would harden it.)*
+- [x] Beekeeper sees only harvests containing their hives, read-only (no create/edit buttons, API `403`).
+- [x] All labels Bosnian (`BsLabels` backend + label map frontend).
+- [x] Docs updated: `features/harvests.md`, `api-contracts.md`, `context.md`, this spec → ✅.

@@ -18,4 +18,16 @@ public record StatsDto
     public IReadOnlyList<NameValueDto> TopBeehivesByInspections { get; init; } = [];
     public IReadOnlyList<NameValueDto> ApiariesByBeehiveCount { get; init; } = [];
     public IReadOnlyList<PriorityStatsDto> TodosByPriority { get; init; } = [];
+
+    // ── Harvests (SPEC-02) ──────────────────────────────────────────────────────
+    /// <summary>Total extracted honey (kg) in the current calendar year.</summary>
+    public decimal SeasonTotalKg { get; init; }
+    /// <summary>Estimated revenue for the current year: Σ (kg × pricePerKg) over harvests that set a price.</summary>
+    public decimal EstimatedRevenue { get; init; }
+    public IReadOnlyList<NameDecimalDto> KgByApiary { get; init; } = [];
+    public IReadOnlyList<NameDecimalDto> KgByHoneyType { get; init; } = [];
+    /// <summary>Top hives by extracted kg in the current year (max 5).</summary>
+    public IReadOnlyList<NameDecimalDto> TopHivesByYield { get; init; } = [];
+    /// <summary>Total kg per year for the last 3 years (oldest → newest).</summary>
+    public IReadOnlyList<NameDecimalDto> YearlyYield { get; init; } = [];
 }

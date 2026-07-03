@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-03) |
 | **Effort** | M (~2 days) |
 | **Depends on** | notifications infra (exists); queen rule needs SPEC-03; yield line in summary needs SPEC-02 — both degrade gracefully |
 | **New secrets** | none (reuses `Groq:ApiKey`, Open-Meteo is keyless) |
@@ -95,13 +95,13 @@ per organization (config is global); swarm-season heuristics beyond rule 2; SMS.
 
 ## Acceptance criteria
 
-- [ ] Each rule fires on fabricated data and respects its dedup window — unit tests on
+- [x] Each rule fires on fabricated data and respects its dedup window — unit tests on
       `IAlertRuleService` (worker itself stays thin/untested).
-- [ ] Rule 1 respects per-hive assignment scoping (Beekeeper gets alerts only for own hives).
-- [ ] Frost warning appears for an apiary with coords when the forecast dips below 0 °C (manually
+- [x] Rule 1 respects per-hive assignment scoping (Beekeeper gets alerts only for own hives).
+- [x] Frost warning appears for an apiary with coords when the forecast dips below 0 °C (manually
       testable by pointing coords at a cold location, or by abstracting the forecast provider in tests).
-- [ ] Weekly summary email + in-app notification arrive for an org with seeded activity; contains
+- [x] Weekly summary email + in-app notification arrive for an org with seeded activity; contains
       only facts present in the digest input (spot-check).
-- [ ] All five texts in Bosnian; bell icons/labels extended.
-- [ ] Scan is idempotent: running it twice in a row produces no duplicate notifications.
-- [ ] Docs updated: `features/smart-alerts.md`, `context.md` (incl. new config keys), this spec → ✅.
+- [x] All five texts in Bosnian; bell icons/labels extended.
+- [x] Scan is idempotent: running it twice in a row produces no duplicate notifications.
+- [x] Docs updated: `features/smart-alerts.md`, `context.md` (incl. new config keys), this spec → ✅.

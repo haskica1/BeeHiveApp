@@ -650,6 +650,88 @@ export interface UpdateExpensePayload {
   items: CreateExpenseItemPayload[]
 }
 
+// ── Harvests (SPEC-02) ──────────────────────────────────────────────────────────
+
+export enum HoneyType {
+  Acacia    = 1,
+  Linden    = 2,
+  Chestnut  = 3,
+  Sunflower = 4,
+  Meadow    = 5,
+  Forest    = 6,
+  Rapeseed  = 7,
+  Other     = 99,
+}
+
+export const HoneyTypeLabels: Record<HoneyType, string> = {
+  [HoneyType.Acacia]:    'Bagrem',
+  [HoneyType.Linden]:    'Lipa',
+  [HoneyType.Chestnut]:  'Kesten',
+  [HoneyType.Sunflower]: 'Suncokret',
+  [HoneyType.Meadow]:    'Livadski',
+  [HoneyType.Forest]:    'Šumski',
+  [HoneyType.Rapeseed]:  'Uljana repica',
+  [HoneyType.Other]:     'Ostalo',
+}
+
+export interface HarvestEntry {
+  id: number
+  beehiveId: number
+  beehiveName?: string
+  quantityKg: number
+  framesExtracted?: number
+}
+
+export interface Harvest {
+  id: number
+  apiaryId: number
+  apiaryName?: string
+  date: string
+  honeyType: HoneyType
+  honeyTypeName: string
+  pricePerKg?: number
+  notes?: string
+  totalKg: number
+  entryCount: number
+  estimatedRevenue?: number
+  createdByName?: string
+  createdAt: string
+}
+
+export interface HarvestDetail extends Harvest {
+  entries: HarvestEntry[]
+}
+
+export interface CreateHarvestEntryPayload {
+  beehiveId: number
+  quantityKg: number
+  framesExtracted?: number | null
+}
+
+export interface CreateHarvestPayload {
+  apiaryId: number
+  date: string
+  honeyType: HoneyType
+  pricePerKg?: number | null
+  notes?: string
+  entries: CreateHarvestEntryPayload[]
+}
+
+/** Update shares the create shape except the apiary, which is immutable after creation. */
+export interface UpdateHarvestPayload {
+  date: string
+  honeyType: HoneyType
+  pricePerKg?: number | null
+  notes?: string
+  entries: CreateHarvestEntryPayload[]
+}
+
+/** Per-hive honey yield (from /harvests/hive/{id}/yield). */
+export interface HiveYield {
+  currentSeasonKg: number
+  byYear: { year: number; kg: number }[]
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

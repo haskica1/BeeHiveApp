@@ -21,6 +21,7 @@ import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import DietSection from '../diets/DietSection'
 import { QueenSection } from './QueenSection'
+import { HiveYieldCard } from './HiveYieldCard'
 import { DietStatus, HoneyLevel } from '../../core/models'
 import type { Inspection } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
@@ -235,6 +236,9 @@ export default function BeehiveDetailPage() {
         <div className="lg:col-span-5 xl:col-span-4 space-y-6">
           {/* Queen (matica) */}
           <QueenSection beehiveId={beehiveId} canManage={canManageThisHive} />
+
+          {/* Honey yield (prinos) */}
+          <HiveYieldCard beehiveId={beehiveId} />
 
           {/* Hive details — always visible */}
           <div className="card">

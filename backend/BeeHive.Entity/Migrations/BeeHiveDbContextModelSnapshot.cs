@@ -380,6 +380,85 @@ namespace BeeHive.Entity.Migrations
                     b.ToTable("FeedingEntries", (string)null);
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Harvest", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApiaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("Date")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("HoneyType")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<decimal?>("PricePerKg")
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiaryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("Date");
+
+                    b.ToTable("Harvests", (string)null);
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.HarvestEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BeehiveId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("FramesExtracted")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("HarvestId")
+                        .HasColumnType("integer");
+
+                    b.Property<decimal>("QuantityKg")
+                        .HasColumnType("numeric(6,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BeehiveId");
+
+                    b.HasIndex("HarvestId");
+
+                    b.ToTable("HarvestEntries", (string)null);
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Inspection", b =>
                 {
                     b.Property<int>("Id")
@@ -894,6 +973,43 @@ namespace BeeHive.Entity.Migrations
                     b.Navigation("Diet");
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Harvest", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Apiary", "Apiary")
+                        .WithMany()
+                        .HasForeignKey("ApiaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BeeHive.Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Apiary");
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.HarvestEntry", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Beehive", "Beehive")
+                        .WithMany()
+                        .HasForeignKey("BeehiveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BeeHive.Domain.Entities.Harvest", "Harvest")
+                        .WithMany("Entries")
+                        .HasForeignKey("HarvestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Beehive");
+
+                    b.Navigation("Harvest");
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Inspection", b =>
                 {
                     b.HasOne("BeeHive.Domain.Entities.Beehive", "Beehive")
@@ -1039,6 +1155,11 @@ namespace BeeHive.Entity.Migrations
             modelBuilder.Entity("BeeHive.Domain.Entities.Expense", b =>
                 {
                     b.Navigation("Items");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Harvest", b =>
+                {
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.Organization", b =>

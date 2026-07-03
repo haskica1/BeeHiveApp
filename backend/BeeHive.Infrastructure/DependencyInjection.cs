@@ -1,4 +1,5 @@
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Infrastructure.Alerts;
 using BeeHive.Infrastructure.Email;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -18,6 +19,9 @@ public static class DependencyInjection
         // blocks (or times out) the HTTP request that produced the notification.
         services.AddSingleton<IEmailQueue, ChannelEmailQueue>();
         services.AddHostedService<EmailNotificationWorker>();
+
+        // Daily proactive alert scan + weekly AI summary (SPEC-04).
+        services.AddHostedService<AlertScanWorker>();
 
         return services;
     }

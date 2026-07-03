@@ -21,6 +21,13 @@ export interface StatsData {
   topBeehivesByInspections: NameValue[]
   apiariesByBeehiveCount: NameValue[]
   todosByPriority: PriorityStats[]
+  // Harvests (SPEC-02) — kg values arrive as JS numbers
+  seasonTotalKg: number
+  estimatedRevenue: number
+  kgByApiary: NameValue[]
+  kgByHoneyType: NameValue[]
+  topHivesByYield: NameValue[]
+  yearlyYield: NameValue[]
 }
 
 export const statsService = {
