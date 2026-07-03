@@ -14,6 +14,13 @@ const queryClient = new QueryClient({
   },
 })
 
+// Outbox unit-test harness (SPEC-07) — dev builds only; run `await __outboxSelfTest()` in the console.
+if (import.meta.env.DEV) {
+  void import('./core/offline/outboxSelfTest').then(m => {
+    ;(window as unknown as Record<string, unknown>).__outboxSelfTest = m.runOutboxSelfTest
+  })
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>

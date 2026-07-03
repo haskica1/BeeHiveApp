@@ -29,6 +29,7 @@ import TreatmentsPage from './features/treatments/TreatmentsPage'
 import TreatmentFormPage from './features/treatments/TreatmentFormPage'
 import LearningPage from './features/learning/LearningPage'
 import LearningTopicPage from './features/learning/LearningTopicPage'
+import OutboxPage from './features/offline/OutboxPage'
 import LearningTopicsAdminPage from './features/admin/LearningTopicsAdminPage'
 import LearningTopicFormPage from './features/admin/LearningTopicFormPage'
 import AdvisorPage from './features/advisor/AdvisorPage'
@@ -105,6 +106,9 @@ export default function App() {
               {/* Learning (Edukacija) — all authenticated users */}
               <Route path="learning"     element={<LearningPage />} />
               <Route path="learning/:id" element={<LearningTopicPage />} />
+
+              {/* Offline outbox (neposlani pregledi) — all authenticated users */}
+              <Route path="outbox" element={<OutboxPage />} />
 
               {/* Members routes — OrgAdmin and Admin */}
               <Route element={<RoleRoute allowedRoles={MEMBER_MANAGERS} />}>

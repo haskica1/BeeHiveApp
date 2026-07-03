@@ -110,6 +110,17 @@
 - UI: "AI Savjetnik" sidebar, `/advisor` (all roles), "Pitaj savjetnika" on hive detail, voice→transcript→review→send
 - `useVoiceInput` moved to `core/hooks/`. Covered by unit tests. See `docs/features/ai-advisor.md`.
 
+### Offline Inspections (Offline unos pregleda)
+- Frontend-only (SPEC-07): creating an inspection offline lands in an IndexedDB **outbox**
+  (`core/offline/outbox.ts`, keyed by owner email — session has no numeric user id) and syncs
+  automatically on reconnect through the normal axios path (`syncOutbox.ts`)
+- Single-flight flush per tab + cross-tab via Web Locks; BroadcastChannel keeps tab badges live
+- 4xx on sync → item `failed` with the API message (edit/discard on `/outbox`); network error → stays pending
+- UI: offline banner + CloudOff badge in `Layout`, `/outbox` page (Pošalji sada/Uredi/Obriši),
+  hive-page hint card; voice input disabled offline (server transcription)
+- No SW background sync (ADR-026); Workbox `NetworkFirst` already covers all API GETs (read side)
+- Dev harness: `await __outboxSelfTest()` in the console. See `docs/features/offline-inspections.md`.
+
 ### Learning (Edukacija)
 - Platform-wide educational articles (SPEC-06): SystemAdmin authors, everyone reads once published
 - `/api/learning-topics` (published only, `isRead` per user, category/month filter) +

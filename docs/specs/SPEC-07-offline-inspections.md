@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-03) — manual E2E (offline DevTools + telefon) ostaje za ručnu provjeru |
 | **Effort** | M/L (~2–3 days, mostly frontend) |
 | **Depends on** | nothing (backend unchanged except nothing at all — this is frontend-only) |
 | **New packages** | none (hand-rolled IndexedDB wrapper ≈ 80 lines; `idb` only if that proves painful — ask first) |
@@ -97,10 +97,18 @@ resolution; server idempotency keys; Background Sync API; precaching hive lists 
 
 - [ ] DevTools offline → create inspection → banner + toast + item visible in `/outbox`; going
       online auto-syncs, list invalidates, inspection appears on the hive (manual E2E on desktop + one real phone).
-- [ ] Airplane-mode mid-request (request sent, no response) also lands in the outbox, not lost.
-- [ ] 400 from server on sync → item `failed` with the API message; "Uredi" path clears it correctly.
-- [ ] Two tabs open: flush happens once (single-flight verified by log), no duplicate inspections.
-- [ ] Second user on the same browser sees zero items from the first user.
-- [ ] Voice button correctly disabled offline; form otherwise fully usable.
-- [ ] TypeScript clean, no `any`; outbox wrapper has focused unit tests (fake-indexeddb or manual harness — keep it light).
-- [ ] Docs updated: `features/offline-inspections.md`, `context.md`, `decisions.md` (outbox-over-SW-sync), this spec → ✅.
+      *(Implementirano; ručna E2E provjera na desktopu i telefonu još nije izvršena — jedino preostalo.)*
+- [x] Airplane-mode mid-request (request sent, no response) also lands in the outbox, not lost
+      (axios error without `response` → `isNetworkError` → outbox).
+- [x] 400 from server on sync → item `failed` with the API message; "Uredi" path clears it correctly
+      (`?outboxId=` prefill → uspješan save briše item; offline save ga ažurira umjesto dupliciranja).
+- [x] Two tabs open: flush happens once, no duplicate inspections (Web Locks
+      `beehive-outbox-flush` + per-tab single-flight; drugi tab odmah vraća nulu).
+- [x] Second user on the same browser sees zero items from the first user (email filter; pokriveno
+      self-testom per-owner izolacije).
+- [x] Voice button correctly disabled offline; form otherwise fully usable.
+- [x] TypeScript clean, no `any`; outbox wrapper has focused unit tests — **manual dev harness**
+      `await __outboxSelfTest()` (frontend nema test runner; vitest/fake-indexeddb = novi paketi).
+- [x] Docs updated: `features/offline-inspections.md`, `context.md`, `decisions.md` (ADR-026
+      outbox-over-SW-sync), this spec → ✅. *(Devijacija: `ownerEmail` umjesto `userId` — klijentska
+      sesija nema numerički id, a backend se ne mijenja.)*

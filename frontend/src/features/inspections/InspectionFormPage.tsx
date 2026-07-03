@@ -7,12 +7,23 @@ import {
   useUpdateInspection,
 } from '../../core/services/queries'
 import { inspectionService } from '../../core/services/beehiveService'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import { HoneyLevel, HoneyLevelLabels } from '../../core/models'
-import type { CreateInspectionPayload } from '../../core/models'
+import type { Beehive, CreateInspectionPayload } from '../../core/models'
 import { useVoiceInput } from '../../core/hooks/useVoiceInput'
+import { useOnlineStatus } from '../../core/hooks/useOnlineStatus'
+import { useAuth } from '../../core/context/AuthContext'
+import { useToast } from '../../core/context/ToastContext'
+import {
+  enqueueInspection,
+  getOutboxItem,
+  removeOutboxItem,
+  updateOutboxItem,
+  type OutboxItem,
+} from '../../core/offline/outbox'
+import { isNetworkError } from '../../core/offline/syncOutbox'
 
 export default function InspectionFormPage() {
   const { id } = useParams<{ id?: string }>()
@@ -20,7 +31,15 @@ export default function InspectionFormPage() {
   const isEditing   = Boolean(id)
   const inspectionId = Number(id)
   const beehiveId   = Number(searchParams.get('beehiveId') ?? 0)
+  const outboxId    = searchParams.get('outboxId')
   const navigate    = useNavigate()
+
+  // Offline outbox (SPEC-07)
+  const online = useOnlineStatus()
+  const { user } = useAuth()
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
+  const outboxItemRef = useRef<OutboxItem | null>(null)
 
   // ── Voice state ──────────────────────────────────────────────────────────
   const [voiceOpen, setVoiceOpen]     = useState(false)
@@ -43,6 +62,7 @@ export default function InspectionFormPage() {
   const resolvedBeehiveId = isEditing ? (inspection?.beehiveId ?? beehiveId) : beehiveId
   const createMutation    = useCreateInspection(resolvedBeehiveId)
   const updateMutation    = useUpdateInspection(inspectionId, resolvedBeehiveId)
+  const backUrl           = outboxId ? '/outbox' : `/beehives/${resolvedBeehiveId}`
 
   const {
     register,
@@ -70,6 +90,23 @@ export default function InspectionFormPage() {
       })
     }
   }, [inspection, isEditing, reset])
+
+  // Editing an unsent offline entry: prefill from the outbox item (SPEC-07).
+  useEffect(() => {
+    if (!outboxId || isEditing) return
+    let cancelled = false
+    void getOutboxItem(outboxId).then(item => {
+      if (cancelled || !item) return
+      outboxItemRef.current = item
+      reset({
+        ...item.payload,
+        date: item.payload.date.split('T')[0],
+        broodStatus: item.payload.broodStatus ?? '',
+        notes: item.payload.notes ?? '',
+      })
+    })
+    return () => { cancelled = true }
+  }, [outboxId, isEditing, reset])
 
   // ── Voice handlers ───────────────────────────────────────────────────────
 
@@ -133,6 +170,25 @@ export default function InspectionFormPage() {
 
   // ── Form submit ──────────────────────────────────────────────────────────
 
+  /** Saves the inspection to the local outbox (create or refresh of the edited item). */
+  const saveToOutbox = async (payload: CreateInspectionPayload) => {
+    if (!user?.email) return
+    const existing = outboxItemRef.current
+    if (existing) {
+      await updateOutboxItem({ ...existing, payload, status: 'pending', error: undefined })
+    } else {
+      const cachedHive = queryClient.getQueryData<Beehive>(queryKeys.beehive(resolvedBeehiveId))
+      await enqueueInspection({
+        ownerEmail: user.email,
+        beehiveId: resolvedBeehiveId,
+        beehiveName: cachedHive?.name ?? `Košnica #${resolvedBeehiveId}`,
+        payload,
+      })
+    }
+    toast.success('Nema mreže — pregled je sačuvan lokalno i biće poslan automatski.')
+    navigate(backUrl)
+  }
+
   const onSubmit = async (data: CreateInspectionPayload) => {
     const payload: CreateInspectionPayload = {
       ...data,
@@ -142,16 +198,33 @@ export default function InspectionFormPage() {
     }
     if (isEditing) {
       await updateMutation.mutateAsync(payload)
-    } else {
-      await createMutation.mutateAsync(payload)
+      navigate(backUrl)
+      return
     }
-    navigate(`/beehives/${resolvedBeehiveId}`)
+
+    // Offline pre-check: don't even try the request without a network (SPEC-07).
+    if (!navigator.onLine) {
+      await saveToOutbox(payload)
+      return
+    }
+
+    try {
+      await createMutation.mutateAsync(payload)
+    } catch (err) {
+      // Network-level failure (no response — airplane mode mid-request included) → outbox.
+      // HTTP errors with a response are real rejections and render via createMutation.error.
+      if (isNetworkError(err)) await saveToOutbox(payload)
+      return
+    }
+
+    // Sent for real — an outbox copy being edited is now obsolete.
+    if (outboxItemRef.current) await removeOutboxItem(outboxItemRef.current.localId)
+    navigate(backUrl)
   }
 
   if (isEditing && isLoading) return <LoadingSpinner message="Učitavanje pregleda…" />
 
   const mutationError = createMutation.error ?? updateMutation.error
-  const backUrl = `/beehives/${resolvedBeehiveId}`
 
   return (
     <div className="animate-fade-in max-w-lg mx-auto">
@@ -326,20 +399,25 @@ export default function InspectionFormPage() {
         ) : (
           /* ── Regular inspection form ─────────────────────────────────── */
           <>
-            {/* Voice input toggle — only on create */}
+            {/* Voice input toggle — only on create; transcription is a server call, so offline
+                the button is disabled with a hint (SPEC-07) */}
             {!isEditing && (
-              <div className="flex justify-end mb-5">
+              <div className="flex flex-col items-end mb-5">
                 <button
                   type="button"
                   onClick={handleOpenVoice}
+                  disabled={!online}
                   className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium
                     bg-honey-50 text-honey-700 hover:bg-honey-100 border border-honey-200
                     dark:bg-honey-500/10 dark:text-honey-300 dark:hover:bg-honey-500/20 dark:border-honey-500/30
-                    transition-colors"
+                    transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <Mic className="w-3.5 h-3.5" />
                   Unos govorom
                 </button>
+                {!online && (
+                  <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">Glasovni unos zahtijeva mrežu.</p>
+                )}
               </div>
             )}
 

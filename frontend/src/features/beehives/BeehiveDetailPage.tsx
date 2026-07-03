@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Bot, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
+import { ArrowLeft, Bot, CloudOff, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { differenceInDays, format, isPast, isToday, parseISO } from 'date-fns'
 import { downloadBeehiveQrPdf } from '../../shared/utils/qrPdf'
 import {
@@ -23,6 +23,8 @@ import DietSection from '../diets/DietSection'
 import { QueenSection } from './QueenSection'
 import { HiveYieldCard } from './HiveYieldCard'
 import { HiveTreatmentCard } from '../treatments/HiveTreatmentCard'
+import { useAuth } from '../../core/context/AuthContext'
+import { useOutbox } from '../../core/hooks/useOutbox'
 import { DietStatus, HoneyLevel } from '../../core/models'
 import type { Inspection } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
@@ -37,6 +39,10 @@ export default function BeehiveDetailPage() {
   const { canEditDelete, canManageInspections, canManageHiveTodos, isAssignedToHive } = usePermissions()
   const { data: beehive, isLoading, error } = useBeehive(beehiveId)
   const deleteMutation = useDeleteInspection(beehiveId)
+
+  // Unsent offline inspections for this hive (SPEC-07)
+  const { user } = useAuth()
+  const pendingOutbox = useOutbox(user?.email).filter(i => i.beehiveId === beehiveId)
 
   const todoKey = queryKeys.todosByBeehive(beehiveId)
   const { data: todos = [], isLoading: todosLoading } = useTodosByBeehive(beehiveId)
@@ -180,6 +186,22 @@ export default function BeehiveDetailPage() {
           gradient="from-emerald-400 to-teal-600"
         />
       </div>
+
+      {/* ── Unsent offline inspections hint (SPEC-07) ─────────────────────────── */}
+      {pendingOutbox.length > 0 && (
+        <Link
+          to="/outbox"
+          className="flex items-center gap-2.5 px-4 py-3 rounded-2xl border border-amber-200 dark:border-amber-500/30
+            bg-amber-50 dark:bg-amber-500/10 text-sm font-medium text-amber-800 dark:text-amber-300
+            hover:bg-amber-100 dark:hover:bg-amber-500/20 transition-colors"
+        >
+          <CloudOff className="w-4 h-4 shrink-0" />
+          {pendingOutbox.length === 1
+            ? '1 pregled ove košnice čeka slanje.'
+            : `${pendingOutbox.length} pregleda ove košnice čeka slanje.`}
+          <span className="ml-auto underline shrink-0">Otvori</span>
+        </Link>
+      )}
 
       {/* ── Bento grid ────────────────────────────────────────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">

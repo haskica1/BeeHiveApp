@@ -1,9 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, Bot, CalendarDays, Droplets, GraduationCap, Home, LayoutDashboard, LogOut, Menu, Moon, Pill, QrCode, ReceiptText, Search, Settings, Sun, Users, X } from 'lucide-react'
+import { BarChart2, Bot, CalendarDays, CloudOff, Droplets, GraduationCap, Home, LayoutDashboard, LogOut, Menu, Moon, Pill, QrCode, ReceiptText, Search, Settings, Sun, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
+import { useOnlineStatus } from '../../core/hooks/useOnlineStatus'
+import { useOutbox } from '../../core/hooks/useOutbox'
+import { useOutboxSync } from '../../core/offline/useOutboxSync'
 import QrScannerModal from './QrScannerModal'
 import NotificationBell from './NotificationBell'
 import { CommandPalette } from './CommandPalette'
@@ -17,6 +20,11 @@ export default function Layout() {
   const { user, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
+
+  // Offline outbox (SPEC-07): sync triggers + live pending count for the badge.
+  useOutboxSync()
+  const online = useOnlineStatus()
+  const outboxItems = useOutbox(user?.email)
 
   const isSystemAdmin  = user?.role === 'SystemAdmin'
   const isOrgAdmin     = user?.role === 'OrganizationAdmin'
@@ -137,6 +145,20 @@ export default function Layout() {
             >
               {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
             </button>
+
+            {/* Offline outbox badge (SPEC-07) */}
+            {outboxItems.length > 0 && (
+              <Link
+                to="/outbox"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold
+                  bg-amber-100 text-amber-800 hover:bg-amber-200
+                  dark:bg-amber-500/15 dark:text-amber-300 dark:hover:bg-amber-500/25 transition-colors"
+                title="Neposlani pregledi"
+              >
+                <CloudOff className="w-3.5 h-3.5" />
+                {outboxItems.length}
+              </Link>
+            )}
 
             {/* Notification bell */}
             <NotificationBell />
@@ -298,6 +320,14 @@ export default function Layout() {
               <QrCode className="w-4 h-4 text-honey-600 dark:text-honey-400" />
               Skeniraj
             </button>
+            {outboxItems.length > 0 && (
+              <MobileNavItem
+                to="/outbox"
+                icon={<CloudOff className="w-4 h-4" />}
+                label={`Neposlani pregledi (${outboxItems.length})`}
+                onClick={() => setMobileOpen(false)}
+              />
+            )}
 
             {/* User section */}
             {user && (
@@ -332,6 +362,21 @@ export default function Layout() {
           </div>
         )}
       </header>
+
+      {/* ── Offline banner (SPEC-07) ───────────────────────────────────────── */}
+      {!online && (
+        <div className="sticky top-14 z-30 bg-amber-100 dark:bg-amber-500/15 border-b border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300">
+          <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2 text-sm font-medium">
+            <CloudOff className="w-4 h-4 shrink-0" />
+            Radiš offline — izmjene se čuvaju lokalno.
+            {outboxItems.length > 0 && (
+              <Link to="/outbox" className="ml-auto underline hover:no-underline shrink-0">
+                Neposlano: {outboxItems.length}
+              </Link>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ── Main Content ────────────────────────────────────────────────────── */}
       <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">

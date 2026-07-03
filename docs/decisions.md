@@ -296,3 +296,25 @@ and hand-rolling a renderer is exactly the kind of parsing/XSS surface a maintai
   careless use is an XSS foot-gun; react-markdown renders to React elements, never raw HTML.
 - Tailwind `@tailwindcss/typography` plugin for styling — another dependency for what 15 element
   mappings in one component already do.
+
+---
+
+## ADR-026: In-App Outbox Instead of Service-Worker Background Sync (SPEC-07)
+
+**Decision:** Offline inspection capture uses an **IndexedDB outbox flushed by the app itself**
+(`core/offline/`): the form writes an `OutboxItem` on network-level failure, and a sync engine
+(mount + `'online'` event + manual button) replays items through the normal
+`inspectionService.create`. Cross-tab races are prevented with the Web Locks API. The outbox is
+keyed by the owner's **email** (the client session has no numeric user id and the spec keeps the
+backend unchanged). `localStorage` was rejected (multi-tab safety, size limits).
+
+**Why:** replaying POSTs from a service worker (`workbox-background-sync`) bypasses the axios
+auth/refresh interceptor (a queued request with an expired token would just fail), gives no UI
+feedback (no toasts, no failed-item list, no edit path), and is much harder to reason about than
+an in-app flush that reuses the exact same code path as an online submit.
+
+**Alternatives considered:**
+- `workbox-background-sync` — see above; also Background Sync API is Chromium-only.
+- Server idempotency keys against double-submit — real fix, but backend changes are out of scope
+  for v1; the crash window between `201` and item removal is documented and accepted.
+- `idb` npm package — the hand-rolled wrapper is ~100 lines; not worth a dependency.
