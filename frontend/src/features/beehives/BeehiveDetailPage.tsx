@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
+import { ArrowLeft, Bot, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { differenceInDays, format, isPast, isToday, parseISO } from 'date-fns'
 import { downloadBeehiveQrPdf } from '../../shared/utils/qrPdf'
 import {
@@ -129,6 +129,9 @@ export default function BeehiveDetailPage() {
             </div>
 
             <div className="flex gap-2 shrink-0">
+              <Link to={`/advisor?beehiveId=${beehiveId}`} className="btn-secondary text-sm">
+                <Bot className="w-4 h-4" /> Pitaj savjetnika
+              </Link>
               {hasQr && (
                 <button onClick={() => setQrOpen(true)} className="btn-secondary text-sm">
                   <QrCode className="w-4 h-4" /> QR Code

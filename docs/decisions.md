@@ -254,3 +254,23 @@
 
 **Alternatives considered:**
 - Full i18n framework — over-engineered while the product is single-language; revisit if a second language is needed.
+
+---
+
+## ADR-024: Extracted AI Client Seam for the Advisor (SPEC-01)
+
+**Decision:** Transcription is extracted from `VoiceParsingService` into a shared
+`ITranscriptionService` / `GroqTranscriptionService` (Whisper large-v3), and advisor chat goes through a
+thin `IAdvisorAiClient` / `GroqAdvisorAiClient` wrapper over Groq chat completions. `VoiceParsingService`
+now consumes `ITranscriptionService` (no behavior change). On the frontend, `useVoiceInput` moved from
+`features/inspections/` to `core/hooks/` since it is now shared; the upload endpoint stays in each
+caller's service (inspections → `parse-voice`, advisor → `/advisor/transcribe`).
+
+**Why:** The advisor reuses the exact Groq transcription the inspection flow already had, and hiding the
+chat call behind an interface makes `AdvisorService` unit-testable (Groq mocked) — the previous structure
+had transcription and the model call welded inside `VoiceParsingService`. No new AI provider or secret;
+reuses `Groq:ApiKey`.
+
+**Alternatives considered:**
+- Duplicate the transcription code in the advisor — divergent prompts/behavior over time.
+- Call Groq directly from `AdvisorService` — untestable without hitting the network.

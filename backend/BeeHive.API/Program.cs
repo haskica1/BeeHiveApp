@@ -2,6 +2,7 @@ using System.Text;
 using System.Threading.RateLimiting;
 using BeeHive.API.Middleware;
 using BeeHive.Application;
+using BeeHive.Application.Features.Ai;
 using BeeHive.Application.Features.Alerts;
 using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Weather;
@@ -92,9 +93,21 @@ builder.Services.AddHttpClient<IWeatherService, WeatherService>(client =>
     client.Timeout = TimeSpan.FromSeconds(30);
 });
 
+// Shared Groq Whisper transcription (reused by voice inspections and the AI advisor).
+builder.Services.AddHttpClient<ITranscriptionService, GroqTranscriptionService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+
 // Voice parsing service — Groq API (Whisper transcription + Llama field extraction);
 // key configured via Groq:ApiKey. Longer timeout: audio upload + two model calls.
 builder.Services.AddHttpClient<IVoiceParsingService, VoiceParsingService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+
+// AI advisor chat client — Groq Llama chat completions (plain-text Bosnian answers).
+builder.Services.AddHttpClient<IAdvisorAiClient, GroqAdvisorAiClient>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
@@ -185,6 +198,17 @@ builder.Services.AddRateLimiter(options =>
     // Voice parsing calls a paid external API (Groq) per request — throttle so a single
     // client cannot burn through the quota.
     options.AddPolicy("voice-parse", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+
+    // AI advisor chat also hits the paid Groq API per message — same 10/min per-IP cap.
+    options.AddPolicy("ai-chat", httpContext =>
         RateLimitPartition.GetFixedWindowLimiter(
             partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             factory: _ => new FixedWindowRateLimiterOptions

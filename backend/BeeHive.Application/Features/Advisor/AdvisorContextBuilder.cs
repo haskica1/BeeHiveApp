@@ -1,0 +1,73 @@
+using System.Globalization;
+using System.Text;
+using BeeHive.Application.Common.Localization;
+using BeeHive.Domain.Entities;
+
+namespace BeeHive.Application.Features.Advisor;
+
+/// <summary>
+/// Builds the compact plain-text hive-context block appended to the advisor's system prompt
+/// (SPEC-01). Pure and unit-testable: it takes already-fetched data and never does I/O. Sections are
+/// additive — a hive with no queen/diet/harvest simply omits those lines.
+/// </summary>
+public static class AdvisorContextBuilder
+{
+    public static string Build(
+        Beehive hive,
+        string apiaryName,
+        IReadOnlyList<Inspection> recentInspections,      // newest first, already capped to 5
+        Diet? activeDiet, int dietCompleted, int dietTotal,
+        IReadOnlyList<Todo> openTodos,                    // already capped to 5
+        Queen? activeQueen,
+        decimal? seasonYieldKg,
+        string? weatherLine)
+    {
+        var sb = new StringBuilder();
+        sb.AppendLine("PODACI O KOŠNICI (koristi ih u odgovoru; ništa ne izmišljaj izvan ovih podataka):");
+        sb.AppendLine($"- Košnica: {hive.Name} ({BsLabels.Label(hive.Type)}, {BsLabels.Label(hive.Material)}); pčelinjak: {apiaryName}");
+
+        if (activeQueen is not null)
+        {
+            var season = DateTime.UtcNow.Year - activeQueen.Year + 1;
+            sb.AppendLine($"- Matica: godina {activeQueen.Year} ({season}. sezona), status {BsLabels.Label(activeQueen.Status)}, porijeklo {BsLabels.Label(activeQueen.Origin)}");
+        }
+
+        if (seasonYieldKg is decimal kg && kg > 0)
+            sb.AppendLine($"- Prinos meda ove sezone: {kg.ToString("0.#", CultureInfo.InvariantCulture)} kg");
+
+        if (recentInspections.Count == 0)
+        {
+            sb.AppendLine("- Pregledi: nema zabilježenih pregleda.");
+        }
+        else
+        {
+            sb.AppendLine($"- Zadnji pregledi ({recentInspections.Count}):");
+            foreach (var i in recentInspections)
+            {
+                var brood = string.IsNullOrWhiteSpace(i.BroodStatus) ? "" : $"; leglo: {Truncate(i.BroodStatus!, 200)}";
+                var notes = string.IsNullOrWhiteSpace(i.Notes) ? "" : $"; napomena: {Truncate(i.Notes!, 200)}";
+                sb.AppendLine($"  • {i.Date:dd.MM.yyyy}: med {BsLabels.Label(i.HoneyLevel)}{brood}{notes}");
+            }
+        }
+
+        if (activeDiet is not null)
+            sb.AppendLine($"- Aktivna prihrana: {BsLabels.Label(activeDiet.FoodType)} ({dietCompleted}/{dietTotal} obroka)");
+
+        if (openTodos.Count > 0)
+        {
+            sb.AppendLine("- Otvoreni zadaci:");
+            foreach (var t in openTodos)
+            {
+                var due = t.DueDate.HasValue ? $", rok {t.DueDate.Value:dd.MM.yyyy}" : "";
+                sb.AppendLine($"  • {t.Title} (prioritet {BsLabels.Label(t.Priority)}{due})");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(weatherLine))
+            sb.AppendLine($"- Vrijeme na pčelinjaku: {weatherLine}");
+
+        return sb.ToString().TrimEnd();
+    }
+
+    private static string Truncate(string s, int max) => s.Length <= max ? s : s[..max].TrimEnd() + "…";
+}

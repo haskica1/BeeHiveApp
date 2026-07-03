@@ -29,6 +29,8 @@ public class BeeHiveDbContext : DbContext
     public DbSet<HarvestEntry> HarvestEntries => Set<HarvestEntry>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<AdvisorConversation> AdvisorConversations => Set<AdvisorConversation>();
+    public DbSet<AdvisorMessage> AdvisorMessages => Set<AdvisorMessage>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

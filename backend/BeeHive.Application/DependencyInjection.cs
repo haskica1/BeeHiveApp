@@ -2,6 +2,7 @@ using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Apiaries.Validators;
 using BeeHive.Application.Common.Services;
 using BeeHive.Application.Features.Admin;
+using BeeHive.Application.Features.Advisor;
 using BeeHive.Application.Features.Alerts;
 using BeeHive.Application.Features.Apiaries;
 using BeeHive.Application.Features.OrgManagement;
@@ -55,6 +56,7 @@ public static class DependencyInjection
         services.AddScoped<IDietService, DietService>();
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IHarvestService, HarvestService>();
+        services.AddScoped<IAdvisorService, AdvisorService>();
         services.AddScoped<IAlertRuleService, AlertRuleService>();
         services.AddSingleton<IQrCodeService, QrCodeService>();
 

@@ -732,6 +732,44 @@ export interface HiveYield {
   byYear: { year: number; kg: number }[]
 }
 
+// ── AI Advisor (SPEC-01) ────────────────────────────────────────────────────────
+
+export type AdvisorRole = 'User' | 'Assistant'
+
+export interface AdvisorMessage {
+  id: number
+  role: AdvisorRole
+  content: string
+  createdAt: string
+}
+
+export interface AdvisorConversationSummary {
+  id: number
+  title: string
+  beehiveId?: number
+  beehiveName?: string
+  lastMessageAt: string
+  createdAt: string
+}
+
+export interface AdvisorConversationDetail extends AdvisorConversationSummary {
+  messages: AdvisorMessage[]
+}
+
+export interface AdvisorMessagePair {
+  userMessage: AdvisorMessage
+  assistantMessage: AdvisorMessage
+}
+
+export interface CreateConversationPayload {
+  beehiveId?: number | null
+  message: string
+}
+
+export interface SendMessagePayload {
+  message: string
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

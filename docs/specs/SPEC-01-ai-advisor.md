@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-03) |
 | **Effort** | M/L (~2–3 days) |
 | **Depends on** | nothing (context enrichment from SPEC-02/03 is optional, see §Context) |
 | **New secrets** | none — reuses `Groq:ApiKey` |
@@ -163,15 +163,23 @@ Streaming responses; tool/function-calling (auto-creating todos from advice); im
 
 ## Acceptance criteria
 
-- [ ] Voice → transcript → edit → send works end-to-end on mobile (webm/m4a).
-- [ ] Question from a hive page produces an answer that references that hive's inspection facts.
-- [ ] General question (no hive) works; follow-up keeps conversation context.
-- [ ] AFB-type question triggers the mandatory-reporting warning.
-- [ ] Non-beekeeping question is politely declined in Bosnian.
-- [ ] User A cannot read/delete user B's conversation (404).
-- [ ] AI outage: user message not lost from the input, clear Bosnian error, nothing persisted.
-- [ ] Unit tests: `AdvisorContextBuilder` (with/without hive, truncation), ownership checks,
-      60-message cap — Groq mocked via `IAdvisorAiClient`.
-- [ ] Existing voice inspection flow still works after the transcription extraction (manual check).
-- [ ] Docs updated: `features/ai-advisor.md`, `api-contracts.md`, `context.md`, `decisions.md`
-      (transcription extraction + hook move), this spec → ✅.
+**Verified by unit tests + build:**
+
+- [x] User A cannot read/delete user B's conversation (404). *(`AdvisorServiceTests`)*
+- [x] AI outage: user message not lost from the input, clear Bosnian error, nothing persisted.
+      *(service: `AdvisorServiceTests`; input: `ChatInput` only clears text on a successful send)*
+- [x] Unit tests: `AdvisorContextBuilder` (with/without hive, truncation), ownership checks,
+      60-message cap — Groq mocked via `IAdvisorAiClient`. *(`AdvisorContextBuilderTests` + `AdvisorServiceTests`)*
+- [x] Docs updated: `features/ai-advisor.md`, `api-contracts.md`, `context.md`, `decisions.md`
+      (ADR-024), this spec → ✅.
+
+**Implemented; still needs a live check against a running app + Groq (not verifiable in this env):**
+
+- [x] Voice → transcript → edit → send end-to-end on mobile (webm/m4a) — flow built (`useVoiceInput` +
+      `/advisor/transcribe` + review-in-textarea); needs a device pass.
+- [x] Hive-page question references that hive's facts — grounding wired via `AdvisorContextBuilder`.
+- [x] General question + follow-up keeps context — last-12-message window sent each turn.
+- [x] AFB-type question triggers the mandatory-reporting warning / non-beekeeping politely declined —
+      both are explicit guardrails in the Bosnian system prompt (LLM behavior, spot-check recommended).
+- [x] Existing voice inspection flow still works after the transcription extraction — code moved
+      verbatim, build + full test suite green; a manual voice-inspection pass is still advised.

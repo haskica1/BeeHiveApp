@@ -25,6 +25,7 @@ import ExpenseFormPage from './features/expenses/ExpenseFormPage'
 import ReceiptScanPage from './features/expenses/ReceiptScanPage'
 import HarvestsPage from './features/harvests/HarvestsPage'
 import HarvestFormPage from './features/harvests/HarvestFormPage'
+import AdvisorPage from './features/advisor/AdvisorPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
@@ -91,6 +92,9 @@ export default function App() {
 
               {/* Calendar — all authenticated users */}
               <Route path="calendar" element={<CalendarPage />} />
+
+              {/* AI Advisor — all authenticated users */}
+              <Route path="advisor" element={<AdvisorPage />} />
 
               {/* Members routes — OrgAdmin and Admin */}
               <Route element={<RoleRoute allowedRoles={MEMBER_MANAGERS} />}>

@@ -18,6 +18,7 @@ public interface IUnitOfWork : IDisposable
     IHarvestRepository Harvests { get; }
     INotificationRepository Notifications { get; }
     IRefreshTokenRepository RefreshTokens { get; }
+    IAdvisorConversationRepository AdvisorConversations { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

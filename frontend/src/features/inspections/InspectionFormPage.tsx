@@ -12,7 +12,7 @@ import { queryKeys } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import { HoneyLevel, HoneyLevelLabels } from '../../core/models'
 import type { CreateInspectionPayload } from '../../core/models'
-import { useVoiceInput } from './useVoiceInput'
+import { useVoiceInput } from '../../core/hooks/useVoiceInput'
 
 export default function InspectionFormPage() {
   const { id } = useParams<{ id?: string }>()

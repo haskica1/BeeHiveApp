@@ -199,6 +199,23 @@ containing an assigned hive. Foreign/duplicate hive in `entries` → `400`.
 
 ---
 
+### AI Advisor
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/advisor/conversations` | `AdvisorConversationSummary[]` (own only, newest activity first) |
+| GET | `/advisor/conversations/{id}` | `AdvisorConversationDetail` (with messages; 404 if not owner) |
+| POST | `/advisor/conversations` | `201 + AdvisorConversationDetail` — `{ beehiveId?, message }`; `ai-chat` 10/min |
+| POST | `/advisor/conversations/{id}/messages` | `200 + { userMessage, assistantMessage }`; `ai-chat` 10/min |
+| POST | `/advisor/transcribe` | `{ transcript }` — multipart audio, 15 MB cap, `voice-parse` policy |
+| DELETE | `/advisor/conversations/{id}` | `204` (owner only) |
+
+**Grounding:** when `beehiveId` is set, answers are grounded in that hive's data (access checked via
+`IAccessGuard`). Message length 1–4000; 60 messages/conversation cap → `422`. AI outage → `422` with a
+Bosnian message and **nothing persisted**. Reuses `Groq:ApiKey`.
+
+---
+
 ## Enum Reference
 
 ```

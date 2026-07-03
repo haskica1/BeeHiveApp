@@ -88,6 +88,14 @@
 - UI: "Vrcanja" sidebar item, `HarvestsPage` + `HarvestFormPage`, apiary/hive detail sections, StatsPage charts
 - Covered by unit tests (`HarvestServiceTests`). See `docs/features/harvests.md`.
 
+### AI Advisor (AI Savjetnik)
+- Bosnian chat advisor (text + voice) via `/api/advisor`; personal conversations, optionally bound to a hive
+- Hive-bound conversations grounded in real data (`AdvisorContextBuilder`: inspections, diet, todos, queen, yield, weather)
+- Reuses the Groq stack; transcription extracted to shared `ITranscriptionService`, chat via `IAdvisorAiClient`
+- Ownership enforced (404 for others); 60-msg cap; transactional AI (nothing persisted on failure); `ai-chat` 10/min
+- UI: "AI Savjetnik" sidebar, `/advisor` (all roles), "Pitaj savjetnika" on hive detail, voice→transcript→review→send
+- `useVoiceInput` moved to `core/hooks/`. Covered by unit tests. See `docs/features/ai-advisor.md`.
+
 ### Calendar & Stats
 - `GET /api/calendar` — role-scoped todos + feeding entries (Bosnian labels)
 - `GET /api/stats` — org-scoped (platform-wide for SystemAdmin): totals, distributions,
@@ -142,13 +150,12 @@
 
 **Specced — see `docs/specs/README.md` for priority order and full specs:**
 
-- SPEC-01 AI Advisor (chat savjetnik, voice+text, hive context)
 - SPEC-05 Inspection Photos & AI Frame Analysis
 - SPEC-06 Learning Module (edukacija)
 - SPEC-07 Offline Inspections (outbox sync)
 - SPEC-08 Treatment Log (evidencija tretmana — zakonska evidencija, PDF registar)
 
-**Shipped (were specced):** SPEC-02 Harvest Log ✅, SPEC-03 Queen Tracking ✅, SPEC-04 Smart Alerts & Weekly AI Summary ✅
+**Shipped (were specced):** SPEC-01 AI Advisor ✅, SPEC-02 Harvest Log ✅, SPEC-03 Queen Tracking ✅, SPEC-04 Smart Alerts & Weekly AI Summary ✅
 
 **Unspecced ideas:**
 
