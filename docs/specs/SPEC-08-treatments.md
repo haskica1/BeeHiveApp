@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-03) |
 | **Effort** | M (~1–2 days) |
 | **Depends on** | nothing (SPEC-02 and SPEC-04 consume it — both degrade gracefully) |
 | **New secrets / packages** | none (PDF via existing jsPDF; one embedded TTF asset, see below) |
@@ -170,14 +170,14 @@ Calendar appearance.
 
 ## Acceptance criteria
 
-- [ ] Full CRUD works with role scoping exactly as specified (matrix-tested in `AccessGuard` tests).
-- [ ] Creating a treatment with hives not in the chosen apiary → `400`; duplicate hive rows → `400`.
-- [ ] `karencaUntil`/`status` computed correctly incl. `endDate == null` and `withdrawalDays = 0`
+- [x] Full CRUD works with role scoping exactly as specified (matrix-tested in `AccessGuard` tests).
+- [x] Creating a treatment with hives not in the chosen apiary → `400`; duplicate hive rows → `400`.
+- [x] `karencaUntil`/`status` computed correctly incl. `endDate == null` and `withdrawalDays = 0`
       cases (unit tests on the service/mapping).
-- [ ] Beekeeper sees only treatments containing their hives, read-only (no create/edit buttons, API `403`).
-- [ ] PDF register renders all columns listed above, paginates at 30+ rows, and prints č/ć/đ/š/ž
+- [x] Beekeeper sees only treatments containing their hives, read-only (no create/edit buttons, API `403`).
+- [x] PDF register renders all columns listed above, paginates at 30+ rows, and prints č/ć/đ/š/ž
       correctly (embedded font).
-- [ ] Hive detail shows the correct status badge for an active-karenca hive.
-- [ ] All labels Bosnian (`BsLabels` backend + label map frontend).
-- [ ] Docs updated: `features/treatments.md`, `api-contracts.md`, `context.md`, glossary
+- [x] Hive detail shows the correct status badge for an active-karenca hive.
+- [x] All labels Bosnian (`BsLabels` backend + label map frontend).
+- [x] Docs updated: `features/treatments.md`, `api-contracts.md`, `context.md`, glossary
       ("karenca", "LOT broj"), this spec → ✅.

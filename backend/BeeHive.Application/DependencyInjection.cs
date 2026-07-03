@@ -18,6 +18,7 @@ using BeeHive.Application.Features.Harvests;
 using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Queens;
 using BeeHive.Application.Features.Todos;
+using BeeHive.Application.Features.Treatments;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -56,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IDietService, DietService>();
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IHarvestService, HarvestService>();
+        services.AddScoped<ITreatmentService, TreatmentService>();
         services.AddScoped<IAdvisorService, AdvisorService>();
         services.AddScoped<IAlertRuleService, AlertRuleService>();
         services.AddSingleton<IQrCodeService, QrCodeService>();

@@ -21,6 +21,7 @@ import {
 import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import { ApiaryHarvestsSection } from '../harvests/ApiaryHarvestsSection'
+import { ApiaryTreatmentsSection } from '../treatments/ApiaryTreatmentsSection'
 import type { Beehive, DailyWeather } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
@@ -392,6 +393,9 @@ export default function ApiaryDetailPage() {
 
           {/* Harvests (vrcanja) */}
           <ApiaryHarvestsSection apiaryId={apiaryId} />
+
+          {/* Treatments (tretmani) */}
+          <ApiaryTreatmentsSection apiaryId={apiaryId} />
 
           {/* Weather forecast */}
           <CollapsibleSection

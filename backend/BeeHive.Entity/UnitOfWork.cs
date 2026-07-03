@@ -24,6 +24,7 @@ public class UnitOfWork : IUnitOfWork
     private IFeedingEntryRepository? _feedingEntries;
     private IExpenseRepository? _expenses;
     private IHarvestRepository? _harvests;
+    private ITreatmentRepository? _treatments;
     private INotificationRepository? _notifications;
     private IRefreshTokenRepository? _refreshTokens;
     private IAdvisorConversationRepository? _advisorConversations;
@@ -65,6 +66,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IHarvestRepository Harvests =>
         _harvests ??= new HarvestRepository(_context);
+
+    public ITreatmentRepository Treatments =>
+        _treatments ??= new TreatmentRepository(_context);
 
     public INotificationRepository Notifications =>
         _notifications ??= new NotificationRepository(_context);

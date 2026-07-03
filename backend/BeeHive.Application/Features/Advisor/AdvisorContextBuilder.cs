@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text;
 using BeeHive.Application.Common.Localization;
+using BeeHive.Domain.Common;
 using BeeHive.Domain.Entities;
+using BeeHive.Domain.Enums;
 
 namespace BeeHive.Application.Features.Advisor;
 
@@ -20,6 +22,7 @@ public static class AdvisorContextBuilder
         IReadOnlyList<Todo> openTodos,                    // already capped to 5
         Queen? activeQueen,
         decimal? seasonYieldKg,
+        TreatmentLatestInfo? latestTreatment,
         string? weatherLine)
     {
         var sb = new StringBuilder();
@@ -52,6 +55,16 @@ public static class AdvisorContextBuilder
 
         if (activeDiet is not null)
             sb.AppendLine($"- Aktivna prihrana: {BsLabels.Label(activeDiet.FoodType)} ({dietCompleted}/{dietTotal} obroka)");
+
+        if (latestTreatment is not null)
+        {
+            var status = TreatmentStatusHelper.Status(
+                latestTreatment.StartDate, latestTreatment.EndDate, latestTreatment.WithdrawalDays, DateTime.UtcNow);
+            var statusText = status == TreatmentStatus.Karenca
+                ? $"Karenca do {TreatmentStatusHelper.KarencaUntil(latestTreatment.StartDate, latestTreatment.EndDate, latestTreatment.WithdrawalDays):dd.MM.yyyy}"
+                : BsLabels.Label(status);
+            sb.AppendLine($"- Zadnji tretman: {latestTreatment.ProductName} ({BsLabels.Label(latestTreatment.ActiveSubstance)}), {latestTreatment.StartDate:dd.MM.yyyy}, status: {statusText}");
+        }
 
         if (openTodos.Count > 0)
         {

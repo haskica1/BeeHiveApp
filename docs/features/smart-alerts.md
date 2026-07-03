@@ -29,8 +29,11 @@ the scan produces **no duplicates** (no new dedup table). Delivery reuses `INoti
 | 2 | `HoneyLevelDrop` (11) | last 2 inspections strictly decreasing **and** latest = `Low` | same as #1 | 7 days |
 | 3 | `FrostWarning` (12) | Open-Meteo daily min < 0 °C within next 48 h (apiary must have coordinates) | all users with access to the apiary | 3 days |
 | 4 | `OldQueen` (13) | active queen in ≥ 3rd season; evaluated **only in the March scan month** | same as #1 | 300 days |
+| 5 | `StripsLeftIn` (15) | treatment with `Method = Trake` and no `endDate`, started ≥ `StripRemovalDays` (42) days ago (SPEC-08) | all users with access to the apiary | 7 days |
+| 6 | `KarencaEnded` (16) | treatment karenca (`karencaUntil`) expired within the last 3 days (SPEC-08) | same as #5 | 7 days |
 
-`relatedEntityId` = hive id (rules 1/2/4, type `Beehive`) or apiary id (rule 3, type `Apiary`).
+`relatedEntityId` = hive id (rules 1/2/4, type `Beehive`), apiary id (rule 3, type `Apiary`), or
+treatment id (rules 5/6, type `Treatment`).
 Apiary without coordinates → frost skipped silently. Weather API unreachable → frost skipped for that
 apiary, other rules unaffected.
 

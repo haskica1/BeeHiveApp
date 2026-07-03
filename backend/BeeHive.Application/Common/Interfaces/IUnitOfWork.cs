@@ -16,6 +16,7 @@ public interface IUnitOfWork : IDisposable
     IFeedingEntryRepository FeedingEntries { get; }
     IExpenseRepository Expenses { get; }
     IHarvestRepository Harvests { get; }
+    ITreatmentRepository Treatments { get; }
     INotificationRepository Notifications { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     IAdvisorConversationRepository AdvisorConversations { get; }

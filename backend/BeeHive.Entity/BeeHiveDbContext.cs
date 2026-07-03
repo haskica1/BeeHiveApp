@@ -27,6 +27,8 @@ public class BeeHiveDbContext : DbContext
     public DbSet<ExpenseItem> ExpenseItems => Set<ExpenseItem>();
     public DbSet<Harvest> Harvests => Set<Harvest>();
     public DbSet<HarvestEntry> HarvestEntries => Set<HarvestEntry>();
+    public DbSet<Treatment> Treatments => Set<Treatment>();
+    public DbSet<TreatmentEntry> TreatmentEntries => Set<TreatmentEntry>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AdvisorConversation> AdvisorConversations => Set<AdvisorConversation>();

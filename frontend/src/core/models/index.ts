@@ -732,6 +732,151 @@ export interface HiveYield {
   byYear: { year: number; kg: number }[]
 }
 
+// ── Treatments (SPEC-08) ──────────────────────────────────────────────────────────
+
+export enum TreatmentPurpose {
+  Varroa     = 1,
+  Nosema     = 2,
+  Chalkbrood = 3,
+  Other      = 99,
+}
+
+export const TreatmentPurposeLabels: Record<TreatmentPurpose, string> = {
+  [TreatmentPurpose.Varroa]:     'Varoa',
+  [TreatmentPurpose.Nosema]:     'Nozemoza',
+  [TreatmentPurpose.Chalkbrood]: 'Krečno leglo',
+  [TreatmentPurpose.Other]:      'Ostalo',
+}
+
+export enum ActiveSubstance {
+  Amitraz        = 1,
+  Flumethrin     = 2,
+  TauFluvalinate = 3,
+  Coumaphos      = 4,
+  OxalicAcid     = 5,
+  FormicAcid     = 6,
+  Thymol         = 7,
+  Other          = 99,
+}
+
+export const ActiveSubstanceLabels: Record<ActiveSubstance, string> = {
+  [ActiveSubstance.Amitraz]:        'Amitraz',
+  [ActiveSubstance.Flumethrin]:     'Flumetrin',
+  [ActiveSubstance.TauFluvalinate]: 'Tau-fluvalinat',
+  [ActiveSubstance.Coumaphos]:      'Kumafos',
+  [ActiveSubstance.OxalicAcid]:     'Oksalna kiselina',
+  [ActiveSubstance.FormicAcid]:     'Mravlja kiselina',
+  [ActiveSubstance.Thymol]:         'Timol',
+  [ActiveSubstance.Other]:          'Ostalo',
+}
+
+export enum ApplicationMethod {
+  Strips      = 1,
+  Trickling   = 2,
+  Sublimation = 3,
+  Evaporation = 4,
+  InFeed      = 5,
+  Spraying    = 6,
+  Other       = 99,
+}
+
+export const ApplicationMethodLabels: Record<ApplicationMethod, string> = {
+  [ApplicationMethod.Strips]:      'Trake',
+  [ApplicationMethod.Trickling]:   'Nakapavanje',
+  [ApplicationMethod.Sublimation]: 'Sublimacija',
+  [ApplicationMethod.Evaporation]: 'Isparavanje',
+  [ApplicationMethod.InFeed]:      'U prihrani',
+  [ApplicationMethod.Spraying]:    'Prskanje',
+  [ApplicationMethod.Other]:       'Ostalo',
+}
+
+export enum TreatmentStatus {
+  InProgress = 1,
+  Karenca    = 2,
+  Completed  = 3,
+}
+
+export const TreatmentStatusLabels: Record<TreatmentStatus, string> = {
+  [TreatmentStatus.InProgress]: 'U toku',
+  [TreatmentStatus.Karenca]:    'Karenca',
+  [TreatmentStatus.Completed]:  'Završen',
+}
+
+export interface TreatmentEntry {
+  id: number
+  beehiveId: number
+  beehiveName?: string
+  doseNote?: string
+}
+
+export interface Treatment {
+  id: number
+  apiaryId: number
+  apiaryName?: string
+  purpose: TreatmentPurpose
+  purposeName: string
+  productName: string
+  activeSubstance: ActiveSubstance
+  activeSubstanceName: string
+  method: ApplicationMethod
+  methodName: string
+  dosePerHive: string
+  startDate: string
+  endDate?: string
+  withdrawalDays: number
+  batchNumber?: string
+  supplier?: string
+  notes?: string
+  karencaUntil: string
+  status: TreatmentStatus
+  statusName: string
+  hiveCount: number
+  hiveNames: string[]
+  createdByName?: string
+  createdAt: string
+}
+
+export interface TreatmentDetail extends Treatment {
+  entries: TreatmentEntry[]
+}
+
+export interface CreateTreatmentEntryPayload {
+  beehiveId: number
+  doseNote?: string | null
+}
+
+export interface CreateTreatmentPayload {
+  apiaryId: number
+  purpose: TreatmentPurpose
+  productName: string
+  activeSubstance: ActiveSubstance
+  method: ApplicationMethod
+  dosePerHive: string
+  startDate: string
+  endDate?: string | null
+  withdrawalDays: number
+  batchNumber?: string | null
+  supplier?: string | null
+  notes?: string | null
+  entries: CreateTreatmentEntryPayload[]
+}
+
+/** Update shares the create shape except the apiary, which is immutable after creation. */
+export interface UpdateTreatmentPayload {
+  purpose: TreatmentPurpose
+  productName: string
+  activeSubstance: ActiveSubstance
+  method: ApplicationMethod
+  dosePerHive: string
+  startDate: string
+  endDate?: string | null
+  withdrawalDays: number
+  batchNumber?: string | null
+  supplier?: string | null
+  notes?: string | null
+  entries: CreateTreatmentEntryPayload[]
+}
+
 // ── AI Advisor (SPEC-01) ────────────────────────────────────────────────────────
 
 export type AdvisorRole = 'User' | 'Assistant'

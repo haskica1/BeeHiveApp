@@ -18,4 +18,8 @@ public enum NotificationType
     FrostWarning           = 12,
     OldQueen               = 13,
     WeeklySummary          = 14,
+
+    // ── Treatment register (SPEC-08) ──
+    StripsLeftIn           = 15,
+    KarencaEnded           = 16,
 }

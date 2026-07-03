@@ -5,7 +5,7 @@
 A Bosnian-language beekeeping chat advisor. The user describes a problem (aggressive colony, suspected
 disease, queen cells, robbing…) **by voice or text** and gets practical, numbered advice. When a
 conversation is bound to a hive, answers are grounded in that hive's **real data** (recent inspections,
-active feeding, open todos, active queen, season yield, current weather). Conversations are personal
+active feeding, open todos, active queen, season yield, latest treatment/karenca, current weather). Conversations are personal
 and persisted. Implemented per [SPEC-01](../specs/SPEC-01-ai-advisor.md); reuses the Groq stack — no new
 provider or secret.
 

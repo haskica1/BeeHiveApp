@@ -234,6 +234,9 @@ public class AdvisorService : IAdvisorService
         var yearly = await _uow.Harvests.GetHiveYearlyTotalsAsync(beehiveId);
         decimal? seasonYield = yearly.TryGetValue(DateTime.UtcNow.Year, out var kg) ? kg : null;
 
+        var latestTreatment = (await _uow.Treatments.GetLatestForBeehivesAsync([beehiveId]))
+            .GetValueOrDefault(beehiveId);
+
         string? weatherLine = null;
         if (apiary?.Latitude is double lat && apiary.Longitude is double lon)
         {
@@ -251,7 +254,8 @@ public class AdvisorService : IAdvisorService
         }
 
         return AdvisorContextBuilder.Build(
-            hive, apiaryName, inspections, activeDiet, dietCompleted, dietTotal, openTodos, queen, seasonYield, weatherLine);
+            hive, apiaryName, inspections, activeDiet, dietCompleted, dietTotal, openTodos, queen, seasonYield,
+            latestTreatment, weatherLine);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────

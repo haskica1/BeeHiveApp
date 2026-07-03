@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, Bot, CalendarDays, Droplets, Home, LayoutDashboard, LogOut, Menu, Moon, QrCode, ReceiptText, Search, Settings, Sun, Users, X } from 'lucide-react'
+import { BarChart2, Bot, CalendarDays, Droplets, Home, LayoutDashboard, LogOut, Menu, Moon, Pill, QrCode, ReceiptText, Search, Settings, Sun, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
@@ -101,6 +101,7 @@ export default function Layout() {
                 <NavPill to="/expenses" icon={<ReceiptText className="w-4 h-4" />} label="Troškovi" />
               )}
               <NavPill to="/harvests" icon={<Droplets className="w-4 h-4" />} label="Vrcanja" />
+              <NavPill to="/treatments" icon={<Pill className="w-4 h-4" />} label="Tretmani" />
               <NavPill to="/advisor" icon={<Bot className="w-4 h-4" />} label="AI Savjetnik" />
               <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Kalendar" />
               <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistike" />
@@ -257,6 +258,12 @@ export default function Layout() {
               to="/harvests"
               icon={<Droplets className="w-4 h-4" />}
               label="Vrcanja"
+              onClick={() => setMobileOpen(false)}
+            />
+            <MobileNavItem
+              to="/treatments"
+              icon={<Pill className="w-4 h-4" />}
+              label="Tretmani"
               onClick={() => setMobileOpen(false)}
             />
             <MobileNavItem

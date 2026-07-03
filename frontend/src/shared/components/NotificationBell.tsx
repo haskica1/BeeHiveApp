@@ -21,6 +21,9 @@ const TYPE_ICONS: Record<string, string> = {
   FrostWarning:            '❄️',
   OldQueen:                '👑',
   WeeklySummary:           '📰',
+  // Treatment register (SPEC-08)
+  StripsLeftIn:            '💊',
+  KarencaEnded:            '🍯',
 }
 
 export default function NotificationBell() {

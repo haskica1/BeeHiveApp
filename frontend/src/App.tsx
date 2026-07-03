@@ -25,6 +25,8 @@ import ExpenseFormPage from './features/expenses/ExpenseFormPage'
 import ReceiptScanPage from './features/expenses/ReceiptScanPage'
 import HarvestsPage from './features/harvests/HarvestsPage'
 import HarvestFormPage from './features/harvests/HarvestFormPage'
+import TreatmentsPage from './features/treatments/TreatmentsPage'
+import TreatmentFormPage from './features/treatments/TreatmentFormPage'
 import AdvisorPage from './features/advisor/AdvisorPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
@@ -116,6 +118,14 @@ export default function App() {
               <Route element={<RoleRoute allowedRoles={HIVE_MANAGERS} />}>
                 <Route path="harvests/new"      element={<HarvestFormPage />} />
                 <Route path="harvests/:id/edit" element={<HarvestFormPage />} />
+              </Route>
+
+              {/* Treatments — list for all authenticated users (Beekeeper read-only);
+                  create/edit restricted to hive managers */}
+              <Route path="treatments" element={<TreatmentsPage />} />
+              <Route element={<RoleRoute allowedRoles={HIVE_MANAGERS} />}>
+                <Route path="treatments/new"      element={<TreatmentFormPage />} />
+                <Route path="treatments/:id/edit" element={<TreatmentFormPage />} />
               </Route>
 
               {/* Admin routes — SystemAdmin only */}

@@ -875,6 +875,110 @@ namespace BeeHive.Entity.Migrations
                     b.ToTable("Todos", (string)null);
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Treatment", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActiveSubstance")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ApiaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("BatchNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("DosePerHive")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Method")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("Purpose")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Supplier")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("WithdrawalDays")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiaryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("StartDate");
+
+                    b.ToTable("Treatments", (string)null);
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.TreatmentEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("BeehiveId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DoseNote")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("TreatmentId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("BeehiveId");
+
+                    b.HasIndex("TreatmentId");
+
+                    b.ToTable("TreatmentEntries", (string)null);
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1189,6 +1293,43 @@ namespace BeeHive.Entity.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Treatment", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Apiary", "Apiary")
+                        .WithMany()
+                        .HasForeignKey("ApiaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BeeHive.Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Apiary");
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.TreatmentEntry", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Beehive", "Beehive")
+                        .WithMany()
+                        .HasForeignKey("BeehiveId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BeeHive.Domain.Entities.Treatment", "Treatment")
+                        .WithMany("Entries")
+                        .HasForeignKey("TreatmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Beehive");
+
+                    b.Navigation("Treatment");
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.User", b =>
                 {
                     b.HasOne("BeeHive.Domain.Entities.Apiary", "Apiary")
@@ -1266,6 +1407,11 @@ namespace BeeHive.Entity.Migrations
                     b.Navigation("Apiaries");
 
                     b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Treatment", b =>
+                {
+                    b.Navigation("Entries");
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.User", b =>

@@ -22,6 +22,7 @@ import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import DietSection from '../diets/DietSection'
 import { QueenSection } from './QueenSection'
 import { HiveYieldCard } from './HiveYieldCard'
+import { HiveTreatmentCard } from '../treatments/HiveTreatmentCard'
 import { DietStatus, HoneyLevel } from '../../core/models'
 import type { Inspection } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
@@ -242,6 +243,9 @@ export default function BeehiveDetailPage() {
 
           {/* Honey yield (prinos) */}
           <HiveYieldCard beehiveId={beehiveId} />
+
+          {/* Treatments (tretmani) */}
+          <HiveTreatmentCard beehiveId={beehiveId} />
 
           {/* Hive details — always visible */}
           <div className="card">

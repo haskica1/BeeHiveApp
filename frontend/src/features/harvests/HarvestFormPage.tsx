@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { AlertCircle, AlertTriangle, Loader2 } from 'lucide-react'
 import { useApiaries, useBeehivesByApiary } from '../../core/services/queries'
 import { useHarvest, useCreateHarvest, useUpdateHarvest } from '../../core/services/harvestQueries'
+import { useTreatments } from '../../core/services/treatmentQueries'
 import { HoneyType, HoneyTypeLabels } from '../../core/models'
 import type { CreateHarvestEntryPayload } from '../../core/models'
 import { FormHeader } from '../../shared/components'
@@ -60,6 +61,33 @@ export default function HarvestFormPage() {
     () => Object.values(qty).reduce((sum, v) => sum + (parseFloat(v) || 0), 0),
     [qty],
   )
+
+  // SPEC-08 soft integration: warn (don't block) when the harvest date falls inside a
+  // treatment/karenca window for any hive with a quantity entered.
+  const { data: apiaryTreatments = [] } = useTreatments({ apiaryId }, { enabled: apiaryId > 0 })
+  const karencaWarnings = useMemo(() => {
+    if (!apiaryId || !date) return []
+    const selectedNames = new Set(
+      hives.filter(h => (parseFloat(qty[h.id] ?? '') || 0) > 0).map(h => h.name),
+    )
+    if (selectedNames.size === 0) return []
+
+    const fmt = (iso: string) => {
+      const [y, m, d] = iso.split('T')[0].split('-')
+      return `${d}.${m}.${y}.`
+    }
+    const warnings: string[] = []
+    for (const t of apiaryTreatments) {
+      if (date < t.startDate.split('T')[0]) continue
+      const inWindow = !t.endDate || date <= t.karencaUntil.split('T')[0]
+      if (!inWindow) continue
+      if (!t.hiveNames.some(n => selectedNames.has(n))) continue
+      warnings.push(!t.endDate
+        ? `${t.productName} — tretman u toku od ${fmt(t.startDate)}`
+        : `${t.productName} — karenca do ${fmt(t.karencaUntil)}`)
+    }
+    return warnings
+  }, [apiaryTreatments, hives, qty, date, apiaryId])
 
   function buildEntries(): CreateHarvestEntryPayload[] {
     return hives
@@ -170,6 +198,20 @@ export default function HarvestFormPage() {
             <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Napomena</label>
             <input type="text" placeholder="npr. Prvo vrcanje sezone" value={notes} onChange={e => setNotes(e.target.value)} className={inputClass} />
           </div>
+
+          {/* Karenca warning (non-blocking, SPEC-08) */}
+          {karencaWarnings.length > 0 && (
+            <div className="flex items-start gap-2 bg-amber-50 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300 rounded-xl px-4 py-3 text-sm">
+              <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+              <div>
+                <p className="font-medium">Datum vrcanja pada u period tretmana ili karence:</p>
+                <ul className="mt-1 space-y-0.5 list-disc list-inside">
+                  {karencaWarnings.map(w => <li key={w}>{w}</li>)}
+                </ul>
+                <p className="text-xs mt-1.5 opacity-80">Upozorenje ne blokira unos — provjerite etiketu preparata.</p>
+              </div>
+            </div>
+          )}
 
           {/* Per-hive quantities */}
           <div>

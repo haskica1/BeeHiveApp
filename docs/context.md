@@ -87,10 +87,24 @@
 - Stats extended: `seasonTotalKg`, `estimatedRevenue`, `kgByApiary`, `kgByHoneyType`, `topHivesByYield`, `yearlyYield`
 - UI: "Vrcanja" sidebar item, `HarvestsPage` + `HarvestFormPage`, apiary/hive detail sections, StatsPage charts
 - Covered by unit tests (`HarvestServiceTests`). See `docs/features/harvests.md`.
+- Harvest form warns (non-blocking) when the date falls inside a treatment/karenca window (SPEC-08 soft integration)
+
+### Treatments (Evidencija tretmana)
+- Legal medicine register per EU 2019/6 / BiH propisi — full CRUD via `/api/treatments`
+  (apiary-scoped event + per-hive `TreatmentEntry`); purpose/substance/method enums with Bosnian `BsLabels`
+- `karencaUntil`/`status` computed, never stored (`TreatmentStatusHelper`: U toku → Karenca → Završen)
+- Role scoping via `IAccessGuard` (same matrix as Harvests): managers write, **Beekeeper read-only**,
+  only treatments containing an assigned hive; apiary immutable; update replaces the entry set
+- **PDF register** per apiary/year, client-side jsPDF with embedded DejaVu Sans (č/ć/đ), A4 landscape
+  (`shared/utils/treatmentPdf.ts` + lazy `pdfFont.ts` chunk)
+- Alert rules `StripsLeftIn` (trake > 42 dana) + `KarencaEnded`; advisor context "Zadnji tretman" line
+- UI: "Tretmani" nav item, `TreatmentsPage` (+ PDF button, `?beehiveId=` history filter) +
+  `TreatmentFormPage` (product presets, hive checkboxes), `HiveTreatmentCard`, `ApiaryTreatmentsSection`
+- Covered by unit tests (`TreatmentServiceTests`, `TreatmentStatusHelperTests`). See `docs/features/treatments.md`.
 
 ### AI Advisor (AI Savjetnik)
 - Bosnian chat advisor (text + voice) via `/api/advisor`; personal conversations, optionally bound to a hive
-- Hive-bound conversations grounded in real data (`AdvisorContextBuilder`: inspections, diet, todos, queen, yield, weather)
+- Hive-bound conversations grounded in real data (`AdvisorContextBuilder`: inspections, diet, todos, queen, yield, latest treatment, weather)
 - Reuses the Groq stack; transcription extracted to shared `ITranscriptionService`, chat via `IAdvisorAiClient`
 - Ownership enforced (404 for others); 60-msg cap; transactional AI (nothing persisted on failure); `ai-chat` 10/min
 - UI: "AI Savjetnik" sidebar, `/advisor` (all roles), "Pitaj savjetnika" on hive detail, voice→transcript→review→send
@@ -110,9 +124,9 @@
 - `POST /api/notifications/test-email` (SystemAdmin) — direct SMTP test
 - All notification texts are in Bosnian
 - **Smart alerts (SPEC-04):** `AlertScanWorker` (BackgroundService) runs daily at `Alerts:ScanHourUtc`,
-  evaluating 4 toggleable rules — `InspectionOverdue`, `HoneyLevelDrop`, `FrostWarning` (Open-Meteo),
-  `OldQueen` (March only) — deduped against the notifications table (`ExistsRecentAsync`), delivered
-  via the existing bell + email queue
+  evaluating 6 toggleable rules — `InspectionOverdue`, `HoneyLevelDrop`, `FrostWarning` (Open-Meteo),
+  `OldQueen` (March only), `StripsLeftIn` + `KarencaEnded` (SPEC-08) — deduped against the
+  notifications table (`ExistsRecentAsync`), delivered via the existing bell + email queue
 - **Weekly AI summary:** on Mondays, a deterministic per-org digest (`WeeklyDigestBuilder`) → one Groq
   call (`llama-3.3-70b-versatile`) → Bosnian bullet report delivered as `WeeklySummary` to OrgAdmins +
   ApiaryAdmins; AI failure skips silently. New config block `Alerts:*`. See `docs/features/smart-alerts.md`.

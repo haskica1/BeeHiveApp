@@ -126,6 +126,48 @@ public static class BsLabels
         _                   => t.ToString(),
     };
 
+    public static string Label(TreatmentPurpose p) => p switch
+    {
+        TreatmentPurpose.Varroa     => "Varoa",
+        TreatmentPurpose.Nosema     => "Nozemoza",
+        TreatmentPurpose.Chalkbrood => "Krečno leglo",
+        TreatmentPurpose.Other      => "Ostalo",
+        _                           => p.ToString(),
+    };
+
+    public static string Label(ActiveSubstance s) => s switch
+    {
+        ActiveSubstance.Amitraz        => "Amitraz",
+        ActiveSubstance.Flumethrin     => "Flumetrin",
+        ActiveSubstance.TauFluvalinate => "Tau-fluvalinat",
+        ActiveSubstance.Coumaphos      => "Kumafos",
+        ActiveSubstance.OxalicAcid     => "Oksalna kiselina",
+        ActiveSubstance.FormicAcid     => "Mravlja kiselina",
+        ActiveSubstance.Thymol         => "Timol",
+        ActiveSubstance.Other          => "Ostalo",
+        _                              => s.ToString(),
+    };
+
+    public static string Label(ApplicationMethod m) => m switch
+    {
+        ApplicationMethod.Strips      => "Trake",
+        ApplicationMethod.Trickling   => "Nakapavanje",
+        ApplicationMethod.Sublimation => "Sublimacija",
+        ApplicationMethod.Evaporation => "Isparavanje",
+        ApplicationMethod.InFeed      => "U prihrani",
+        ApplicationMethod.Spraying    => "Prskanje",
+        ApplicationMethod.Other       => "Ostalo",
+        _                             => m.ToString(),
+    };
+
+    public static string Label(TreatmentStatus s) => s switch
+    {
+        TreatmentStatus.InProgress => "U toku",
+        TreatmentStatus.Karenca    => "Karenca",
+        TreatmentStatus.Completed  => "Završen",
+        _                          => s.ToString(),
+    };
+
     private static readonly string[] MonthsShort =
         { "jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec" };
 

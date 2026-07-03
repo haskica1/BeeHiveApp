@@ -1,6 +1,7 @@
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Notifications;
 using BeeHive.Application.Features.Weather;
+using BeeHive.Domain.Common;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
 using Microsoft.Extensions.Configuration;
@@ -41,6 +42,10 @@ public class AlertRuleService : IAlertRuleService
         var frostEnabled = GetBool("Alerts:FrostWarning:Enabled", true);
         var queenEnabled = GetBool("Alerts:OldQueen:Enabled", true);
 
+        var stripsEnabled  = GetBool("Alerts:StripsLeftIn:Enabled", true);
+        var karencaEnabled = GetBool("Alerts:KarencaEnded:Enabled", true);
+        var stripDays      = GetInt("Alerts:StripRemovalDays", 42);
+
         var apiaries = (await _uow.Apiaries.GetAllAsync()).ToList();
 
         foreach (var apiary in apiaries)
@@ -71,6 +76,9 @@ public class AlertRuleService : IAlertRuleService
                 if (dropEnabled)  await ApplyHoneyDropAsync(hive, apiary, hiveInspections);
                 if (queenEnabled) await ApplyOldQueenAsync(hive, apiary, activeQueens, now);
             }
+
+            if (stripsEnabled || karencaEnabled)
+                await ApplyTreatmentRulesAsync(apiary, now, stripDays, stripsEnabled, karencaEnabled);
 
             if (frostEnabled) await ApplyFrostAsync(apiary);
         }
@@ -126,6 +134,40 @@ public class AlertRuleService : IAlertRuleService
             "Stara matica",
             $"Matica u košnici '{hive.Name}' je u {season}. sezoni — planiraj zamjenu.",
             NotificationType.OldQueen, hive.Id, nameof(Beehive), TimeSpan.FromDays(300));
+    }
+
+    // ── Rules 5+6: treatment register (SPEC-08) — strips left in + karenca ended ──
+
+    private async Task ApplyTreatmentRulesAsync(Apiary apiary, DateTime now, int stripRemovalDays, bool stripsEnabled, bool karencaEnabled)
+    {
+        var treatments = (await _uow.Treatments.GetByApiaryAsync(apiary.Id, null)).ToList();
+        if (treatments.Count == 0) return;
+
+        var recipients = await ApiaryRecipientsAsync(apiary);
+
+        foreach (var t in treatments)
+        {
+            if (stripsEnabled && t.Method == ApplicationMethod.Strips && t.EndDate is null)
+            {
+                var days = (int)(now - t.StartDate).TotalDays;
+                if (days >= stripRemovalDays)
+                    await DispatchAsync(recipients,
+                        "Trake za uklanjanje",
+                        $"Trake u košnicama pčelinjaka '{apiary.Name}' su unutra {days} dana — vrijeme je za uklanjanje.",
+                        NotificationType.StripsLeftIn, t.Id, nameof(Treatment), TimeSpan.FromDays(7));
+            }
+
+            if (karencaEnabled && t.EndDate is not null && t.WithdrawalDays > 0)
+            {
+                var karencaUntil = TreatmentStatusHelper.KarencaUntil(t.StartDate, t.EndDate, t.WithdrawalDays);
+                // Fire once shortly after expiry; a few days of slack covers missed scans, dedup guards repeats.
+                if (karencaUntil <= now && karencaUntil >= now.AddDays(-3))
+                    await DispatchAsync(recipients,
+                        "Istekla karenca",
+                        $"Istekla karenca za pčelinjak '{apiary.Name}' — med se ponovo smije vrcati.",
+                        NotificationType.KarencaEnded, t.Id, nameof(Treatment), TimeSpan.FromDays(7));
+            }
+        }
     }
 
     // ── Rule 3: frost warning (apiary-level) ─────────────────────────────────────

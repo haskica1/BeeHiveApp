@@ -151,6 +151,25 @@ containing an assigned hive. Foreign/duplicate hive in `entries` → `400`.
 
 ---
 
+### Treatments (Evidencija tretmana)
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/treatments?apiaryId=&beehiveId=&year=` | `TreatmentDto[]` (role-scoped; incl. computed `karencaUntil`, `status`/`statusName`, `hiveCount`, `hiveNames`) |
+| GET | `/treatments/{id}` | `TreatmentDetailDto` (entries with hive names + `doseNote`, `createdByName`) |
+| POST | `/treatments` | `201 + TreatmentDetailDto` |
+| PUT | `/treatments/{id}` | `200 + TreatmentDetailDto` (apiary immutable — not in body) |
+| DELETE | `/treatments/{id}` | `204` |
+
+**Create body:** `{ apiaryId, purpose, productName, activeSubstance, method, dosePerHive, startDate,
+endDate?, withdrawalDays, batchNumber?, supplier?, notes?, entries:[{beehiveId, doseNote?}] }`
+**Access:** apiary-scoped (same matrix as Harvests); managers write, **Beekeeper read-only** for
+treatments containing an assigned hive. Foreign/duplicate hive in `entries` → `400`; `entries` non-empty;
+`withdrawalDays` 0–365. Status derived: no `endDate` → U toku; `today ≤ karencaUntil` → Karenca; else Završen.
+The PDF register is generated client-side (jsPDF) — no PDF endpoint.
+
+---
+
 ### Todos
 
 | Method | Path | Returns |

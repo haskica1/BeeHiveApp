@@ -1,4 +1,5 @@
 using BeeHive.Application.Features.Advisor;
+using BeeHive.Domain.Common;
 using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
 using Xunit;
@@ -25,9 +26,14 @@ public class AdvisorContextBuilderTests
         var todos = new List<Todo> { new() { Title = "Dodati nastavak", Priority = TodoPriority.High, DueDate = new DateTime(2026, 7, 10) } };
         var queen = new Queen { Year = 2024, Status = QueenStatus.Active, Origin = QueenOrigin.Purchased };
 
+        var treatment = new TreatmentLatestInfo(
+            BeehiveId: 1, TreatmentId: 7, ProductName: "Apivar", ActiveSubstance: ActiveSubstance.Amitraz,
+            Purpose: TreatmentPurpose.Varroa, Method: ApplicationMethod.Strips,
+            StartDate: new DateTime(2026, 6, 1), EndDate: null, WithdrawalDays: 0);
+
         var text = AdvisorContextBuilder.Build(
             Hive(), "Pčelinjak Sjever", inspections, diet, 1, 3, todos, queen, seasonYieldKg: 14.5m,
-            weatherLine: "12°C trenutno, danas 8–22°C");
+            latestTreatment: treatment, weatherLine: "12°C trenutno, danas 8–22°C");
 
         Assert.Contains("Košnica 1", text);
         Assert.Contains("Pčelinjak Sjever", text);
@@ -37,6 +43,7 @@ public class AdvisorContextBuilderTests
         Assert.Contains("Matica uočena", text);
         Assert.Contains("Aktivna prihrana: Šećerni sirup (1/3 obroka)", text);
         Assert.Contains("Dodati nastavak", text);
+        Assert.Contains("Zadnji tretman: Apivar (Amitraz), 01.06.2026, status: U toku", text);
         Assert.Contains("Vrijeme na pčelinjaku: 12°C trenutno, danas 8–22°C", text);
     }
 
@@ -45,12 +52,13 @@ public class AdvisorContextBuilderTests
     {
         var text = AdvisorContextBuilder.Build(
             Hive(), "Pčelinjak A", [], activeDiet: null, 0, 0, [], activeQueen: null,
-            seasonYieldKg: null, weatherLine: null);
+            seasonYieldKg: null, latestTreatment: null, weatherLine: null);
 
         Assert.Contains("Pregledi: nema zabilježenih pregleda.", text);
         Assert.DoesNotContain("Matica:", text);
         Assert.DoesNotContain("Aktivna prihrana", text);
         Assert.DoesNotContain("Prinos meda", text);
+        Assert.DoesNotContain("Zadnji tretman", text);
         Assert.DoesNotContain("Vrijeme", text);
     }
 
@@ -64,9 +72,25 @@ public class AdvisorContextBuilderTests
         };
 
         var text = AdvisorContextBuilder.Build(
-            Hive(), "A", inspections, null, 0, 0, [], null, null, null);
+            Hive(), "A", inspections, null, 0, 0, [], null, null, null, null);
 
         Assert.Contains("…", text);
         Assert.DoesNotContain(longNote, text); // full 300-char string must not appear verbatim
+    }
+
+    [Fact]
+    public void Build_TreatmentInKarenca_RendersKarencaUntilDate()
+    {
+        var treatment = new TreatmentLatestInfo(
+            BeehiveId: 1, TreatmentId: 7, ProductName: "Oksalna kiselina", ActiveSubstance: ActiveSubstance.OxalicAcid,
+            Purpose: TreatmentPurpose.Varroa, Method: ApplicationMethod.Trickling,
+            StartDate: DateTime.UtcNow.AddDays(-10), EndDate: DateTime.UtcNow.AddDays(-2), WithdrawalDays: 30);
+
+        var text = AdvisorContextBuilder.Build(
+            Hive(), "A", [], null, 0, 0, [], null, null, treatment, null);
+
+        var expectedUntil = treatment.EndDate!.Value.AddDays(30).ToString("dd.MM.yyyy");
+        Assert.Contains($"Zadnji tretman: Oksalna kiselina (Oksalna kiselina)", text);
+        Assert.Contains($"status: Karenca do {expectedUntil}", text);
     }
 }

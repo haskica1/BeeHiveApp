@@ -26,6 +26,11 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | Supersedure | `QueenOrigin.Supersedure` | *Tiha zamjena* — the colony replaces its queen on its own, without beekeeper intervention or swarming. |
 | QR Code | `qrCode` | A Base64 PNG image encoding a Beehive's `uniqueId`. Used for physical hive scanning. |
 | Unique ID | `uniqueId` | A Guid assigned to a Beehive at creation. Stable, never changes. Encoded in the QR code. |
+| Treatment | `Treatment` | A veterinary medicine application event (*tretman*), apiary-scoped, with one line per treated hive. Part of the legally required medicine register (evidencija tretmana). |
+| Treatment Entry | `TreatmentEntry` | The per-hive line of a Treatment; optional `DoseNote` when the hive's dose deviates from `DosePerHive`. |
+| Karenca | `WithdrawalDays` / `KarencaUntil` | Withdrawal period — days after a treatment ends during which honey must not be extracted for human consumption. `karencaUntil = (endDate ?? startDate) + withdrawalDays`; many registered bee products have karenca 0. |
+| LOT broj | `BatchNumber` | The batch/serial number from the medicine packaging. Legally expected in the treatment register (traceability). |
+| Active Substance | `ActiveSubstance` | The medicine's active compound (Amitraz, Oksalna kiselina…). English enum, Bosnian labels via `BsLabels`. |
 
 ---
 
