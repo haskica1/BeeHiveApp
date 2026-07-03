@@ -32,6 +32,10 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | LOT broj | `BatchNumber` | The batch/serial number from the medicine packaging. Legally expected in the treatment register (traceability). |
 | Active Substance | `ActiveSubstance` | The medicine's active compound (Amitraz, Oksalna kiselina…). English enum, Bosnian labels via `BsLabels`. |
 | Learning Topic | `LearningTopic` | A platform-wide educational article (*Edukacija*), authored by SystemAdmin, markdown body, optionally tied to months (seasonal) — otherwise evergreen. |
+| Pasture | `Pasture` | An org-scoped named grazing location (*pašnjak*) for migratory beekeeping. Reusable season after season; may host several apiaries at once. |
+| Apiary Move | `ApiaryMove` | One relocation event (*selidba*): apiary → pasture on a date. Updates the apiary's current pasture and snapshots the pasture's coordinates onto the apiary. |
+| Svjedodžba | `CertificateNumber` | The veterinary certificate number legally expected when relocating hives; recorded per move. |
+| Matična lokacija | `CurrentPastureId == null` | The apiary's original home location, before any recorded move; also the stats bucket for pre-first-move harvests. |
 
 ---
 

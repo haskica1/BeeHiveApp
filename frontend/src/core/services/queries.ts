@@ -36,6 +36,7 @@ export const queryKeys = {
   inspectionsByHive:  (beehiveId: number) => ['inspections', 'beehive', beehiveId] as const,
   inspection:         (id: number) => ['inspections', id] as const,
   queensByBeehive:    (beehiveId: number) => ['queens', 'beehive', beehiveId] as const,
+  queenEditHistory:   (queenId: number) => ['queens', queenId, 'history'] as const,
   allOpenTodos:       ['todos', 'all-open'] as const,
   todosByApiary:      (apiaryId: number) => ['todos', 'apiary', apiaryId] as const,
   todosByBeehive:     (beehiveId: number) => ['todos', 'beehive', beehiveId] as const,
@@ -209,6 +210,13 @@ export const useDeleteQueen = (beehiveId: number) => {
     onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.queensByBeehive(beehiveId) }),
   })
 }
+
+export const useQueenEditHistory = (queenId: number | null) =>
+  useQuery({
+    queryKey: queryKeys.queenEditHistory(queenId ?? 0),
+    queryFn: () => queenService.getEditHistory(queenId!),
+    enabled: !!queenId,
+  })
 
 // ── Todo Hooks ────────────────────────────────────────────────────────────────
 

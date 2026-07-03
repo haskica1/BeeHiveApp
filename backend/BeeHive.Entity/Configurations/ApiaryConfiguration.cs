@@ -29,6 +29,13 @@ public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
             .OnDelete(DeleteBehavior.SetNull)
             .IsRequired(false);
 
+        // Current pasture (SPEC-10); service-level guard blocks deleting a referenced pasture.
+        builder.HasOne(a => a.CurrentPasture)
+            .WithMany()
+            .HasForeignKey(a => a.CurrentPastureId)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
         // One apiary → many beehives; cascade delete removes beehives when apiary is deleted
         builder.HasMany(a => a.Beehives)
             .WithOne(b => b.Apiary)

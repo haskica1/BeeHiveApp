@@ -382,6 +382,22 @@ export default function StatsPage() {
               </ResponsiveContainer>
             </div>
           )}
+
+          {/* Yield per pasture (SPEC-10) — only for organizations that record moves */}
+          {stats.kgByPasture.length > 0 && (
+            <div className="mt-6">
+              <p className="text-sm font-medium text-gray-500 dark:text-slate-400 mb-3">Prinos po pašnjaku (kg)</p>
+              <ResponsiveContainer width="100%" height={Math.max(160, stats.kgByPasture.length * 44)}>
+                <BarChart data={stats.kgByPasture as NameValue[]} layout="vertical" margin={{ top: 0, right: 24, left: 10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" horizontal={false} />
+                  <XAxis type="number" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#6b7280' }} axisLine={false} tickLine={false} width={130} />
+                  <Tooltip formatter={(v: number) => [`${v} kg`, 'Prinos']} />
+                  <Bar dataKey="value" name="Prinos" fill="#8b5cf6" radius={[0, 6, 6, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
         </Section>
       )}
 

@@ -121,6 +121,20 @@
 - No SW background sync (ADR-026); Workbox `NetworkFirst` already covers all API GETs (read side)
 - Dev harness: `await __outboxSelfTest()` in the console. See `docs/features/offline-inspections.md`.
 
+### Pastures & Migration (Pašnjaci i selidbe)
+- Migratory beekeeping (SPEC-10): org-scoped `Pasture` registry + `ApiaryMove` events via
+  `/api/pastures` and `/api/apiaries/{id}/moves`; writes OrgAdmin/SystemAdmin (`Roles.OrgManagers`)
+- **Move snapshots pasture coordinates into `Apiary.Latitude/Longitude`** — weather, frost alerts i
+  mape prate selidbu bez ijedne izmjene njihovog koda; `FromPasture` se rješava na serveru
+- Yield per pasture computed via `PastureAttribution` (Domain/Common): harvest pripada pašnjaku na
+  kojem je pčelinjak bio na datum vrcanja; stats `kgByPasture` + "Matična lokacija" bucket
+- Delete guards: pašnjak blokiran dok je referenciran; briše se samo posljednja selidba (revert)
+- Optional `CertificateNumber` (veterinarska svjedodžba) po selidbi — legal, LOT precedent
+- UI: "Pašnjaci" nav (OrgAdmin+), `PasturesPage` (mapa + `LocationPickerModal`), chip trenutnog
+  pašnjaka + "Preseli" modal + "Selidbe" sekcija na `ApiaryDetailPage`, "Prinos po pašnjaku" u Stats
+- Advisor kontekst: linija "Pašnjak: {name}, od {datum}". Testovi: `PastureAttributionTests`,
+  `ApiaryMoveServiceTests`, `PastureServiceTests`. See `docs/features/apiary-migration.md`.
+
 ### Learning (Edukacija)
 - Platform-wide educational articles (SPEC-06): SystemAdmin authors, everyone reads once published
 - `/api/learning-topics` (published only, `isRead` per user, category/month filter) +

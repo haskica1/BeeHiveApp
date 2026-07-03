@@ -23,11 +23,15 @@ public static class AdvisorContextBuilder
         Queen? activeQueen,
         decimal? seasonYieldKg,
         TreatmentLatestInfo? latestTreatment,
+        string? pastureLine,
         string? weatherLine)
     {
         var sb = new StringBuilder();
         sb.AppendLine("PODACI O KOŠNICI (koristi ih u odgovoru; ništa ne izmišljaj izvan ovih podataka):");
         sb.AppendLine($"- Košnica: {hive.Name} ({BsLabels.Label(hive.Type)}, {BsLabels.Label(hive.Material)}); pčelinjak: {apiaryName}");
+
+        if (!string.IsNullOrWhiteSpace(pastureLine))
+            sb.AppendLine($"- Pašnjak: {pastureLine}");
 
         if (activeQueen is not null)
         {

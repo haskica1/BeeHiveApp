@@ -28,6 +28,8 @@ export interface StatsData {
   kgByHoneyType: NameValue[]
   topHivesByYield: NameValue[]
   yearlyYield: NameValue[]
+  // Pastures (SPEC-10) — empty when the organization has no moves
+  kgByPasture: NameValue[]
 }
 
 export const statsService = {

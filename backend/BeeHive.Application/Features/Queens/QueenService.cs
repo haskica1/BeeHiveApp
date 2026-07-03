@@ -13,11 +13,13 @@ public class QueenService : IQueenService
 {
     private readonly IUnitOfWork _uow;
     private readonly IAccessGuard _access;
+    private readonly ICurrentUser _currentUser;
 
-    public QueenService(IUnitOfWork uow, IAccessGuard access)
+    public QueenService(IUnitOfWork uow, IAccessGuard access, ICurrentUser currentUser)
     {
         _uow = uow;
         _access = access;
+        _currentUser = currentUser;
     }
 
     public async Task<IEnumerable<QueenDto>> GetByBeehiveIdAsync(int beehiveId)
@@ -80,6 +82,36 @@ public class QueenService : IQueenService
                 throw new BusinessRuleException("The beehive already has an active queen — close it first.");
         }
 
+        DateTime? newEndDate = dto.Status == QueenStatus.Active
+            ? null
+            : dto.EndDate ?? queen.EndDate ?? DateTime.UtcNow;
+
+        // Snapshot field-level changes before mutating, so mistakes in the initial data
+        // (and every later correction) stay traceable in the queen's edit history.
+        var edits = new List<QueenEditLog>();
+        void TrackChange(string label, string? oldValue, string? newValue)
+        {
+            if (oldValue == newValue) return;
+            edits.Add(new QueenEditLog
+            {
+                QueenId      = queen.Id,
+                EditedById   = _currentUser.UserId,
+                FieldLabel   = label,
+                OldValue     = oldValue,
+                NewValue     = newValue,
+            });
+        }
+
+        TrackChange("Godište", queen.Year.ToString(), dto.Year.ToString());
+        TrackChange("Boja oznake", BsLabels.Label(queen.MarkColor), BsLabels.Label(dto.MarkColor));
+        TrackChange("Označena", FormatBool(queen.IsMarked), FormatBool(dto.IsMarked));
+        TrackChange("Podrezana krila", FormatBool(queen.IsClipped), FormatBool(dto.IsClipped));
+        TrackChange("Porijeklo", BsLabels.Label(queen.Origin), BsLabels.Label(dto.Origin));
+        TrackChange("Status", BsLabels.Label(queen.Status), BsLabels.Label(dto.Status));
+        TrackChange("U košnici od", FormatDate(queen.IntroducedDate), FormatDate(dto.IntroducedDate));
+        TrackChange("Do datuma", FormatDate(queen.EndDate), FormatDate(newEndDate));
+        TrackChange("Napomene", queen.Notes, dto.Notes);
+
         queen.Year           = dto.Year;
         queen.MarkColor      = dto.MarkColor;
         queen.IsMarked       = dto.IsMarked;
@@ -88,15 +120,38 @@ public class QueenService : IQueenService
         queen.Status         = dto.Status;
         queen.IntroducedDate = dto.IntroducedDate;
         queen.Notes          = dto.Notes;
-        queen.EndDate        = dto.Status == QueenStatus.Active
-            ? null
-            : dto.EndDate ?? queen.EndDate ?? DateTime.UtcNow;
+        queen.EndDate        = newEndDate;
 
         await _uow.Queens.UpdateAsync(queen);
+        foreach (var edit in edits)
+            await _uow.QueenEditLogs.AddAsync(edit);
         await _uow.SaveChangesAsync();
 
         return ToDto(queen);
     }
+
+    public async Task<IEnumerable<QueenEditLogDto>> GetEditHistoryAsync(int queenId)
+    {
+        var queen = await _uow.Queens.GetByIdAsync(queenId)
+            ?? throw new NotFoundException(nameof(Queen), queenId);
+
+        await _access.EnsureCanAccessBeehiveAsync(queen.BeehiveId);
+
+        var logs = await _uow.QueenEditLogs.GetByQueenIdAsync(queenId);
+        return logs.Select(l => new QueenEditLogDto
+        {
+            Id           = l.Id,
+            FieldLabel   = l.FieldLabel,
+            OldValue     = l.OldValue,
+            NewValue     = l.NewValue,
+            EditedAt     = l.CreatedAt,
+            EditedByName = l.EditedBy is null ? null : $"{l.EditedBy.FirstName} {l.EditedBy.LastName}".Trim(),
+        });
+    }
+
+    private static string FormatBool(bool value) => value ? "Da" : "Ne";
+
+    private static string? FormatDate(DateTime? value) => value?.ToString("dd.MM.yyyy");
 
     public async Task DeleteAsync(int id)
     {

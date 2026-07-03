@@ -1,6 +1,8 @@
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Common.Localization;
 using BeeHive.Application.Features.Stats.DTOs;
+using BeeHive.Domain.Common;
+using BeeHive.Domain.Entities;
 using BeeHive.Domain.Enums;
 
 namespace BeeHive.Application.Features.Stats;
@@ -209,6 +211,35 @@ public class StatsService : IStatsService
                 harvests.Where(h => h.Date.Year == y).Sum(h => h.Entries.Sum(e => e.QuantityKg))))
             .ToList();
 
+        // ── Yield per pasture (SPEC-10) ────────────────────────────────────────
+
+        var moves = apiaryIds.Count > 0
+            ? (await _uow.ApiaryMoves.GetByApiariesAsync(apiaryIds)).ToList()
+            : [];
+
+        List<NameDecimalDto> kgByPasture = [];
+        if (moves.Count > 0)
+        {
+            var movesByApiary = moves.GroupBy(m => m.ApiaryId).ToDictionary(g => g.Key, g => g.ToList());
+            var pastureNames = moves
+                .Select(m => m.ToPasture)
+                .Where(p => p is not null)
+                .DistinctBy(p => p!.Id)
+                .ToDictionary(p => p!.Id, p => p!.Name);
+
+            kgByPasture = currentYearHarvests
+                .GroupBy(h => PastureAttribution.ResolveToPastureId(
+                    movesByApiary.TryGetValue(h.ApiaryId, out var apiaryMoves) ? apiaryMoves : (List<ApiaryMove>)[],
+                    h.Date))
+                .Select(g => new NameDecimalDto(
+                    g.Key is int pastureId
+                        ? pastureNames.TryGetValue(pastureId, out var name) ? name : $"Pašnjak {pastureId}"
+                        : "Matična lokacija",
+                    g.Sum(h => h.Entries.Sum(e => e.QuantityKg))))
+                .OrderByDescending(x => x.Value)
+                .ToList();
+        }
+
         // ── Build result ───────────────────────────────────────────────────────
 
         return new StatsDto
@@ -234,6 +265,7 @@ public class StatsService : IStatsService
             KgByHoneyType            = kgByHoneyType,
             TopHivesByYield          = topHivesByYield,
             YearlyYield              = yearlyYield,
+            KgByPasture              = kgByPasture,
         };
     }
 

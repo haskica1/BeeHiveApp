@@ -101,6 +101,9 @@ namespace BeeHive.Entity.Migrations
                     b.Property<int?>("CreatedById")
                         .HasColumnType("integer");
 
+                    b.Property<int?>("CurrentPastureId")
+                        .HasColumnType("integer");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
@@ -126,6 +129,8 @@ namespace BeeHive.Entity.Migrations
 
                     b.HasIndex("CreatedById");
 
+                    b.HasIndex("CurrentPastureId");
+
                     b.HasIndex("OrganizationId");
 
                     b.ToTable("Apiaries", (string)null);
@@ -147,6 +152,58 @@ namespace BeeHive.Entity.Migrations
                             Name = "Dolinska Farma",
                             OrganizationId = 1
                         });
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.ApiaryMove", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ApiaryId")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("CertificateNumber")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("CreatedById")
+                        .HasColumnType("integer");
+
+                    b.Property<int?>("FromPastureId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("MovedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("ToPastureId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApiaryId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.HasIndex("FromPastureId");
+
+                    b.HasIndex("MovedAt");
+
+                    b.HasIndex("ToPastureId");
+
+                    b.ToTable("ApiaryMoves", (string)null);
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.Beehive", b =>
@@ -792,6 +849,53 @@ namespace BeeHive.Entity.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Pasture", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FloraNotes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("OrganizationId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.ToTable("Pastures", (string)null);
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Queen", b =>
                 {
                     b.Property<int>("Id")
@@ -846,6 +950,48 @@ namespace BeeHive.Entity.Migrations
                         .HasFilter("\"Status\" = 1");
 
                     b.ToTable("Queens", (string)null);
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.QueenEditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("EditedById")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("FieldLabel")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<int>("QueenId")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EditedById");
+
+                    b.HasIndex("QueenId");
+
+                    b.ToTable("QueenEditLogs", (string)null);
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.RefreshToken", b =>
@@ -1163,6 +1309,11 @@ namespace BeeHive.Entity.Migrations
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("BeeHive.Domain.Entities.Pasture", "CurrentPasture")
+                        .WithMany()
+                        .HasForeignKey("CurrentPastureId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.HasOne("BeeHive.Domain.Entities.Organization", "Organization")
                         .WithMany("Apiaries")
                         .HasForeignKey("OrganizationId")
@@ -1171,7 +1322,42 @@ namespace BeeHive.Entity.Migrations
 
                     b.Navigation("CreatedBy");
 
+                    b.Navigation("CurrentPasture");
+
                     b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.ApiaryMove", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Apiary", "Apiary")
+                        .WithMany()
+                        .HasForeignKey("ApiaryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BeeHive.Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BeeHive.Domain.Entities.Pasture", "FromPasture")
+                        .WithMany()
+                        .HasForeignKey("FromPastureId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BeeHive.Domain.Entities.Pasture", "ToPasture")
+                        .WithMany()
+                        .HasForeignKey("ToPastureId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Apiary");
+
+                    b.Navigation("CreatedBy");
+
+                    b.Navigation("FromPasture");
+
+                    b.Navigation("ToPasture");
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.Beehive", b =>
@@ -1338,6 +1524,17 @@ namespace BeeHive.Entity.Migrations
                     b.Navigation("CreatedBy");
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.Pasture", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.Queen", b =>
                 {
                     b.HasOne("BeeHive.Domain.Entities.Beehive", "Beehive")
@@ -1347,6 +1544,24 @@ namespace BeeHive.Entity.Migrations
                         .IsRequired();
 
                     b.Navigation("Beehive");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.QueenEditLog", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.User", "EditedBy")
+                        .WithMany()
+                        .HasForeignKey("EditedById")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("BeeHive.Domain.Entities.Queen", "Queen")
+                        .WithMany()
+                        .HasForeignKey("QueenId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EditedBy");
+
+                    b.Navigation("Queen");
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.RefreshToken", b =>

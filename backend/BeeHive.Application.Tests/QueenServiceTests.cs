@@ -20,17 +20,21 @@ public class QueenServiceTests
 
     private readonly IUnitOfWork _uow = Substitute.For<IUnitOfWork>();
     private readonly IAccessGuard _access = Substitute.For<IAccessGuard>();
+    private readonly ICurrentUser _currentUser = new TestCurrentUser { UserId = 7 };
     private readonly QueenService _service;
 
     private Queen? _addedQueen;
+    private readonly List<QueenEditLog> _addedEditLogs = [];
 
     public QueenServiceTests()
     {
-        _service = new QueenService(_uow, _access);
+        _service = new QueenService(_uow, _access, _currentUser);
 
         _uow.Beehives.ExistsAsync(HiveId).Returns(true);
         _uow.Queens.GetActiveByBeehiveIdAsync(HiveId).Returns((Queen?)null);
         _uow.Queens.AddAsync(Arg.Do<Queen>(q => _addedQueen = q)).Returns(ci => ci.Arg<Queen>());
+        _uow.QueenEditLogs.AddAsync(Arg.Do<QueenEditLog>(l => _addedEditLogs.Add(l)))
+            .Returns(ci => ci.Arg<QueenEditLog>());
     }
 
     private static CreateQueenDto NewDto(int year = 2026, QueenMarkColor? color = null) => new()
@@ -159,6 +163,61 @@ public class QueenServiceTests
 
         Assert.Equal(QueenStatus.Active, result.Status);
         Assert.Null(result.EndDate);
+    }
+
+    [Fact]
+    public async Task Update_ChangedFields_WritesOneEditLogRowPerChange()
+    {
+        var queen = ActiveQueen(id: 5); // Year 2024, MarkColor Green, Origin OwnBreeding
+        _uow.Queens.GetByIdAsync(5).Returns(queen);
+        _uow.Queens.GetActiveByBeehiveIdAsync(HiveId).Returns(queen);
+
+        var dto = new UpdateQueenDto
+        {
+            Year           = 2023, // only the year is wrong in the initial data
+            MarkColor      = queen.MarkColor,
+            IsMarked       = queen.IsMarked,
+            IsClipped      = queen.IsClipped,
+            Origin         = queen.Origin,
+            Status         = queen.Status,
+            IntroducedDate = queen.IntroducedDate,
+            EndDate        = queen.EndDate,
+            Notes          = queen.Notes,
+        };
+
+        await _service.UpdateAsync(5, dto);
+
+        var edit = Assert.Single(_addedEditLogs);
+        Assert.Equal(5, edit.QueenId);
+        Assert.Equal(7, edit.EditedById);
+        Assert.Equal("Godište", edit.FieldLabel);
+        Assert.Equal("2024", edit.OldValue);
+        Assert.Equal("2023", edit.NewValue);
+    }
+
+    [Fact]
+    public async Task Update_NoActualChanges_WritesNoEditLog()
+    {
+        var queen = ActiveQueen(id: 5); // Year 2024, Green, OwnBreeding, IsMarked/IsClipped false, no Notes
+        _uow.Queens.GetByIdAsync(5).Returns(queen);
+        _uow.Queens.GetActiveByBeehiveIdAsync(HiveId).Returns(queen);
+
+        var dto = new UpdateQueenDto
+        {
+            Year           = queen.Year,
+            MarkColor      = queen.MarkColor,
+            IsMarked       = queen.IsMarked,
+            IsClipped      = queen.IsClipped,
+            Origin         = queen.Origin,
+            Status         = queen.Status,
+            IntroducedDate = queen.IntroducedDate,
+            EndDate        = queen.EndDate,
+            Notes          = queen.Notes,
+        };
+
+        await _service.UpdateAsync(5, dto);
+
+        Assert.Empty(_addedEditLogs);
     }
 
     // ── GetByBeehiveIdAsync / DeleteAsync ──────────────────────────────────────

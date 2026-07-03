@@ -237,6 +237,11 @@ public class AdvisorService : IAdvisorService
         var latestTreatment = (await _uow.Treatments.GetLatestForBeehivesAsync([beehiveId]))
             .GetValueOrDefault(beehiveId);
 
+        var latestMove = await _uow.ApiaryMoves.GetLatestForApiaryAsync(hive.ApiaryId);
+        string? pastureLine = latestMove?.ToPasture is not null
+            ? $"{latestMove.ToPasture.Name}, od {latestMove.MovedAt:dd.MM.yyyy}"
+            : null;
+
         string? weatherLine = null;
         if (apiary?.Latitude is double lat && apiary.Longitude is double lon)
         {
@@ -255,7 +260,7 @@ public class AdvisorService : IAdvisorService
 
         return AdvisorContextBuilder.Build(
             hive, apiaryName, inspections, activeDiet, dietCompleted, dietTotal, openTodos, queen, seasonYield,
-            latestTreatment, weatherLine);
+            latestTreatment, pastureLine, weatherLine);
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────────

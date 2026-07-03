@@ -19,6 +19,7 @@ public class UnitOfWork : IUnitOfWork
     private IBeehiveRepository? _beehives;
     private IInspectionRepository? _inspections;
     private IQueenRepository? _queens;
+    private IQueenEditLogRepository? _queenEditLogs;
     private ITodoRepository? _todos;
     private IDietRepository? _diets;
     private IFeedingEntryRepository? _feedingEntries;
@@ -26,6 +27,8 @@ public class UnitOfWork : IUnitOfWork
     private IHarvestRepository? _harvests;
     private ITreatmentRepository? _treatments;
     private ILearningTopicRepository? _learningTopics;
+    private IPastureRepository? _pastures;
+    private IApiaryMoveRepository? _apiaryMoves;
     private INotificationRepository? _notifications;
     private IRefreshTokenRepository? _refreshTokens;
     private IAdvisorConversationRepository? _advisorConversations;
@@ -53,6 +56,9 @@ public class UnitOfWork : IUnitOfWork
     public IQueenRepository Queens =>
         _queens ??= new QueenRepository(_context);
 
+    public IQueenEditLogRepository QueenEditLogs =>
+        _queenEditLogs ??= new QueenEditLogRepository(_context);
+
     public ITodoRepository Todos =>
         _todos ??= new TodoRepository(_context);
 
@@ -73,6 +79,12 @@ public class UnitOfWork : IUnitOfWork
 
     public ILearningTopicRepository LearningTopics =>
         _learningTopics ??= new LearningTopicRepository(_context);
+
+    public IPastureRepository Pastures =>
+        _pastures ??= new PastureRepository(_context);
+
+    public IApiaryMoveRepository ApiaryMoves =>
+        _apiaryMoves ??= new ApiaryMoveRepository(_context);
 
     public INotificationRepository Notifications =>
         _notifications ??= new NotificationRepository(_context);

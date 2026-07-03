@@ -11,6 +11,7 @@ public interface IUnitOfWork : IDisposable
     IBeehiveRepository Beehives { get; }
     IInspectionRepository Inspections { get; }
     IQueenRepository Queens { get; }
+    IQueenEditLogRepository QueenEditLogs { get; }
     ITodoRepository Todos { get; }
     IDietRepository Diets { get; }
     IFeedingEntryRepository FeedingEntries { get; }
@@ -18,6 +19,8 @@ public interface IUnitOfWork : IDisposable
     IHarvestRepository Harvests { get; }
     ITreatmentRepository Treatments { get; }
     ILearningTopicRepository LearningTopics { get; }
+    IPastureRepository Pastures { get; }
+    IApiaryMoveRepository ApiaryMoves { get; }
     INotificationRepository Notifications { get; }
     IRefreshTokenRepository RefreshTokens { get; }
     IAdvisorConversationRepository AdvisorConversations { get; }

@@ -8,4 +8,7 @@ public interface IQueenService
     Task<QueenDto> CreateAsync(int beehiveId, CreateQueenDto dto);
     Task<QueenDto> UpdateAsync(int id, UpdateQueenDto dto);
     Task DeleteAsync(int id);
+
+    /// <summary>Field-level edit history for a single queen record, newest first.</summary>
+    Task<IEnumerable<QueenEditLogDto>> GetEditHistoryAsync(int queenId);
 }

@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Crown, History, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react'
+import { Clock, Crown, History, Pencil, Plus, RefreshCw, Trash2 } from 'lucide-react'
 import { format } from 'date-fns'
 import {
   useCreateQueen,
   useDeleteQueen,
+  useQueenEditHistory,
   useQueensByBeehive,
   useUpdateQueen,
 } from '../../core/services/queries'
@@ -93,6 +94,7 @@ export function QueenSection({ beehiveId, canManage }: { beehiveId: number; canM
   const [formError, setFormError] = useState<string | null>(null)
   const [historyOpen, setHistoryOpen] = useState(false)
   const [deleteTarget, setDeleteTarget] = useState<Queen | null>(null)
+  const [editHistoryTarget, setEditHistoryTarget] = useState<Queen | null>(null)
 
   const active = queens.find(q => q.status === QueenStatus.Active)
   const season = active ? queenSeason(active.year) : 0
@@ -224,9 +226,14 @@ export function QueenSection({ beehiveId, canManage }: { beehiveId: number; canM
           </div>
 
           {canManage && (
-            <button onClick={openCreate} className="btn-secondary text-sm w-full mt-4">
-              <RefreshCw className="w-4 h-4" /> Zamijeni maticu
-            </button>
+            <div className="flex gap-2 mt-4">
+              <button onClick={() => openEdit(active)} className="btn-secondary text-sm flex-1">
+                <Pencil className="w-4 h-4" /> Uredi
+              </button>
+              <button onClick={openCreate} className="btn-secondary text-sm flex-1">
+                <RefreshCw className="w-4 h-4" /> Zamijeni maticu
+              </button>
+            </div>
           )}
         </>
       ) : (
@@ -440,22 +447,33 @@ export function QueenSection({ beehiveId, canManage }: { beehiveId: number; canM
                         )}
                       </div>
                     </div>
-                    {canManage && (
-                      <div className="flex gap-1 shrink-0">
-                        <button
-                          onClick={() => { setHistoryOpen(false); openEdit(q) }}
-                          className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-700 transition-colors"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        <button
-                          onClick={() => { setHistoryOpen(false); setDeleteTarget(q) }}
-                          className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    )}
+                    <div className="flex gap-1 shrink-0">
+                      <button
+                        onClick={() => setEditHistoryTarget(q)}
+                        title="Historija izmjena"
+                        className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <Clock className="w-3.5 h-3.5" />
+                      </button>
+                      {canManage && (
+                        <>
+                          <button
+                            onClick={() => { setHistoryOpen(false); openEdit(q) }}
+                            title="Uredi"
+                            className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-honey-600 dark:hover:text-honey-400 hover:bg-honey-50 dark:hover:bg-slate-700 transition-colors"
+                          >
+                            <Pencil className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => { setHistoryOpen(false); setDeleteTarget(q) }}
+                            title="Obriši"
+                            className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 </div>
               ))}
@@ -468,6 +486,11 @@ export function QueenSection({ beehiveId, canManage }: { beehiveId: number; canM
         </div>
       )}
 
+      {/* ── Edit history (audit log) modal ────────────────────────────────────── */}
+      {editHistoryTarget && (
+        <QueenEditHistoryModal queen={editHistoryTarget} onClose={() => setEditHistoryTarget(null)} />
+      )}
+
       {/* Delete confirmation */}
       <ConfirmDialog
         isOpen={!!deleteTarget}
@@ -477,6 +500,64 @@ export function QueenSection({ beehiveId, canManage }: { beehiveId: number; canM
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleteQueen.isPending}
       />
+    </div>
+  )
+}
+
+// ── Edit history modal ──────────────────────────────────────────────────────────
+
+function QueenEditHistoryModal({ queen, onClose }: { queen: Queen; onClose: () => void }) {
+  const { data: logs = [], isLoading } = useQueenEditHistory(queen.id)
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-6 max-w-md w-full max-h-[85vh] overflow-y-auto animate-fade-in">
+        <div className="flex items-center gap-2 mb-1">
+          <Clock className="w-5 h-5 text-honey-500" />
+          <h2 className="font-display text-lg font-bold text-gray-800 dark:text-slate-100">Historija izmjena</h2>
+        </div>
+        <p className="text-xs text-gray-400 dark:text-slate-500 mb-4">Godište {queen.year}.</p>
+
+        {isLoading ? (
+          <div className="animate-pulse space-y-2">
+            <div className="h-4 bg-honey-50 dark:bg-slate-800 rounded w-2/3" />
+            <div className="h-3 bg-honey-50 dark:bg-slate-800 rounded w-1/2" />
+          </div>
+        ) : logs.length === 0 ? (
+          <p className="text-sm text-gray-500 dark:text-slate-400 py-2">
+            Nema evidentiranih izmjena za ovaj zapis.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {logs.map(log => (
+              <div
+                key={log.id}
+                className="rounded-xl border border-honey-100 dark:border-slate-800 bg-honey-50/40 dark:bg-slate-800/40 p-3"
+              >
+                <div className="flex items-center justify-between gap-2 mb-1">
+                  <span className="font-semibold text-sm text-gray-800 dark:text-slate-100">{log.fieldLabel}</span>
+                  <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0">
+                    {format(new Date(log.editedAt), 'dd.MM.yyyy HH:mm')}
+                  </span>
+                </div>
+                <p className="text-xs text-gray-600 dark:text-slate-300">
+                  <span className="line-through text-gray-400 dark:text-slate-500">{log.oldValue || '—'}</span>
+                  {' → '}
+                  <span className="font-medium">{log.newValue || '—'}</span>
+                </p>
+                {log.editedByName && (
+                  <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Izmijenio: {log.editedByName}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        <button onClick={onClose} className="btn-secondary w-full text-sm py-2 mt-4">
+          Zatvori
+        </button>
+      </div>
     </div>
   )
 }

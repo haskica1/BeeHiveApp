@@ -30,4 +30,9 @@ public record StatsDto
     public IReadOnlyList<NameDecimalDto> TopHivesByYield { get; init; } = [];
     /// <summary>Total kg per year for the last 3 years (oldest → newest).</summary>
     public IReadOnlyList<NameDecimalDto> YearlyYield { get; init; } = [];
+
+    // ── Pastures (SPEC-10) ──────────────────────────────────────────────────────
+    /// <summary>Current-year kg attributed to the pasture the apiary was on at harvest date
+    /// ("Matična lokacija" bucket for pre-first-move harvests). Empty when no moves exist.</summary>
+    public IReadOnlyList<NameDecimalDto> KgByPasture { get; init; } = [];
 }

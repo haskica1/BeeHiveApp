@@ -78,6 +78,17 @@ public class QueensController : ControllerBase
         return Ok(updated);
     }
 
+    /// <summary>Returns the field-level edit history for a queen record, newest first.</summary>
+    [HttpGet("queens/{id:int}/history")]
+    [ProducesResponseType(typeof(IEnumerable<QueenEditLogDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetHistory(int id)
+    {
+        var history = await _service.GetEditHistoryAsync(id);
+        return Ok(history);
+    }
+
     /// <summary>Deletes a queen record (for correcting mistakes).</summary>
     [HttpDelete("queens/{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

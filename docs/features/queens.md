@@ -24,12 +24,18 @@ the international year-color code.
 - Deleting a beehive cascades to its queens; deleting a queen record is allowed (mistake correction)
 - DTOs carry Bosnian `*Name` labels (`BsLabels`); mapping is **manual** in the service
   (computed-label DTO, same policy as Diets/Admin)
+- `PUT` diffs every field (Year, MarkColor, IsMarked, IsClipped, Origin, Status, IntroducedDate,
+  EndDate, Notes) against the tracked entity before mutating it, and writes one `QueenEditLog` row
+  per changed field (old value, new value, Bosnian field label, editor, timestamp) in the same
+  `SaveChangesAsync` — a no-op save writes nothing
 
 ## API
 
 - `GET /beehives/{beehiveId}/queens` — full history, newest introduction first
 - `POST /beehives/{beehiveId}/queens` — register new active queen (auto-replaces the current one)
-- `PUT /queens/{id}` — edit any field including status changes
+- `PUT /queens/{id}` — edit any field including status changes (works on the active row too, for
+  correcting wrong initial data); records a `QueenEditLog` row per changed field
+- `GET /queens/{id}/history` — field-level edit log for one queen record → `QueenEditLogDto[]`, newest first
 - `DELETE /queens/{id}` — hard delete
 
 ## Access
@@ -44,10 +50,13 @@ field operation performed by whoever works the hive).
 - Active queen shows: mark-color dot (real color), year + season badge (`queenSeason`: birth year
   = 1st season), origin, Označena/Podrezana krila chips, introduced date, notes
 - Season ≥ 3 renders an amber warning ("razmisli o zamjeni")
+- "Uredi" (visible when an active queen exists) opens the same form modal pre-filled with the
+  active queen's data, for correcting wrong initial data in place
 - "Zamijeni maticu" opens the form modal (year defaults to current year, color auto-derived while
   untouched); a hint explains the current queen will be auto-closed
 - "Historija (n)" opens a modal with the full timeline (status badge, date range, per-row
-  edit/delete for users who can manage the hive)
+  edit/delete for users who can manage the hive, plus a clock icon open to anyone with hive
+  access for "Historija izmjena" — the per-row field-level audit log)
 - Status/EndDate fields appear only in **edit** mode of the form
 
 ## Edge Cases
@@ -73,4 +82,5 @@ notes:           optional, max 500 chars
 
 `QueenMarkColorHelperTests` (color code for all 10 year digits) and `QueenServiceTests`
 (first queen active + derived color, atomic replace in one save, double-active rejection,
-end-date defaulting, access-guard enforcement, not-found paths).
+end-date defaulting, access-guard enforcement, not-found paths, edit-log rows written on change
+and skipped when nothing changed).

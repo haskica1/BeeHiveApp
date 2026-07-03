@@ -22,6 +22,8 @@ import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import { ApiaryHarvestsSection } from '../harvests/ApiaryHarvestsSection'
 import { ApiaryTreatmentsSection } from '../treatments/ApiaryTreatmentsSection'
+import { ApiaryMovesSection } from '../pastures/ApiaryMovesSection'
+import { useApiaryMoves } from '../../core/services/pastureQueries'
 import type { Beehive, DailyWeather } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
@@ -115,6 +117,10 @@ export default function ApiaryDetailPage() {
   const createTodo = useCreateTodo(todoKey)
   const updateTodo = useUpdateTodo(todoKey)
   const deleteTodo = useDeleteTodo(todoKey)
+
+  // Current pasture chip (SPEC-10) — same query the "Selidbe" section uses (deduped by key).
+  const { data: apiaryMoves = [] } = useApiaryMoves(apiaryId)
+  const currentPastureMove = apiaryMoves[0]
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null)
   const [hiveQuery, setHiveQuery] = useState('')
@@ -212,9 +218,19 @@ export default function ApiaryDetailPage() {
                 🏡
               </div>
               <div className="min-w-0">
-                <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50 truncate">
-                  {apiary.name}
-                </h1>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50 truncate">
+                    {apiary.name}
+                  </h1>
+                  {currentPastureMove && (
+                    <span
+                      className="inline-flex items-center gap-1 text-xs rounded-full px-2 py-0.5 bg-honey-100 text-honey-800 dark:bg-honey-500/15 dark:text-honey-300 shrink-0"
+                      title={`Na pašnjaku od ${format(new Date(currentPastureMove.movedAt), 'dd.MM.yyyy')}`}
+                    >
+                      ⛺ {currentPastureMove.toPastureName} · od {format(new Date(currentPastureMove.movedAt), 'dd.MM.')}
+                    </span>
+                  )}
+                </div>
                 {apiary.description && (
                   <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400 line-clamp-2">
                     {apiary.description}
@@ -396,6 +412,9 @@ export default function ApiaryDetailPage() {
 
           {/* Treatments (tretmani) */}
           <ApiaryTreatmentsSection apiaryId={apiaryId} />
+
+          {/* Pasture moves (selidbe) */}
+          <ApiaryMovesSection apiaryId={apiaryId} canManage={canManageApiaries} />
 
           {/* Weather forecast */}
           <CollapsibleSection

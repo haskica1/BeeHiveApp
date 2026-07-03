@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, Bot, CalendarDays, CloudOff, Droplets, GraduationCap, Home, LayoutDashboard, LogOut, Menu, Moon, Pill, QrCode, ReceiptText, Search, Settings, Sun, Users, X } from 'lucide-react'
+import { BarChart2, Bot, CalendarDays, CloudOff, Droplets, GraduationCap, Home, LayoutDashboard, LogOut, Menu, Moon, Pill, QrCode, ReceiptText, Search, Settings, Sun, Tent, Users, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
@@ -104,6 +104,9 @@ export default function Layout() {
               )}
               {(isOrgAdmin || isAdmin) && (
                 <NavPill to="/members" icon={<Users className="w-4 h-4" />} label="Članovi" />
+              )}
+              {(isOrgAdmin || isSystemAdmin) && (
+                <NavPill to="/pastures" icon={<Tent className="w-4 h-4" />} label="Pašnjaci" />
               )}
               {canSeeExpenses && (
                 <NavPill to="/expenses" icon={<ReceiptText className="w-4 h-4" />} label="Troškovi" />
@@ -266,6 +269,14 @@ export default function Layout() {
                 to="/members"
                 icon={<Users className="w-4 h-4" />}
                 label="Članovi"
+                onClick={() => setMobileOpen(false)}
+              />
+            )}
+            {(isOrgAdmin || isSystemAdmin) && (
+              <MobileNavItem
+                to="/pastures"
+                icon={<Tent className="w-4 h-4" />}
+                label="Pašnjaci"
                 onClick={() => setMobileOpen(false)}
               />
             )}

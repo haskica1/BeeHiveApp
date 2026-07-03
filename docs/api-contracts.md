@@ -123,10 +123,13 @@ HTTP `200 OK`, `201 Created`, `204 No Content` — response body is the DTO dire
 |---|---|---|
 | GET | `/beehives/{beehiveId}/queens` | `QueenDto[]` (newest introduction first) |
 | POST | `/beehives/{beehiveId}/queens` | `201 + QueenDto` — new queen is Active; existing active queen auto-closed as Replaced (atomic) |
-| PUT | `/queens/{id}` | `200 + QueenDto` — `422` when activating while another queen is active |
+| PUT | `/queens/{id}` | `200 + QueenDto` — `422` when activating while another queen is active; records one `QueenEditLog` row per changed field |
+| GET | `/queens/{id}/history` | `QueenEditLogDto[]` (newest first) — field-level edit log for that queen record |
 | DELETE | `/queens/{id}` | `204` |
 
 **QueenDto:** `{ id, beehiveId, year, markColor, markColorName, isMarked, isClipped, origin, originName, status, statusName, introducedDate, endDate?, notes?, createdAt }`
+
+**QueenEditLogDto:** `{ id, fieldLabel, oldValue?, newValue?, editedAt, editedByName? }`
 
 **Create body:** `{ year, markColor?, isMarked, isClipped, origin, introducedDate, notes? }` — `markColor` omitted → derived from `year` (international color code).
 
@@ -192,6 +195,24 @@ The PDF register is generated client-side (jsPDF) — no PDF endpoint.
 
 **Save body:** `{ title, category, months?: int[]|null, summary, bodyMarkdown }` — `months` 1–12,
 null/empty = evergreen; drafts may have an empty body.
+
+---
+
+### Pastures & apiary moves (Pašnjaci i selidbe)
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/pastures` | `PastureDto[]` (org-scoped; incl. `apiariesOnPasture`) — all roles |
+| POST | `/pastures` | `201 + PastureDto` — OrgAdmin/SystemAdmin |
+| PUT | `/pastures/{id}` | `200 + PastureDto` — OrgAdmin/SystemAdmin |
+| DELETE | `/pastures/{id}` | `204`; `400` while any apiary sits on it or any move references it |
+| GET | `/apiaries/{id}/moves` | `ApiaryMoveDto[]` newest first (apiary-view access) |
+| POST | `/apiaries/{id}/moves` | `{ toPastureId, movedAt, certificateNumber?, notes? }` → `201`; sets the apiary's current pasture + coordinate snapshot — OrgAdmin/SystemAdmin |
+| DELETE | `/apiaries/{id}/moves/{moveId}` | `204` — latest move only (else `400`); reverts pasture + coordinates |
+
+**Rules:** `fromPastureId` is server-resolved (null = matična lokacija); move to the current
+pasture or a foreign-org pasture → `400`; `movedAt` max +1 day. `GET /api/stats` gains
+`kgByPasture[]` (current year, "Matična lokacija" bucket; empty without moves).
 
 ---
 

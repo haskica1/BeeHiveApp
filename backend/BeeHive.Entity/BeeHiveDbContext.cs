@@ -20,6 +20,7 @@ public class BeeHiveDbContext : DbContext
     public DbSet<UserBeehive> UserBeehives => Set<UserBeehive>();
     public DbSet<Inspection> Inspections => Set<Inspection>();
     public DbSet<Queen> Queens => Set<Queen>();
+    public DbSet<QueenEditLog> QueenEditLogs => Set<QueenEditLog>();
     public DbSet<Todo> Todos => Set<Todo>();
     public DbSet<Diet> Diets => Set<Diet>();
     public DbSet<FeedingEntry> FeedingEntries => Set<FeedingEntry>();
@@ -31,6 +32,8 @@ public class BeeHiveDbContext : DbContext
     public DbSet<TreatmentEntry> TreatmentEntries => Set<TreatmentEntry>();
     public DbSet<LearningTopic> LearningTopics => Set<LearningTopic>();
     public DbSet<LearningTopicRead> LearningTopicReads => Set<LearningTopicRead>();
+    public DbSet<Pasture> Pastures => Set<Pasture>();
+    public DbSet<ApiaryMove> ApiaryMoves => Set<ApiaryMove>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AdvisorConversation> AdvisorConversations => Set<AdvisorConversation>();

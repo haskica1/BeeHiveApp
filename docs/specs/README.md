@@ -26,6 +26,8 @@
 | 06 | [Learning Module](SPEC-06-learning.md) | Edukacija: sezonske teme za čitanje i slušanje | M | — | ✅ Implemented (2026-07-03) |
 | 07 | [Offline Inspections](SPEC-07-offline-inspections.md) | Unos pregleda bez signala — lokalni outbox + sinhronizacija | M/L | — | ✅ Implemented (2026-07-03) |
 | 08 | [Treatment Log](SPEC-08-treatments.md) | Zakonska evidencija tretmana (varoa i dr.): preparat, doza, LOT, karenca + PDF registar | M | — (02/04 soft) | ✅ Implemented (2026-07-03) |
+| 09 | [Plans & Billing](SPEC-09-plans-billing.md) | Paketi i naplata: Free/Pro po organizaciji, limiti + AI gating, ručna aktivacija (Paddle u fazi 2) | M/L | — (gejtuje 01) | 📋 Planned |
+| 10 | [Apiary Migration](SPEC-10-apiary-migration.md) | Pašnjaci i selidbe: registar pašnjaka, historija selidbi, prinos po pašnjaku | M | — | ✅ Implemented (2026-07-04) |
 
 **Recommended order = index order.** Rationale:
 
@@ -40,6 +42,10 @@
 - **SPEC-08** is independent CRUD like 02/03 and can be slotted anywhere (added later, not yet
   prioritized against 01–07); it feeds a harvest-form warning (02) and two alert rules (04),
   all soft dependencies in both directions.
+- **SPEC-09/10** were added 2026-07-03 and are **not yet prioritized** (against 05, the last
+  remaining roadmap item). 09 changes the business model — implement deliberately, not casually;
+  its v1 is manual billing (Stripe unavailable in BiH; Paddle in Phase 2). 10 is independent CRUD
+  whose one design pivot is the coordinate snapshot on move (keeps weather/alerts/map untouched).
 
 ## Conventions used in the specs
 

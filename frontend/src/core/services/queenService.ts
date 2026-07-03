@@ -1,9 +1,14 @@
 import apiClient from './apiClient'
-import type { Queen, CreateQueenPayload, UpdateQueenPayload } from '../models'
+import type { Queen, CreateQueenPayload, UpdateQueenPayload, QueenEditLog } from '../models'
 
 export const queenService = {
   getByBeehive: async (beehiveId: number): Promise<Queen[]> => {
     const res = await apiClient.get<Queen[]>(`/beehives/${beehiveId}/queens`)
+    return res.data
+  },
+
+  getEditHistory: async (queenId: number): Promise<QueenEditLog[]> => {
+    const res = await apiClient.get<QueenEditLog[]>(`/queens/${queenId}/history`)
     return res.data
   },
 

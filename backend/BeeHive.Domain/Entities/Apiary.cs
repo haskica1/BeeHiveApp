@@ -19,6 +19,10 @@ public class Apiary : BaseEntity
     public int OrganizationId { get; set; }
     public Organization Organization { get; set; } = null!;
 
+    /// <summary>Current pasture (SPEC-10); null = still on its original ("matična") location.</summary>
+    public int? CurrentPastureId { get; set; }
+    public Pasture? CurrentPasture { get; set; }
+
     public int? CreatedById { get; set; }
     public User? CreatedBy { get; set; }
 

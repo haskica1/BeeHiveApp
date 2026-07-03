@@ -270,6 +270,16 @@ export interface UpdateQueenPayload {
   notes?: string
 }
 
+/** One field-level correction made to a queen record. */
+export interface QueenEditLog {
+  id: number
+  fieldLabel: string
+  oldValue?: string
+  newValue?: string
+  editedAt: string
+  editedByName?: string
+}
+
 // ── Todo ──────────────────────────────────────────────────────────────────────
 
 export enum TodoPriority {
@@ -985,6 +995,51 @@ export interface GenerateDraftPayload {
 export interface LearningDraft {
   bodyMarkdown: string
   summary: string
+}
+
+// ── Pastures & apiary moves (SPEC-10) ───────────────────────────────────────────
+
+export interface Pasture {
+  id: number
+  name: string
+  latitude?: number | null
+  longitude?: number | null
+  address?: string | null
+  floraNotes?: string | null
+  notes?: string | null
+  apiariesOnPasture: number
+  createdAt: string
+}
+
+export interface SavePasturePayload {
+  name: string
+  latitude?: number | null
+  longitude?: number | null
+  address?: string | null
+  floraNotes?: string | null
+  notes?: string | null
+}
+
+export interface ApiaryMove {
+  id: number
+  apiaryId: number
+  fromPastureId?: number | null
+  /** Null = selidba s matične lokacije. */
+  fromPastureName?: string | null
+  toPastureId: number
+  toPastureName: string
+  movedAt: string
+  certificateNumber?: string | null
+  notes?: string | null
+  createdByName?: string | null
+  createdAt: string
+}
+
+export interface CreateApiaryMovePayload {
+  toPastureId: number
+  movedAt: string
+  certificateNumber?: string | null
+  notes?: string | null
 }
 
 // ── API Error shape ───────────────────────────────────────────────────────────

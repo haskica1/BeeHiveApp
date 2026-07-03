@@ -30,6 +30,7 @@ import TreatmentFormPage from './features/treatments/TreatmentFormPage'
 import LearningPage from './features/learning/LearningPage'
 import LearningTopicPage from './features/learning/LearningTopicPage'
 import OutboxPage from './features/offline/OutboxPage'
+import PasturesPage from './features/pastures/PasturesPage'
 import LearningTopicsAdminPage from './features/admin/LearningTopicsAdminPage'
 import LearningTopicFormPage from './features/admin/LearningTopicFormPage'
 import AdvisorPage from './features/advisor/AdvisorPage'
@@ -109,6 +110,9 @@ export default function App() {
 
               {/* Offline outbox (neposlani pregledi) — all authenticated users */}
               <Route path="outbox" element={<OutboxPage />} />
+
+              {/* Pastures (pašnjaci) — registry readable by all; write actions gated in-page + API */}
+              <Route path="pastures" element={<PasturesPage />} />
 
               {/* Members routes — OrgAdmin and Admin */}
               <Route element={<RoleRoute allowedRoles={MEMBER_MANAGERS} />}>
