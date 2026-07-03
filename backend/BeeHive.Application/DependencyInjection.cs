@@ -16,6 +16,7 @@ using BeeHive.Application.Features.Diets;
 using BeeHive.Application.Features.Expenses;
 using BeeHive.Application.Features.Harvests;
 using BeeHive.Application.Features.Inspections;
+using BeeHive.Application.Features.Learning;
 using BeeHive.Application.Features.Queens;
 using BeeHive.Application.Features.Todos;
 using BeeHive.Application.Features.Treatments;
@@ -58,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<IExpenseService, ExpenseService>();
         services.AddScoped<IHarvestService, HarvestService>();
         services.AddScoped<ITreatmentService, TreatmentService>();
+        services.AddScoped<ILearningTopicService, LearningTopicService>();
         services.AddScoped<IAdvisorService, AdvisorService>();
         services.AddScoped<IAlertRuleService, AlertRuleService>();
         services.AddSingleton<IQrCodeService, QrCodeService>();

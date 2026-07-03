@@ -110,6 +110,19 @@
 - UI: "AI Savjetnik" sidebar, `/advisor` (all roles), "Pitaj savjetnika" on hive detail, voice→transcript→review→send
 - `useVoiceInput` moved to `core/hooks/`. Covered by unit tests. See `docs/features/ai-advisor.md`.
 
+### Learning (Edukacija)
+- Platform-wide educational articles (SPEC-06): SystemAdmin authors, everyone reads once published
+- `/api/learning-topics` (published only, `isRead` per user, category/month filter) +
+  `/api/admin/learning-topics` (CRUD, publish toggle, AI draft via Groq — `ai-chat` rate limit)
+- `Months int[]` (Postgres) drives the "Aktuelno u {mjesecu}" section; null = evergreen
+- First publish → one **in-app** notification per user (`LearningTopicPublished`, batch, no email), exactly once
+- Read tracking: unique (TopicId, UserId), marked after ~5 s on the topic page, idempotent POST
+- UI: "Edukacija" nav (all users), `LearningPage` + `LearningTopicPage` (react-markdown, ADR-025;
+  **"Poslušaj"** TTS via `useSpeech` — bs→hr→sr voice pick, stops on navigation), admin list+form
+  with markdown preview and AI draft panel
+- Dev-only seed: 6 starter topics (`SeedLearningTopicsAsync`). Tests in `LearningTopicServiceTests`.
+  See `docs/features/learning.md`.
+
 ### Calendar & Stats
 - `GET /api/calendar` — role-scoped todos + feeding entries (Bosnian labels)
 - `GET /api/stats` — org-scoped (platform-wide for SystemAdmin): totals, distributions,

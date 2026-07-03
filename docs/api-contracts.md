@@ -170,6 +170,31 @@ The PDF register is generated client-side (jsPDF) — no PDF endpoint.
 
 ---
 
+### Learning topics (Edukacija)
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/learning-topics?category=&month=` | `LearningTopicSummaryDto[]` — **published only**, incl. per-caller `isRead` (one grouped query) |
+| GET | `/learning-topics/{id}` | `LearningTopicDetailDto` (published only, incl. `bodyMarkdown`) |
+| POST | `/learning-topics/{id}/read` | `204` — idempotent read marker for the current user |
+
+**Authoring (SystemAdmin only, `/api/admin/learning-topics`):**
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/admin/learning-topics` | `AdminLearningTopicDto[]` (incl. unpublished drafts) |
+| GET | `/admin/learning-topics/{id}` | `AdminLearningTopicDto` |
+| POST | `/admin/learning-topics` | `201 + AdminLearningTopicDto` (created as draft) |
+| PUT | `/admin/learning-topics/{id}` | `200 + AdminLearningTopicDto` |
+| DELETE | `/admin/learning-topics/{id}` | `204` (cascades read markers) |
+| PUT | `/admin/learning-topics/{id}/publish` | `{ isPublished }` → `200`; publish requires non-empty body; **first** publish broadcasts one in-app notification per user (`LearningTopicPublished`, no email) |
+| POST | `/admin/learning-topics/generate-draft` | `{ title, outline? }` → `{ bodyMarkdown, summary }` (Groq; `ai-chat` rate limit; never publishes) |
+
+**Save body:** `{ title, category, months?: int[]|null, summary, bodyMarkdown }` — `months` 1–12,
+null/empty = evergreen; drafts may have an empty body.
+
+---
+
 ### Todos
 
 | Method | Path | Returns |

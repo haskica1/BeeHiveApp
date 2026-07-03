@@ -168,6 +168,17 @@ public static class BsLabels
         _                          => s.ToString(),
     };
 
+    public static string Label(LearningCategory c) => c switch
+    {
+        LearningCategory.Osnove            => "Osnove",
+        LearningCategory.SezonskiRadovi    => "Sezonski radovi",
+        LearningCategory.BolestiINametnici => "Bolesti i nametnici",
+        LearningCategory.Oprema            => "Oprema",
+        LearningCategory.Propisi           => "Propisi",
+        LearningCategory.Napredno          => "Napredno",
+        _                                  => c.ToString(),
+    };
+
     private static readonly string[] MonthsShort =
         { "jan", "feb", "mar", "apr", "maj", "jun", "jul", "avg", "sep", "okt", "nov", "dec" };
 

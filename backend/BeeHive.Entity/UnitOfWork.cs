@@ -25,6 +25,7 @@ public class UnitOfWork : IUnitOfWork
     private IExpenseRepository? _expenses;
     private IHarvestRepository? _harvests;
     private ITreatmentRepository? _treatments;
+    private ILearningTopicRepository? _learningTopics;
     private INotificationRepository? _notifications;
     private IRefreshTokenRepository? _refreshTokens;
     private IAdvisorConversationRepository? _advisorConversations;
@@ -69,6 +70,9 @@ public class UnitOfWork : IUnitOfWork
 
     public ITreatmentRepository Treatments =>
         _treatments ??= new TreatmentRepository(_context);
+
+    public ILearningTopicRepository LearningTopics =>
+        _learningTopics ??= new LearningTopicRepository(_context);
 
     public INotificationRepository Notifications =>
         _notifications ??= new NotificationRepository(_context);

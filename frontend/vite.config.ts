@@ -38,6 +38,18 @@ export default defineConfig({
       }
     })
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Keep every precached file under workbox's 2 MiB per-file limit: the two heaviest
+        // libraries get their own vendor chunks instead of inflating the main bundle.
+        manualChunks: {
+          recharts: ['recharts'],
+          markdown: ['react-markdown'],
+        },
+      },
+    },
+  },
   server: {
     port: 5173,
     proxy: {

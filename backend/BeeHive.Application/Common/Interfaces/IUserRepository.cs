@@ -31,4 +31,7 @@ public interface IUserRepository : IRepository<User>
 
     /// <summary>User ids of the ApiaryAdmins assigned to the given apiary.</summary>
     Task<List<int>> GetApiaryAdminIdsAsync(int apiaryId);
+
+    /// <summary>Ids of every user on the platform — no entities loaded (SPEC-06 publish broadcast).</summary>
+    Task<List<int>> GetAllIdsAsync();
 }

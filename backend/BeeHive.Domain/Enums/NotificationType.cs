@@ -22,4 +22,7 @@ public enum NotificationType
     // ── Treatment register (SPEC-08) ──
     StripsLeftIn           = 15,
     KarencaEnded           = 16,
+
+    // ── Learning module (SPEC-06) — 15 was taken by SPEC-08, so 17 ──
+    LearningTopicPublished = 17,
 }

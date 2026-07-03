@@ -24,6 +24,8 @@ const TYPE_ICONS: Record<string, string> = {
   // Treatment register (SPEC-08)
   StripsLeftIn:            '💊',
   KarencaEnded:            '🍯',
+  // Learning module (SPEC-06)
+  LearningTopicPublished:  '🎓',
 }
 
 export default function NotificationBell() {

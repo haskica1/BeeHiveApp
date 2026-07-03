@@ -27,6 +27,10 @@ import HarvestsPage from './features/harvests/HarvestsPage'
 import HarvestFormPage from './features/harvests/HarvestFormPage'
 import TreatmentsPage from './features/treatments/TreatmentsPage'
 import TreatmentFormPage from './features/treatments/TreatmentFormPage'
+import LearningPage from './features/learning/LearningPage'
+import LearningTopicPage from './features/learning/LearningTopicPage'
+import LearningTopicsAdminPage from './features/admin/LearningTopicsAdminPage'
+import LearningTopicFormPage from './features/admin/LearningTopicFormPage'
 import AdvisorPage from './features/advisor/AdvisorPage'
 import SmartRedirect from './shared/components/SmartRedirect'
 import ScanPage from './features/beehives/ScanPage'
@@ -98,6 +102,10 @@ export default function App() {
               {/* AI Advisor — all authenticated users */}
               <Route path="advisor" element={<AdvisorPage />} />
 
+              {/* Learning (Edukacija) — all authenticated users */}
+              <Route path="learning"     element={<LearningPage />} />
+              <Route path="learning/:id" element={<LearningTopicPage />} />
+
               {/* Members routes — OrgAdmin and Admin */}
               <Route element={<RoleRoute allowedRoles={MEMBER_MANAGERS} />}>
                 <Route path="members"                        element={<MembersPage />} />
@@ -130,11 +138,14 @@ export default function App() {
 
               {/* Admin routes — SystemAdmin only */}
               <Route element={<AdminRoute />}>
-                <Route path="admin"                        element={<AdminDashboardPage />} />
-                <Route path="admin/organizations/new"      element={<OrganizationFormPage />} />
-                <Route path="admin/organizations/:id/edit" element={<OrganizationFormPage />} />
-                <Route path="admin/users/new"              element={<UserFormPage />} />
-                <Route path="admin/users/:id/edit"         element={<UserFormPage />} />
+                <Route path="admin"                             element={<AdminDashboardPage />} />
+                <Route path="admin/organizations/new"           element={<OrganizationFormPage />} />
+                <Route path="admin/organizations/:id/edit"      element={<OrganizationFormPage />} />
+                <Route path="admin/users/new"                   element={<UserFormPage />} />
+                <Route path="admin/users/:id/edit"              element={<UserFormPage />} />
+                <Route path="admin/learning-topics"             element={<LearningTopicsAdminPage />} />
+                <Route path="admin/learning-topics/new"         element={<LearningTopicFormPage />} />
+                <Route path="admin/learning-topics/:id/edit"    element={<LearningTopicFormPage />} />
               </Route>
             </Route>
           </Route>

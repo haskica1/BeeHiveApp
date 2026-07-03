@@ -915,6 +915,78 @@ export interface SendMessagePayload {
   message: string
 }
 
+// ── Learning module (SPEC-06) ───────────────────────────────────────────────────
+
+export enum LearningCategory {
+  Osnove            = 1,
+  SezonskiRadovi    = 2,
+  BolestiINametnici = 3,
+  Oprema            = 4,
+  Propisi           = 5,
+  Napredno          = 99,
+}
+
+export const LearningCategoryLabels: Record<LearningCategory, string> = {
+  [LearningCategory.Osnove]:            'Osnove',
+  [LearningCategory.SezonskiRadovi]:    'Sezonski radovi',
+  [LearningCategory.BolestiINametnici]: 'Bolesti i nametnici',
+  [LearningCategory.Oprema]:            'Oprema',
+  [LearningCategory.Propisi]:           'Propisi',
+  [LearningCategory.Napredno]:          'Napredno',
+}
+
+export const MonthLabels = [
+  'Januar', 'Februar', 'Mart', 'April', 'Maj', 'Juni',
+  'Juli', 'August', 'Septembar', 'Oktobar', 'Novembar', 'Decembar',
+] as const
+
+export interface LearningTopicSummary {
+  id: number
+  title: string
+  category: LearningCategory
+  categoryName: string
+  months?: number[] | null
+  summary: string
+  isRead: boolean
+  publishedAt?: string
+}
+
+export interface LearningTopicDetail extends LearningTopicSummary {
+  bodyMarkdown: string
+}
+
+export interface AdminLearningTopic {
+  id: number
+  title: string
+  category: LearningCategory
+  categoryName: string
+  months?: number[] | null
+  summary: string
+  bodyMarkdown: string
+  isPublished: boolean
+  publishedAt?: string
+  createdAt: string
+  updatedAt?: string
+}
+
+export interface SaveLearningTopicPayload {
+  title: string
+  category: LearningCategory
+  months?: number[] | null
+  summary: string
+  bodyMarkdown: string
+}
+
+export interface GenerateDraftPayload {
+  title: string
+  outline?: string | null
+}
+
+export interface LearningDraft {
+  bodyMarkdown: string
+  summary: string
+}
+
 // ── API Error shape ───────────────────────────────────────────────────────────
 
 export interface ApiError {

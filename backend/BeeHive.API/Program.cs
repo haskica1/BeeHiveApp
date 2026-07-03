@@ -254,6 +254,8 @@ using (var scope = app.Services.CreateScope())
     {
         // Demo accounts use well-known passwords committed to the (public) repo — dev only.
         await DatabaseInitializer.SeedUsersAsync(db);
+        // Starter learning topics (SPEC-06) — production content is authored by SystemAdmin.
+        await DatabaseInitializer.SeedLearningTopicsAsync(db);
     }
     else
     {

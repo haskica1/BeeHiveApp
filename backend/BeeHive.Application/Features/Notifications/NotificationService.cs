@@ -43,6 +43,30 @@ public class NotificationService : INotificationService
         _emailQueue.Enqueue(new QueuedEmail(userId, title, message));
     }
 
+    public async Task NotifyManyInAppAsync(
+        IReadOnlyCollection<int> userIds,
+        string title,
+        string message,
+        NotificationType type,
+        int? relatedEntityId = null,
+        string? relatedEntityType = null)
+    {
+        foreach (var userId in userIds.Distinct())
+        {
+            await _uow.Notifications.AddAsync(new Notification
+            {
+                UserId            = userId,
+                Title             = title,
+                Message           = message,
+                Type              = type,
+                RelatedEntityId   = relatedEntityId,
+                RelatedEntityType = relatedEntityType,
+            });
+        }
+
+        await _uow.SaveChangesAsync();
+    }
+
     public async Task<NotificationListDto> GetForUserAsync(int userId)
     {
         var notifications = await _uow.Notifications.GetByUserIdAsync(userId);

@@ -71,18 +71,26 @@ export default function AdminDashboardPage() {
                       bg-gradient-to-br from-honey-100 via-white to-honey-50
                       dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none">
         <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
-        <div className="relative p-5 sm:p-7 flex items-center gap-4">
-          <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
-            🌐
+        <div className="relative p-5 sm:p-7 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
+              🌐
+            </div>
+            <div className="min-w-0">
+              <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">
+                Sistemska kontrolna ploča
+              </h1>
+              <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">
+                Upravljajte svim organizacijama i korisnicima na platformi.
+              </p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">
-              Sistemska kontrolna ploča
-            </h1>
-            <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">
-              Upravljajte svim organizacijama i korisnicima na platformi.
-            </p>
-          </div>
+          <button
+            onClick={() => navigate('/admin/learning-topics')}
+            className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border border-honey-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-700 transition-colors"
+          >
+            🎓 Uredi edukaciju
+          </button>
         </div>
       </div>
 

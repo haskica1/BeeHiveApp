@@ -31,6 +31,7 @@ Domain terms used in BeeHive. Use these names exactly — in code, docs, and UI 
 | Karenca | `WithdrawalDays` / `KarencaUntil` | Withdrawal period — days after a treatment ends during which honey must not be extracted for human consumption. `karencaUntil = (endDate ?? startDate) + withdrawalDays`; many registered bee products have karenca 0. |
 | LOT broj | `BatchNumber` | The batch/serial number from the medicine packaging. Legally expected in the treatment register (traceability). |
 | Active Substance | `ActiveSubstance` | The medicine's active compound (Amitraz, Oksalna kiselina…). English enum, Bosnian labels via `BsLabels`. |
+| Learning Topic | `LearningTopic` | A platform-wide educational article (*Edukacija*), authored by SystemAdmin, markdown body, optionally tied to months (seasonal) — otherwise evergreen. |
 
 ---
 

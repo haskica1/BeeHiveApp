@@ -274,3 +274,25 @@ reuses `Groq:ApiKey`.
 **Alternatives considered:**
 - Duplicate the transcription code in the advisor — divergent prompts/behavior over time.
 - Call Groq directly from `AdvisorService` — untestable without hitting the network.
+
+---
+
+## ADR-025: `react-markdown` for Learning Article Rendering (SPEC-06)
+
+**Decision:** Learning-topic bodies are authored as markdown and rendered with **`react-markdown`**
+(the spec-flagged new dependency, approved with SPEC-06 implementation). No raw-HTML plugins
+(`rehype-raw` etc.) are added — react-markdown's default escaping renders `<script>` and any embedded
+HTML as inert text, which is the XSS guard for admin-authored content. Styling goes through a shared
+`MarkdownArticle` component (`features/learning/`) with Tailwind-styled element mappings, reused by the
+reader page and the admin preview. To keep the PWA precache working (workbox 2 MiB per-file limit),
+`react-markdown` and `recharts` are split into their own vendor chunks via `manualChunks` in
+`vite.config.ts`.
+
+**Why:** Markdown is the right authoring format for admin-written articles (headings, lists, tables),
+and hand-rolling a renderer is exactly the kind of parsing/XSS surface a maintained library eliminates.
+
+**Alternatives considered:**
+- `marked`/`markdown-it` + `dangerouslySetInnerHTML` — requires a separate sanitizer (DOMPurify) and
+  careless use is an XSS foot-gun; react-markdown renders to React elements, never raw HTML.
+- Tailwind `@tailwindcss/typography` plugin for styling — another dependency for what 15 element
+  mappings in one component already do.

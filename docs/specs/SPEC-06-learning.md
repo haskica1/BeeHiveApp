@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-03) |
 | **Effort** | M (~2 days) |
 | **Depends on** | nothing (Phase 2 AI drafting reuses `Groq:ApiKey`) |
 | **New packages** | `react-markdown` (frontend) — **flagged per house rule, approve before implementing** |
@@ -94,14 +94,17 @@ pre-recorded audio files; push notifications.
 
 ## Acceptance criteria
 
-- [ ] Topic for month 7 appears in "Aktuelno u julu" in July and not in the section in August
-      (unit-test the query filter; UI spot-check).
-- [ ] Unpublished topics: invisible on `/learning` and its API for non-SystemAdmin (guard test),
+- [x] Topic for month 7 appears in "Aktuelno u julu" in July and not in the section in August
+      (unit-test the query filter; UI spot-check). *(Filter forwarding unit-tested at the service
+      boundary — the tests project has no EF provider; the month predicate itself is the one-line
+      `Months.Contains` in `LearningTopicRepository`.)*
+- [x] Unpublished topics: invisible on `/learning` and its API for non-SystemAdmin (guard test),
       visible in admin list.
-- [ ] Read tracking: ✓ appears after reading, survives reload, idempotent double-POST.
-- [ ] Listen: starts/stops correctly, stops on navigation, doesn't crash when no BCS voice exists.
-- [ ] Markdown renders headings/lists/links; `<script>` in body renders inert as text.
-- [ ] Publish fires one in-app notification per active user, exactly once (re-publish toggle does
+- [x] Read tracking: ✓ appears after reading, survives reload, idempotent double-POST.
+- [x] Listen: starts/stops correctly, stops on navigation, doesn't crash when no BCS voice exists.
+- [x] Markdown renders headings/lists/links; `<script>` in body renders inert as text.
+- [x] Publish fires one in-app notification per active user, exactly once (re-publish toggle does
       not re-notify).
-- [ ] Docs updated: `features/learning.md`, `api-contracts.md`, `context.md` (+ package decision in
-      `decisions.md`), this spec → ✅.
+- [x] Docs updated: `features/learning.md`, `api-contracts.md`, `context.md` (+ package decision in
+      `decisions.md` ADR-025), this spec → ✅. `LearningTopicPublished` landed as enum **17**
+      (spec said 15, but SPEC-08 shipped first and took 15/16).

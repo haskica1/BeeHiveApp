@@ -98,4 +98,9 @@ public class UserRepository : Repository<User>, IUserRepository
             .Where(u => u.Role == UserRole.ApiaryAdmin && u.ApiaryId == apiaryId)
             .Select(u => u.Id)
             .ToListAsync();
+
+    public async Task<List<int>> GetAllIdsAsync() =>
+        await _context.Users
+            .Select(u => u.Id)
+            .ToListAsync();
 }
