@@ -1,4 +1,5 @@
-import { Droplets } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { ArrowRight, Droplets } from 'lucide-react'
 import { useHiveYield } from '../../core/services/harvestQueries'
 
 const fmtKg = (kg: number) => `${kg.toFixed(1).replace(/\.0$/, '')} kg`
@@ -38,6 +39,13 @@ export function HiveYieldCard({ beehiveId }: { beehiveId: number }) {
       {data.currentSeasonKg === 0 && prior.length === 0 && (
         <p className="mt-2 text-sm text-gray-400 dark:text-slate-500">Još nema zabilježenog vrcanja za ovu košnicu.</p>
       )}
+
+      <Link
+        to={`/harvests?beehiveId=${beehiveId}`}
+        className="mt-4 pt-3 border-t border-gray-100 dark:border-slate-800 flex items-center gap-1 text-sm font-medium text-honey-600 dark:text-honey-400 hover:underline"
+      >
+        Svi prinosi ove košnice <ArrowRight className="w-3.5 h-3.5" />
+      </Link>
     </div>
   )
 }

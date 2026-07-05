@@ -19,11 +19,16 @@ public class ApiaryMovesController : ControllerBase
 {
     private readonly IApiaryMoveService _service;
     private readonly IValidator<CreateApiaryMoveDto> _validator;
+    private readonly IValidator<SetHomeLocationDto> _homeLocationValidator;
 
-    public ApiaryMovesController(IApiaryMoveService service, IValidator<CreateApiaryMoveDto> validator)
+    public ApiaryMovesController(
+        IApiaryMoveService service,
+        IValidator<CreateApiaryMoveDto> validator,
+        IValidator<SetHomeLocationDto> homeLocationValidator)
     {
         _service = service;
         _validator = validator;
+        _homeLocationValidator = homeLocationValidator;
     }
 
     /// <summary>The apiary's move history, newest first.</summary>
@@ -62,6 +67,34 @@ public class ApiaryMovesController : ControllerBase
     public async Task<IActionResult> Delete(int apiaryId, int moveId)
     {
         await _service.DeleteAsync(apiaryId, moveId);
+        return NoContent();
+    }
+
+    /// <summary>Moves the apiary back to its matična lokacija using its captured Home coordinates.</summary>
+    [HttpPost("return-home")]
+    [Authorize(Roles = Roles.OrgManagers)]
+    [ProducesResponseType(typeof(ApiaryMoveDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ReturnHome(int apiaryId)
+    {
+        var created = await _service.ReturnHomeAsync(apiaryId);
+        return CreatedAtAction(nameof(GetAll), new { apiaryId }, created);
+    }
+
+    /// <summary>Declares/corrects the apiary's matična lokacija without recording a move.</summary>
+    [HttpPut("home-location")]
+    [Authorize(Roles = Roles.OrgManagers)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> SetHomeLocation(int apiaryId, [FromBody] SetHomeLocationDto dto)
+    {
+        var validation = await _homeLocationValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        await _service.SetHomeLocationAsync(apiaryId, dto.Latitude, dto.Longitude);
         return NoContent();
     }
 }

@@ -31,12 +31,12 @@ public class HarvestsController : ControllerBase
         _updateValidator = updateValidator;
     }
 
-    /// <summary>Returns role-scoped harvests, optionally filtered by apiary and/or year.</summary>
+    /// <summary>Returns role-scoped harvests, optionally filtered by apiary, hive, and/or year.</summary>
     [HttpGet]
     [ProducesResponseType(typeof(IEnumerable<HarvestDto>), StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAll([FromQuery] int? apiaryId, [FromQuery] int? year)
+    public async Task<IActionResult> GetAll([FromQuery] int? apiaryId, [FromQuery] int? beehiveId, [FromQuery] int? year)
     {
-        var harvests = await _service.GetAllAsync(apiaryId, year);
+        var harvests = await _service.GetAllAsync(apiaryId, beehiveId, year);
         return Ok(harvests);
     }
 

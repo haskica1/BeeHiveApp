@@ -23,6 +23,12 @@ public class ApiaryConfiguration : IEntityTypeConfiguration<Apiary>
         builder.Property(a => a.Longitude)
             .HasColumnType("double precision");
 
+        builder.Property(a => a.HomeLatitude)
+            .HasColumnType("double precision");
+
+        builder.Property(a => a.HomeLongitude)
+            .HasColumnType("double precision");
+
         builder.HasOne(a => a.CreatedBy)
             .WithMany()
             .HasForeignKey(a => a.CreatedById)

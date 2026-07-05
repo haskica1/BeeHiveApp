@@ -1,30 +1,44 @@
 import { useState } from 'react'
 import { format } from 'date-fns'
-import { ArrowRight, FileCheck2, Loader2, Tent, Trash2, Truck, X } from 'lucide-react'
+import { ArrowRight, FileCheck2, Home, Loader2, MapPin, Tent, Trash2, Truck, X } from 'lucide-react'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import { ConfirmDialog } from '../../shared/components'
+import LocationPickerModal from '../../shared/components/LocationPickerModal'
 import {
   useApiaryMoves,
   usePastures,
   useCreateApiaryMove,
   useDeleteApiaryMove,
+  useReturnHomeApiaryMove,
+  useSetHomeLocation,
 } from '../../core/services/pastureQueries'
 import type { ApiaryMove } from '../../core/models'
 import { useToast } from '../../core/context/ToastContext'
 
 const today = () => new Date().toISOString().split('T')[0]
 
-/** "Selidbe" section for the apiary detail page (SPEC-10) — history + the "Preseli" action. */
-export function ApiaryMovesSection({ apiaryId, canManage }: { apiaryId: number; canManage: boolean }) {
+interface ApiaryMovesSectionProps {
+  apiaryId: number
+  canManage: boolean
+  /** Whether the apiary's matična lokacija has been captured (may be unknown for pre-existing apiaries). */
+  hasHomeLocation: boolean
+}
+
+/** "Selidbe" section for the apiary detail page (SPEC-10) — history + "Preseli"/"Vrati na matičnu lokaciju". */
+export function ApiaryMovesSection({ apiaryId, canManage, hasHomeLocation }: ApiaryMovesSectionProps) {
   const { toast } = useToast()
   const { data: moves = [], isLoading } = useApiaryMoves(apiaryId)
   const deleteMove = useDeleteApiaryMove(apiaryId)
+  const returnHome = useReturnHomeApiaryMove(apiaryId)
+  const setHomeLocation = useSetHomeLocation(apiaryId)
 
   const [moveModalOpen, setMoveModalOpen] = useState(false)
+  const [homePickerOpen, setHomePickerOpen] = useState(false)
   const [confirmTarget, setConfirmTarget] = useState<ApiaryMove | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const latest = moves[0]
+  const isAway = latest != null && latest.toPastureId != null
 
   async function handleConfirmDelete() {
     if (!confirmTarget) return
@@ -40,6 +54,25 @@ export function ApiaryMovesSection({ apiaryId, canManage }: { apiaryId: number; 
     }
   }
 
+  async function handleReturnHome() {
+    try {
+      await returnHome.mutateAsync()
+      toast.success('Pčelinjak je vraćen na matičnu lokaciju.')
+    } catch (e: any) {
+      toast.error(e?.response?.data?.errors?.apiaryId?.[0] ?? e?.response?.data?.detail ?? 'Greška pri povratku na matičnu lokaciju.')
+    }
+  }
+
+  async function handleSetHomeLocation(lat: number, lng: number) {
+    try {
+      await setHomeLocation.mutateAsync({ latitude: lat, longitude: lng })
+      toast.success('Matična lokacija je postavljena.')
+      setHomePickerOpen(false)
+    } catch (e: any) {
+      toast.error(e?.response?.data?.detail ?? 'Greška pri postavljanju matične lokacije.')
+    }
+  }
+
   return (
     <CollapsibleSection
       title="Selidbe"
@@ -47,12 +80,33 @@ export function ApiaryMovesSection({ apiaryId, canManage }: { apiaryId: number; 
       count={moves.length}
       defaultOpen={false}
       action={canManage ? (
-        <button
-          onClick={() => setMoveModalOpen(true)}
-          className="inline-flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium"
-        >
-          <Truck className="w-3.5 h-3.5" /> Preseli
-        </button>
+        <div className="flex items-center gap-3">
+          {isAway && hasHomeLocation && (
+            <button
+              onClick={handleReturnHome}
+              disabled={returnHome.isPending}
+              className="inline-flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium disabled:opacity-60"
+            >
+              {returnHome.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Home className="w-3.5 h-3.5" />}
+              Vrati na matičnu lokaciju
+            </button>
+          )}
+          {isAway && !hasHomeLocation && (
+            <button
+              onClick={() => setHomePickerOpen(true)}
+              className="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-slate-400 hover:underline font-medium"
+              title="Matična lokacija nije poznata — postavite je da biste mogli koristiti 'Vrati na matičnu lokaciju'"
+            >
+              <MapPin className="w-3.5 h-3.5" /> Postavi matičnu lokaciju
+            </button>
+          )}
+          <button
+            onClick={() => setMoveModalOpen(true)}
+            className="inline-flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium"
+          >
+            <Truck className="w-3.5 h-3.5" /> Preseli
+          </button>
+        </div>
       ) : undefined}
     >
       {isLoading ? (
@@ -98,6 +152,13 @@ export function ApiaryMovesSection({ apiaryId, canManage }: { apiaryId: number; 
           apiaryId={apiaryId}
           currentPastureId={latest?.toPastureId ?? null}
           onClose={() => setMoveModalOpen(false)}
+        />
+      )}
+
+      {homePickerOpen && (
+        <LocationPickerModal
+          onConfirm={handleSetHomeLocation}
+          onClose={() => setHomePickerOpen(false)}
         />
       )}
 

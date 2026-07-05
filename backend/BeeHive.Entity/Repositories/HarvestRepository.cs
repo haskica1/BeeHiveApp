@@ -46,6 +46,17 @@ public class HarvestRepository : Repository<Harvest>, IHarvestRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Harvest>> GetByBeehiveAsync(int beehiveId) =>
+        await _context.Harvests
+            .AsNoTracking()
+            .Include(h => h.Entries)
+            .Include(h => h.Apiary)
+            .Include(h => h.CreatedBy)
+            .Where(h => h.Entries.Any(e => e.BeehiveId == beehiveId))
+            .OrderByDescending(h => h.Date)
+            .ThenByDescending(h => h.CreatedAt)
+            .ToListAsync();
+
     public async Task<Harvest?> GetWithEntriesAsync(int id) =>
         await _context.Harvests
             .Include(h => h.Entries)

@@ -83,7 +83,10 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60">
+    <div
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60"
+      onClick={e => e.stopPropagation()}
+    >
       <div
         className="relative flex flex-col w-full max-w-2xl mx-0 sm:mx-4 bg-white dark:bg-slate-900 rounded-t-2xl sm:rounded-2xl shadow-2xl overflow-hidden"
         style={{ height: '85dvh', maxHeight: 640 }}

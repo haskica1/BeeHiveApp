@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { format } from 'date-fns'
-import { Droplets, Loader2, PencilLine, Plus, Trash2 } from 'lucide-react'
+import { Droplets, Loader2, PencilLine, Plus, Trash2, X } from 'lucide-react'
 import { useHarvests, useDeleteHarvest } from '../../core/services/harvestQueries'
 import { HoneyTypeLabels } from '../../core/models'
 import type { Harvest } from '../../core/models'
@@ -21,8 +21,11 @@ export default function HarvestsPage() {
   const { canEditDelete } = usePermissions()
   const { toast } = useToast()
 
+  const [searchParams, setSearchParams] = useSearchParams()
+  const beehiveId = Number(searchParams.get('beehiveId')) || undefined
+
   const [year, setYear] = useState<number>(CURRENT_YEAR)
-  const { data: harvests = [], isLoading } = useHarvests({ year })
+  const { data: harvests = [], isLoading } = useHarvests({ year, beehiveId })
   const deleteHarvest = useDeleteHarvest()
 
   const [confirmTarget, setConfirmTarget] = useState<Harvest | null>(null)
@@ -99,6 +102,19 @@ export default function HarvestsPage() {
           </div>
         </div>
       </div>
+
+      {beehiveId && (
+        <div className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-honey-50 dark:bg-slate-800/60 border border-honey-200 dark:border-slate-700 text-sm text-gray-700 dark:text-slate-200">
+          <Droplets className="w-4 h-4 text-honey-600 dark:text-honey-400 shrink-0" />
+          Prikazan je prinos jedne košnice.
+          <button
+            onClick={() => setSearchParams({}, { replace: true })}
+            className="ml-auto flex items-center gap-1 text-xs font-medium text-honey-700 dark:text-honey-300 hover:underline"
+          >
+            <X className="w-3.5 h-3.5" /> Prikaži sve
+          </button>
+        </div>
+      )}
 
       {isLoading && <VitalsSkeleton />}
 

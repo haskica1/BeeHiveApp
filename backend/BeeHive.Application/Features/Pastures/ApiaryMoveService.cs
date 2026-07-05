@@ -124,6 +124,62 @@ public class ApiaryMoveService : IApiaryMoveService
         await _uow.SaveChangesAsync();
     }
 
+    public async Task<ApiaryMoveDto> ReturnHomeAsync(int apiaryId)
+    {
+        var apiary = await _uow.Apiaries.GetByIdAsync(apiaryId)
+            ?? throw new NotFoundException(nameof(Apiary), apiaryId);
+
+        _access.EnsureInOrganization(apiary.OrganizationId);
+
+        if (apiary.HomeLatitude is not double homeLat || apiary.HomeLongitude is not double homeLon)
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["apiaryId"] = ["Matična lokacija nije postavljena za ovaj pčelinjak."]
+            });
+
+        if (apiary.CurrentPastureId is null)
+            throw new ValidationException(new Dictionary<string, string[]>
+            {
+                ["apiaryId"] = ["Pčelinjak je već na matičnoj lokaciji."]
+            });
+
+        var move = new ApiaryMove
+        {
+            ApiaryId      = apiary.Id,
+            FromPastureId = apiary.CurrentPastureId, // server-side — never from the client
+            ToPastureId   = null,                    // returning to the matična lokacija
+            MovedAt       = DateTime.UtcNow,
+            CreatedById   = _currentUser.UserId,
+        };
+
+        apiary.Latitude         = homeLat;
+        apiary.Longitude        = homeLon;
+        apiary.CurrentPastureId = null;
+        apiary.UpdatedAt        = DateTime.UtcNow;
+
+        await _uow.ApiaryMoves.AddAsync(move);
+        await _uow.Apiaries.UpdateAsync(apiary);
+        await _uow.SaveChangesAsync();
+
+        var saved = await _uow.ApiaryMoves.GetByApiaryAsync(apiaryId);
+        return ToDto(saved.First(m => m.Id == move.Id));
+    }
+
+    public async Task SetHomeLocationAsync(int apiaryId, double latitude, double longitude)
+    {
+        var apiary = await _uow.Apiaries.GetByIdAsync(apiaryId)
+            ?? throw new NotFoundException(nameof(Apiary), apiaryId);
+
+        _access.EnsureInOrganization(apiary.OrganizationId);
+
+        apiary.HomeLatitude  = latitude;
+        apiary.HomeLongitude = longitude;
+        apiary.UpdatedAt     = DateTime.UtcNow;
+
+        await _uow.Apiaries.UpdateAsync(apiary);
+        await _uow.SaveChangesAsync();
+    }
+
     // ── Helpers ──────────────────────────────────────────────────────────────────
 
     /// <summary>Copies the pasture's coordinates onto the apiary when the pasture has both set.</summary>
@@ -147,7 +203,7 @@ public class ApiaryMoveService : IApiaryMoveService
         FromPastureId     = m.FromPastureId,
         FromPastureName   = m.FromPasture?.Name,
         ToPastureId       = m.ToPastureId,
-        ToPastureName     = m.ToPasture?.Name ?? $"Pašnjak {m.ToPastureId}",
+        ToPastureName     = m.ToPasture?.Name ?? (m.ToPastureId is null ? "Matična lokacija" : $"Pašnjak {m.ToPastureId}"),
         MovedAt           = m.MovedAt,
         CertificateNumber = m.CertificateNumber,
         Notes             = m.Notes,

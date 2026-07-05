@@ -26,10 +26,18 @@ public class HarvestService : IHarvestService
         _currentUser = currentUser;
     }
 
-    public async Task<IEnumerable<HarvestDto>> GetAllAsync(int? apiaryId, int? year)
+    public async Task<IEnumerable<HarvestDto>> GetAllAsync(int? apiaryId, int? beehiveId, int? year)
     {
         if (_currentUser.Role == UserRole.Beekeeper)
-            return await GetForBeekeeperAsync(apiaryId, year);
+            return await GetForBeekeeperAsync(apiaryId, beehiveId, year);
+
+        if (beehiveId is int bid)
+        {
+            await _access.EnsureCanAccessBeehiveAsync(bid);
+            return (await _uow.Harvests.GetByBeehiveAsync(bid))
+                .Where(h => year == null || h.Date.Year == year)
+                .Select(ToListDto);
+        }
 
         if (apiaryId is int aid)
         {
@@ -48,27 +56,35 @@ public class HarvestService : IHarvestService
         };
     }
 
-    private async Task<IEnumerable<HarvestDto>> GetForBeekeeperAsync(int? apiaryId, int? year)
+    private async Task<IEnumerable<HarvestDto>> GetForBeekeeperAsync(int? apiaryId, int? beehiveId, int? year)
     {
         var hiveIds = await _access.GetAssignedBeehiveIdsAsync();
         if (hiveIds.Count == 0) return [];
 
         var apiaryIds = await _access.GetAssignedApiaryIdsAsync();
 
-        var harvests = new List<Harvest>();
-        if (apiaryId is int aid)
+        IEnumerable<Harvest> harvests;
+        if (beehiveId is int bid)
+        {
+            if (!hiveIds.Contains(bid)) throw new ForbiddenAccessException();
+            harvests = await _uow.Harvests.GetByBeehiveAsync(bid);
+        }
+        else if (apiaryId is int aid)
         {
             if (!apiaryIds.Contains(aid)) throw new ForbiddenAccessException();
-            harvests.AddRange(await _uow.Harvests.GetByApiaryAsync(aid, year));
+            harvests = await _uow.Harvests.GetByApiaryAsync(aid, year);
         }
         else
         {
+            var all = new List<Harvest>();
             foreach (var ap in apiaryIds)
-                harvests.AddRange(await _uow.Harvests.GetByApiaryAsync(ap, year));
+                all.AddRange(await _uow.Harvests.GetByApiaryAsync(ap, year));
+            harvests = all;
         }
 
         // Only harvests that include at least one of the beekeeper's hives (whole harvest visible).
         return harvests
+            .Where(h => year == null || h.Date.Year == year)
             .Where(h => h.Entries.Any(e => hiveIds.Contains(e.BeehiveId)))
             .Select(ToListDto);
     }

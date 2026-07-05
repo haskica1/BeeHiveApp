@@ -8,7 +8,7 @@ namespace BeeHive.Application.Tests;
 /// the apiary was on at harvest date (same-day move → the new pasture; nothing before → null).</summary>
 public class PastureAttributionTests
 {
-    private static ApiaryMove Move(int id, int toPastureId, string movedAt, string? createdAt = null) => new()
+    private static ApiaryMove Move(int id, int? toPastureId, string movedAt, string? createdAt = null) => new()
     {
         Id = id,
         ApiaryId = 1,
@@ -54,4 +54,16 @@ public class PastureAttributionTests
     [Fact]
     public void NoMoves_ReturnsNull() =>
         Assert.Null(PastureAttribution.ResolveToPastureId([], DateTime.Parse("2026-06-16")));
+
+    [Fact]
+    public void AfterReturnHome_ReturnsNull_MaticnaLokacija()
+    {
+        var moves = new List<ApiaryMove>
+        {
+            Move(1, toPastureId: 10, movedAt: "2026-04-01"),
+            Move(2, toPastureId: null, movedAt: "2026-07-01"), // returned to matična lokacija
+        };
+
+        Assert.Null(PastureAttribution.ResolveToPastureId(moves, DateTime.Parse("2026-08-01")));
+    }
 }

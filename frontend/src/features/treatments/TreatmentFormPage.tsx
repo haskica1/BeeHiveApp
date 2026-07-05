@@ -9,7 +9,7 @@ import {
   ApplicationMethod, ApplicationMethodLabels,
 } from '../../core/models'
 import type { CreateTreatmentEntryPayload } from '../../core/models'
-import { FormHeader } from '../../shared/components'
+import { ConfirmDialog, FormHeader } from '../../shared/components'
 import { useToast } from '../../core/context/ToastContext'
 import { TREATMENT_PRESETS } from './presets'
 
@@ -23,6 +23,21 @@ const maxStart = () => {
   const d = new Date()
   d.setDate(d.getDate() + 1)
   return d.toISOString().split('T')[0]
+}
+
+interface TreatmentCommonPayload {
+  purpose: TreatmentPurpose
+  productName: string
+  activeSubstance: ActiveSubstance
+  method: ApplicationMethod
+  dosePerHive: string
+  startDate: string
+  endDate: string | null
+  withdrawalDays: number
+  batchNumber: string | null
+  supplier: string | null
+  notes: string | null
+  entries: CreateTreatmentEntryPayload[]
 }
 
 export default function TreatmentFormPage() {
@@ -54,6 +69,7 @@ export default function TreatmentFormPage() {
   const [doseNotes, setDoseNotes] = useState<Record<number, string>>({})
   const [presetIdx, setPresetIdx] = useState<string>('')
   const [formError, setFormError] = useState<string | null>(null)
+  const [pendingSave, setPendingSave] = useState<TreatmentCommonPayload | null>(null)
 
   const { data: hives = [], isLoading: loadingHives } = useBeehivesByApiary(apiaryId)
 
@@ -121,34 +137,7 @@ export default function TreatmentFormPage() {
       }))
   }
 
-  async function onSubmit(e: React.FormEvent) {
-    e.preventDefault()
-    setFormError(null)
-
-    if (!apiaryId) { setFormError('Odaberite pčelinjak.'); return }
-    if (!productName.trim()) { setFormError('Unesite naziv preparata.'); return }
-    if (!dosePerHive.trim()) { setFormError('Unesite dozu po košnici.'); return }
-    const entries = buildEntries()
-    if (entries.length === 0) { setFormError('Označite barem jednu košnicu.'); return }
-    if (endDate && endDate < startDate) { setFormError('Kraj tretmana ne može biti prije početka.'); return }
-    const karenca = parseInt(withdrawalDays)
-    if (isNaN(karenca) || karenca < 0 || karenca > 365) { setFormError('Karenca mora biti između 0 i 365 dana.'); return }
-
-    const common = {
-      purpose,
-      productName: productName.trim(),
-      activeSubstance: substance,
-      method,
-      dosePerHive: dosePerHive.trim(),
-      startDate,
-      endDate: endDate || null,
-      withdrawalDays: karenca,
-      batchNumber: batchNumber.trim() || null,
-      supplier: supplier.trim() || null,
-      notes: notes.trim() || null,
-      entries,
-    }
-
+  async function performSave(common: TreatmentCommonPayload) {
     try {
       if (isEdit && treatmentId) {
         await updateTreatment.mutateAsync(common)
@@ -164,6 +153,43 @@ export default function TreatmentFormPage() {
         ?? 'Greška pri čuvanju tretmana. Provjerite podatke i pokušajte ponovo.'
       setFormError(detail)
     }
+  }
+
+  function onSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setFormError(null)
+
+    if (!apiaryId) { setFormError('Odaberite pčelinjak.'); return }
+    if (!productName.trim()) { setFormError('Unesite naziv preparata.'); return }
+    if (!dosePerHive.trim()) { setFormError('Unesite dozu po košnici.'); return }
+    const entries = buildEntries()
+    if (entries.length === 0) { setFormError('Označite barem jednu košnicu.'); return }
+    if (endDate && endDate < startDate) { setFormError('Kraj tretmana ne može biti prije početka.'); return }
+    const karenca = parseInt(withdrawalDays)
+    if (isNaN(karenca) || karenca < 0 || karenca > 365) { setFormError('Karenca mora biti između 0 i 365 dana.'); return }
+
+    const common: TreatmentCommonPayload = {
+      purpose,
+      productName: productName.trim(),
+      activeSubstance: substance,
+      method,
+      dosePerHive: dosePerHive.trim(),
+      startDate,
+      endDate: endDate || null,
+      withdrawalDays: karenca,
+      batchNumber: batchNumber.trim() || null,
+      supplier: supplier.trim() || null,
+      notes: notes.trim() || null,
+      entries,
+    }
+
+    // Soft warning (not a hard block) for a start date from a prior calendar year — catches an
+    // accidental wrong-year date-picker slip without blocking legitimate late/backfilled entries.
+    if (Number(startDate.slice(0, 4)) < new Date().getFullYear()) {
+      setPendingSave(common)
+      return
+    }
+    performSave(common)
   }
 
   if (isEdit && loadingExisting) {
@@ -356,6 +382,9 @@ export default function TreatmentFormPage() {
                 <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
                   Odabrano: {selectedCount} od {hives.length}. Odstupanje unesite samo ako se doza razlikuje od navedene.
                 </p>
+                {selectedCount === 0 && (
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">Odaberite barem jednu košnicu da biste sačuvali tretman.</p>
+                )}
               </>
             )}
           </div>
@@ -365,13 +394,25 @@ export default function TreatmentFormPage() {
             <button type="button" onClick={() => navigate('/treatments')} className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
               Otkaži
             </button>
-            <button type="submit" disabled={isSaving} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors">
+            <button type="submit" disabled={isSaving || selectedCount === 0} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {isEdit ? 'Spremi promjene' : 'Sačuvaj tretman'}
             </button>
           </div>
         </form>
       </div>
+
+      <ConfirmDialog
+        isOpen={!!pendingSave}
+        title="Datum iz prošle godine"
+        message={pendingSave
+          ? `Datum početka tretmana je ${pendingSave.startDate.split('-').reverse().join('.')}. — iz ${pendingSave.startDate.slice(0, 4)}. godine. Je li ovo namjerno?`
+          : ''}
+        confirmLabel="Da, sačuvaj"
+        onConfirm={() => { const p = pendingSave; setPendingSave(null); if (p) performSave(p) }}
+        onCancel={() => setPendingSave(null)}
+        isLoading={isSaving}
+      />
     </div>
   )
 }

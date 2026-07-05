@@ -9,6 +9,7 @@ import type {
 
 export interface HarvestFilters {
   apiaryId?: number
+  beehiveId?: number
   year?: number
 }
 

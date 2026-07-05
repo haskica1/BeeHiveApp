@@ -58,6 +58,9 @@ export interface Apiary {
   latitude?: number
   longitude?: number
   hasLocation: boolean
+  homeLatitude?: number
+  homeLongitude?: number
+  hasHomeLocation: boolean
   beehiveCount: number
   createdByName?: string
   createdAt: string
@@ -1026,7 +1029,8 @@ export interface ApiaryMove {
   fromPastureId?: number | null
   /** Null = selidba s matične lokacije. */
   fromPastureName?: string | null
-  toPastureId: number
+  /** Null = ova selidba je vratila pčelinjak na matičnu lokaciju. */
+  toPastureId: number | null
   toPastureName: string
   movedAt: string
   certificateNumber?: string | null

@@ -252,6 +252,9 @@ export default function HarvestFormPage() {
                   ))}
                 </div>
                 <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">Ostavite prazno za košnice koje nisu vrcane.</p>
+                {totalKg <= 0 && (
+                  <p className="text-xs text-red-500 dark:text-red-400 mt-1">Unesite količinu meda za barem jednu košnicu da biste sačuvali.</p>
+                )}
               </>
             )}
           </div>
@@ -267,7 +270,7 @@ export default function HarvestFormPage() {
             <button type="button" onClick={() => navigate('/harvests')} className="flex-1 px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors">
               Otkaži
             </button>
-            <button type="submit" disabled={isSaving} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors">
+            <button type="submit" disabled={isSaving || totalKg <= 0} className="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold disabled:opacity-60 transition-colors">
               {isSaving && <Loader2 className="w-4 h-4 animate-spin" />}
               {isEdit ? 'Spremi promjene' : 'Sačuvaj vrcanje'}
             </button>

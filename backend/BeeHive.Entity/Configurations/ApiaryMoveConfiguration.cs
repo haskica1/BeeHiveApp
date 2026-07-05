@@ -26,10 +26,12 @@ public class ApiaryMoveConfiguration : IEntityTypeConfiguration<ApiaryMove>
             .IsRequired(false);
 
         // History is the point of the feature — a referenced pasture must not disappear.
+        // Nullable: null ToPastureId = moved back to the matična lokacija (no pasture).
         builder.HasOne(m => m.ToPasture)
             .WithMany()
             .HasForeignKey(m => m.ToPastureId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.Restrict)
+            .IsRequired(false);
 
         builder.HasOne(m => m.CreatedBy)
             .WithMany()

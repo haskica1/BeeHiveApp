@@ -226,12 +226,12 @@ export function QueenSection({ beehiveId, canManage }: { beehiveId: number; canM
           </div>
 
           {canManage && (
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => openEdit(active)} className="btn-secondary text-sm flex-1">
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={() => openEdit(active)} className="btn-secondary text-sm">
                 <Pencil className="w-4 h-4" /> Uredi
               </button>
-              <button onClick={openCreate} className="btn-secondary text-sm flex-1">
-                <RefreshCw className="w-4 h-4" /> Zamijeni maticu
+              <button onClick={openCreate} className="btn-secondary text-sm">
+                <RefreshCw className="w-4 h-4" /> Zamijeni
               </button>
             </div>
           )}

@@ -260,15 +260,6 @@ export default function BeehiveDetailPage() {
 
         {/* Sidebar */}
         <div className="lg:col-span-5 xl:col-span-4 space-y-6">
-          {/* Queen (matica) */}
-          <QueenSection beehiveId={beehiveId} canManage={canManageThisHive} />
-
-          {/* Honey yield (prinos) */}
-          <HiveYieldCard beehiveId={beehiveId} />
-
-          {/* Treatments (tretmani) */}
-          <HiveTreatmentCard beehiveId={beehiveId} />
-
           {/* Hive details — always visible */}
           <div className="card">
             <div className="flex items-center gap-2 mb-4">
@@ -304,6 +295,15 @@ export default function BeehiveDetailPage() {
               </p>
             )}
           </div>
+
+          {/* Queen (matica) */}
+          <QueenSection beehiveId={beehiveId} canManage={canManageThisHive} />
+
+          {/* Honey yield (prinos) */}
+          <HiveYieldCard beehiveId={beehiveId} />
+
+          {/* Treatments (tretmani) */}
+          <HiveTreatmentCard beehiveId={beehiveId} />
 
         </div>
       </div>

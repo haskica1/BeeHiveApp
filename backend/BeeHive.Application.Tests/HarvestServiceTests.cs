@@ -54,7 +54,7 @@ public class HarvestServiceTests
         _uow.Harvests.GetByApiaryAsync(ApiaryId, Arg.Any<int?>())
             .Returns(new[] { HarvestWith(1, 5, 6), HarvestWith(2, 8, 9) }); // only #1 has hive 5
 
-        var result = (await Service(user).GetAllAsync(null, null)).ToList();
+        var result = (await Service(user).GetAllAsync(null, null, null)).ToList();
 
         Assert.Single(result);
         Assert.Equal(1, result[0].Id);
@@ -66,7 +66,7 @@ public class HarvestServiceTests
         var user = new TestCurrentUser { UserId = 7, Role = UserRole.Beekeeper, OrganizationId = 1 };
         _access.GetAssignedBeehiveIdsAsync().Returns(new HashSet<int>());
 
-        var result = await Service(user).GetAllAsync(null, null);
+        var result = await Service(user).GetAllAsync(null, null, null);
 
         Assert.Empty(result);
     }

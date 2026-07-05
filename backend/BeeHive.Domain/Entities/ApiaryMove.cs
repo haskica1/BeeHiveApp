@@ -15,8 +15,9 @@ public class ApiaryMove : BaseEntity
     public int? FromPastureId { get; set; }
     public Pasture? FromPasture { get; set; }
 
-    public int ToPastureId { get; set; }
-    public Pasture ToPasture { get; set; } = null!;
+    /// <summary>Null = moved back to the apiary's original ("matična") location.</summary>
+    public int? ToPastureId { get; set; }
+    public Pasture? ToPasture { get; set; }
 
     public DateTime MovedAt { get; set; }
 

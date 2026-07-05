@@ -96,6 +96,9 @@ public class ApiaryService : IApiaryService
         var apiary = _mapper.Map<Apiary>(dto);
         apiary.OrganizationId = organizationId;
         apiary.CreatedById = _currentUser.UserId;
+        // A brand-new apiary is always at its matična lokacija — capture it as Home immediately.
+        apiary.HomeLatitude = dto.Latitude;
+        apiary.HomeLongitude = dto.Longitude;
         await _uow.Apiaries.AddAsync(apiary);
         await _uow.SaveChangesAsync();
         // Reload to get CreatedBy nav property
@@ -112,6 +115,13 @@ public class ApiaryService : IApiaryService
         _access.EnsureCanManageApiary(apiary.Id, apiary.OrganizationId);
 
         _mapper.Map(dto, apiary);
+        // While at the matična lokacija (no pasture), the location field IS the home location —
+        // keep Home mirrored. While away, editing the current position must not overwrite Home.
+        if (apiary.CurrentPastureId is null)
+        {
+            apiary.HomeLatitude = apiary.Latitude;
+            apiary.HomeLongitude = apiary.Longitude;
+        }
         apiary.UpdatedAt = DateTime.UtcNow;
 
         await _uow.Apiaries.UpdateAsync(apiary);

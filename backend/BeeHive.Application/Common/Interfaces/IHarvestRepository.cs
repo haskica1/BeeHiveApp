@@ -14,6 +14,9 @@ public interface IHarvestRepository : IRepository<Harvest>
     /// <summary>All harvests across a set of apiaries (with entries + apiary), newest first — used by stats.</summary>
     Task<IEnumerable<Harvest>> GetByApiariesAsync(IReadOnlyCollection<int> apiaryIds, int? year = null);
 
+    /// <summary>All harvests that include a given hive, newest first; entries + apiary loaded.</summary>
+    Task<IEnumerable<Harvest>> GetByBeehiveAsync(int beehiveId);
+
     /// <summary>A single harvest with its entries (incl. beehive names) and apiary eagerly loaded.</summary>
     Task<Harvest?> GetWithEntriesAsync(int id);
 

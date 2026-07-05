@@ -71,3 +71,24 @@ export const useDeleteApiaryMove = (apiaryId: number) => {
     },
   })
 }
+
+export const useReturnHomeApiaryMove = (apiaryId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => pastureService.returnHome(apiaryId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: pastureQueryKeys.moves(apiaryId) })
+      qc.invalidateQueries({ queryKey: pastureQueryKeys.all })
+      qc.invalidateQueries({ queryKey: ['apiaries'] })
+    },
+  })
+}
+
+export const useSetHomeLocation = (apiaryId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: ({ latitude, longitude }: { latitude: number; longitude: number }) =>
+      pastureService.setHomeLocation(apiaryId, latitude, longitude),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['apiaries'] }),
+  })
+}

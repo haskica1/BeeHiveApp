@@ -20,10 +20,13 @@ public class ApiaryMoveServiceTests
     private ApiaryMoveService Service() =>
         new(_uow, new TestCurrentUser { UserId = 1, Role = UserRole.OrganizationAdmin, OrganizationId = 1 }, _access);
 
-    private static Apiary Apiary(int? currentPastureId = null, double? lat = 10, double? lon = 20) => new()
+    private static Apiary Apiary(
+        int? currentPastureId = null, double? lat = 10, double? lon = 20,
+        double? homeLat = null, double? homeLon = null) => new()
     {
         Id = 1, Name = "Pčelinjak Sjever", OrganizationId = 1,
         CurrentPastureId = currentPastureId, Latitude = lat, Longitude = lon,
+        HomeLatitude = homeLat, HomeLongitude = homeLon,
     };
 
     private static Pasture Pasture(int id, int orgId = 1, double? lat = 44.2, double? lon = 17.9) => new()
@@ -161,5 +164,65 @@ public class ApiaryMoveServiceTests
         Assert.Null(apiary.CurrentPastureId);
         Assert.Equal(44.2, apiary.Latitude);          // matična lokacija was never stored — kept as-is
         Assert.Equal(17.9, apiary.Longitude);
+    }
+
+    // ── Return home ──────────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task ReturnHome_RestoresHomeCoordinates_AndRecordsNullTargetMove()
+    {
+        var apiary = Apiary(currentPastureId: 7, lat: 44.2, lon: 17.9, homeLat: 10, homeLon: 20);
+        _uow.Apiaries.GetByIdAsync(1).Returns(apiary);
+
+        ApiaryMove? added = null;
+        _uow.ApiaryMoves.AddAsync(Arg.Do<ApiaryMove>(m => added = m)).Returns(ci => ci.Arg<ApiaryMove>());
+        _uow.ApiaryMoves.GetByApiaryAsync(1).Returns(_ => [added!]);
+
+        var dto = await Service().ReturnHomeAsync(1);
+
+        Assert.Equal(7, added!.FromPastureId);
+        Assert.Null(added.ToPastureId);
+        Assert.Null(apiary.CurrentPastureId);
+        Assert.Equal(10, apiary.Latitude);
+        Assert.Equal(20, apiary.Longitude);
+        Assert.Null(dto.ToPastureId);
+        Assert.Equal("Matična lokacija", dto.ToPastureName);
+        await _uow.Received(1).SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task ReturnHome_WithoutKnownHomeLocation_ThrowsValidation_NothingSaved()
+    {
+        _uow.Apiaries.GetByIdAsync(1).Returns(Apiary(currentPastureId: 7, homeLat: null, homeLon: null));
+
+        await Assert.ThrowsAsync<ValidationException>(() => Service().ReturnHomeAsync(1));
+        await _uow.DidNotReceive().SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task ReturnHome_WhenAlreadyAtHome_ThrowsValidation()
+    {
+        _uow.Apiaries.GetByIdAsync(1).Returns(Apiary(currentPastureId: null, homeLat: 10, homeLon: 20));
+
+        await Assert.ThrowsAsync<ValidationException>(() => Service().ReturnHomeAsync(1));
+        await _uow.DidNotReceive().SaveChangesAsync();
+    }
+
+    // ── Set home location ────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task SetHomeLocation_UpdatesHomeOnly_CurrentPositionAndPastureUntouched()
+    {
+        var apiary = Apiary(currentPastureId: 7, lat: 44.2, lon: 17.9, homeLat: null, homeLon: null);
+        _uow.Apiaries.GetByIdAsync(1).Returns(apiary);
+
+        await Service().SetHomeLocationAsync(1, 10, 20);
+
+        Assert.Equal(10, apiary.HomeLatitude);
+        Assert.Equal(20, apiary.HomeLongitude);
+        Assert.Equal(7, apiary.CurrentPastureId);     // away-ness untouched
+        Assert.Equal(44.2, apiary.Latitude);          // current (pasture) position untouched
+        Assert.Equal(17.9, apiary.Longitude);
+        await _uow.Received(1).SaveChangesAsync();
     }
 }

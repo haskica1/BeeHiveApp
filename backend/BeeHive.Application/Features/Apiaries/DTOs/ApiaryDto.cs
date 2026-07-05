@@ -9,6 +9,9 @@ public class ApiaryDto
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
     public bool HasLocation => Latitude.HasValue && Longitude.HasValue;
+    public double? HomeLatitude { get; set; }
+    public double? HomeLongitude { get; set; }
+    public bool HasHomeLocation => HomeLatitude.HasValue && HomeLongitude.HasValue;
     public int BeehiveCount { get; set; }
     public string? CreatedByName { get; set; }
     public DateTime CreatedAt { get; set; }

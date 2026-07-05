@@ -41,4 +41,13 @@ export const pastureService = {
   async removeMove(apiaryId: number, moveId: number): Promise<void> {
     await apiClient.delete(`/apiaries/${apiaryId}/moves/${moveId}`)
   },
+
+  async returnHome(apiaryId: number): Promise<ApiaryMove> {
+    const { data } = await apiClient.post<ApiaryMove>(`/apiaries/${apiaryId}/moves/return-home`)
+    return data
+  },
+
+  async setHomeLocation(apiaryId: number, latitude: number, longitude: number): Promise<void> {
+    await apiClient.put(`/apiaries/${apiaryId}/moves/home-location`, { latitude, longitude })
+  },
 }

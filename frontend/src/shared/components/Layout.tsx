@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
-import { BarChart2, Bot, CalendarDays, CloudOff, Droplets, GraduationCap, Home, LayoutDashboard, LogOut, Menu, Moon, Pill, QrCode, ReceiptText, Search, Settings, Sun, Tent, Users, X } from 'lucide-react'
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
+import { ArrowLeft, CloudOff, LogOut, Menu, Moon, QrCode, Search, Settings, Sun, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
@@ -10,6 +10,10 @@ import { useOutboxSync } from '../../core/offline/useOutboxSync'
 import QrScannerModal from './QrScannerModal'
 import NotificationBell from './NotificationBell'
 import { CommandPalette } from './CommandPalette'
+import { Sidebar, getNavItems, type NavRoleFlags } from './Sidebar'
+
+// Root/landing pages never show a back arrow, even if browser history technically allows it.
+const ROOT_PATHS = ['/apiaries', '/admin']
 
 export default function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
@@ -20,6 +24,7 @@ export default function Layout() {
   const { user, logout } = useAuth()
   const { isDark, toggleTheme } = useTheme()
   const navigate = useNavigate()
+  const { pathname } = useLocation()
 
   // Offline outbox (SPEC-07): sync triggers + live pending count for the badge.
   useOutboxSync()
@@ -31,6 +36,11 @@ export default function Layout() {
   const isAdmin        = user?.role === 'ApiaryAdmin'
   const canSeeExpenses = isSystemAdmin || isOrgAdmin || isAdmin
   const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
+
+  const navFlags: NavRoleFlags = { isSystemAdmin, isOrgAdmin, isAdmin, canSeeExpenses }
+
+  // navigate(-1) mirrors real browser back — re-evaluated on every route change via useLocation().
+  const canGoBack = !ROOT_PATHS.includes(pathname) && (window.history.state?.idx ?? 0) > 0
 
   const avatarClass = isSystemAdmin
     ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-300'
@@ -75,141 +85,213 @@ export default function Layout() {
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex">
+      <Sidebar flags={navFlags} onScan={() => setScannerOpen(true)} />
 
-      {/* ── Header ──────────────────────────────────────────────────────────── */}
-      <header className="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-honey-200 dark:border-slate-800 shadow-sm dark:shadow-none">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
+      <div className="flex-1 flex flex-col min-w-0">
 
-          {/* Logo */}
-          <Link
-            to={isSystemAdmin ? '/admin' : '/apiaries'}
-            className="flex items-center gap-2 group shrink-0"
-          >
-            <span className="text-2xl leading-none">🐝</span>
-            <span className="font-display text-xl font-bold text-honey-800 dark:text-honey-300 group-hover:text-honey-600 dark:group-hover:text-honey-400 transition-colors">
-              BeeHive
-            </span>
-          </Link>
+        {/* ── Header ────────────────────────────────────────────────────────────── */}
+        <header className="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur border-b border-honey-200 dark:border-slate-800 shadow-sm dark:shadow-none">
+          <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
 
-          {/* ── Desktop right side ─────────────────────────────────────────── */}
-          <div className="hidden sm:flex items-center gap-3">
-
-            {/* Nav pill group */}
-            <nav className="flex items-center gap-0.5 bg-gray-100 dark:bg-slate-800 rounded-xl p-1">
-              {isSystemAdmin ? (
-                <NavPill to="/admin" icon={<LayoutDashboard className="w-4 h-4" />} label="Kontrolna ploča" />
-              ) : (
-                <NavPill to="/apiaries" icon={<Home className="w-4 h-4" />} label="Pčelinjaci" />
+            {/* Back (real history back — mirrors browser back) + mobile-only logo */}
+            <div className="flex items-center gap-2 min-w-0">
+              {canGoBack && (
+                <button
+                  onClick={() => navigate(-1)}
+                  className="shrink-0 p-2 rounded-lg text-gray-500 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 hover:text-honey-700 dark:hover:text-honey-300 transition-colors"
+                  aria-label="Nazad"
+                  title="Nazad"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
               )}
-              {(isOrgAdmin || isAdmin) && (
-                <NavPill to="/members" icon={<Users className="w-4 h-4" />} label="Članovi" />
-              )}
-              {(isOrgAdmin || isSystemAdmin) && (
-                <NavPill to="/pastures" icon={<Tent className="w-4 h-4" />} label="Pašnjaci" />
-              )}
-              {canSeeExpenses && (
-                <NavPill to="/expenses" icon={<ReceiptText className="w-4 h-4" />} label="Troškovi" />
-              )}
-              <NavPill to="/harvests" icon={<Droplets className="w-4 h-4" />} label="Vrcanja" />
-              <NavPill to="/treatments" icon={<Pill className="w-4 h-4" />} label="Tretmani" />
-              <NavPill to="/advisor" icon={<Bot className="w-4 h-4" />} label="AI Savjetnik" />
-              <NavPill to="/learning" icon={<GraduationCap className="w-4 h-4" />} label="Edukacija" />
-              <NavPill to="/calendar" icon={<CalendarDays className="w-4 h-4" />} label="Kalendar" />
-              <NavPill to="/stats" icon={<BarChart2 className="w-4 h-4" />} label="Statistike" />
-              <button
-                onClick={() => setScannerOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-600 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 hover:shadow-sm hover:text-honey-700 dark:hover:text-honey-300 transition-all"
-              >
-                <QrCode className="w-4 h-4" />
-                Skeniraj
-              </button>
-            </nav>
-
-            {/* Command palette trigger */}
-            <button
-              onClick={() => setPaletteOpen(true)}
-              className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl text-sm text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
-              aria-label="Otvori pretragu"
-            >
-              <Search className="w-4 h-4" />
-              <span className="hidden lg:inline">Pretraži</span>
-              <kbd className="text-[10px] font-mono bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-0.5 leading-none">
-                {isMac ? '⌘K' : 'Ctrl K'}
-              </kbd>
-            </button>
-
-            {/* Dark mode toggle */}
-            <button
-              onClick={toggleTheme}
-              className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
-              title={isDark ? 'Svjetla tema' : 'Tamna tema'}
-            >
-              {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
-            </button>
-
-            {/* Offline outbox badge (SPEC-07) */}
-            {outboxItems.length > 0 && (
               <Link
-                to="/outbox"
-                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold
-                  bg-amber-100 text-amber-800 hover:bg-amber-200
-                  dark:bg-amber-500/15 dark:text-amber-300 dark:hover:bg-amber-500/25 transition-colors"
-                title="Neposlani pregledi"
+                to={isSystemAdmin ? '/admin' : '/apiaries'}
+                className="sm:hidden flex items-center gap-2 group shrink-0"
               >
-                <CloudOff className="w-3.5 h-3.5" />
-                {outboxItems.length}
+                <span className="text-2xl leading-none">🐝</span>
+                <span className="font-display text-xl font-bold text-honey-800 dark:text-honey-300 group-hover:text-honey-600 dark:group-hover:text-honey-400 transition-colors">
+                  BeeHive
+                </span>
               </Link>
-            )}
+            </div>
 
-            {/* Notification bell */}
-            <NotificationBell />
+            {/* ── Desktop utilities ───────────────────────────────────────────── */}
+            <div className="hidden sm:flex items-center gap-3">
 
-            {/* Profile avatar + dropdown */}
-            <div ref={profileRef} className="relative">
+              {/* Command palette trigger */}
               <button
-                onClick={() => setProfileOpen(v => !v)}
-                className={clsx(
-                  'w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm select-none',
-                  'transition-all hover:ring-2 hover:ring-honey-300 hover:ring-offset-1',
-                  avatarClass,
-                  profileOpen && 'ring-2 ring-honey-400 ring-offset-1'
-                )}
-                aria-label="Otvori meni profila"
+                onClick={() => setPaletteOpen(true)}
+                className="hidden md:flex items-center gap-2 pl-3 pr-2 py-1.5 rounded-xl text-sm text-gray-500 dark:text-slate-400 bg-gray-100 dark:bg-slate-800 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
+                aria-label="Otvori pretragu"
               >
-                {user?.firstName[0] ?? '?'}
+                <Search className="w-4 h-4" />
+                <span className="hidden lg:inline">Pretraži</span>
+                <kbd className="text-[10px] font-mono bg-white dark:bg-slate-900 border border-gray-200 dark:border-slate-700 rounded px-1.5 py-0.5 leading-none">
+                  {isMac ? '⌘K' : 'Ctrl K'}
+                </kbd>
               </button>
 
-              {/* Dropdown */}
-              {profileOpen && (
-                <div className="absolute right-0 top-11 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-fade-in">
-                  {/* User info */}
-                  <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
-                    <div className="flex items-center gap-2.5">
-                      <div className={clsx('w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm shrink-0', avatarClass)}>
-                        {user?.firstName[0]}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-sm font-semibold text-gray-800 dark:text-slate-100 truncate">
-                          {user?.firstName} {user?.lastName}
-                        </p>
-                        <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{roleLabel}</p>
+              {/* Dark mode toggle */}
+              <button
+                onClick={toggleTheme}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-500 dark:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
+                title={isDark ? 'Svjetla tema' : 'Tamna tema'}
+              >
+                {isDark ? <Sun className="w-[18px] h-[18px]" /> : <Moon className="w-[18px] h-[18px]" />}
+              </button>
+
+              {/* Offline outbox badge (SPEC-07) */}
+              {outboxItems.length > 0 && (
+                <Link
+                  to="/outbox"
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold
+                    bg-amber-100 text-amber-800 hover:bg-amber-200
+                    dark:bg-amber-500/15 dark:text-amber-300 dark:hover:bg-amber-500/25 transition-colors"
+                  title="Neposlani pregledi"
+                >
+                  <CloudOff className="w-3.5 h-3.5" />
+                  {outboxItems.length}
+                </Link>
+              )}
+
+              {/* Notification bell */}
+              <NotificationBell />
+
+              {/* Profile avatar + dropdown */}
+              <div ref={profileRef} className="relative">
+                <button
+                  onClick={() => setProfileOpen(v => !v)}
+                  className={clsx(
+                    'w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm select-none',
+                    'transition-all hover:ring-2 hover:ring-honey-300 hover:ring-offset-1',
+                    avatarClass,
+                    profileOpen && 'ring-2 ring-honey-400 ring-offset-1'
+                  )}
+                  aria-label="Otvori meni profila"
+                >
+                  {user?.firstName[0] ?? '?'}
+                </button>
+
+                {/* Dropdown */}
+                {profileOpen && (
+                  <div className="absolute right-0 top-11 w-56 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 overflow-hidden animate-fade-in">
+                    {/* User info */}
+                    <div className="px-4 py-3 border-b border-gray-100 dark:border-slate-700">
+                      <div className="flex items-center gap-2.5">
+                        <div className={clsx('w-9 h-9 rounded-full flex items-center justify-center font-semibold text-sm shrink-0', avatarClass)}>
+                          {user?.firstName[0]}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold text-gray-800 dark:text-slate-100 truncate">
+                            {user?.firstName} {user?.lastName}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-slate-400 truncate mt-0.5">{roleLabel}</p>
+                        </div>
                       </div>
                     </div>
+                    {/* Edit profile */}
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate('/profile') }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <Settings className="w-4 h-4" />
+                      Uredi profil
+                    </button>
+                    {/* Sign out */}
+                    <button
+                      onClick={() => { setProfileOpen(false); handleLogout() }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Odjavi se
+                    </button>
                   </div>
-                  {/* Edit profile */}
+                )}
+              </div>
+            </div>
+
+            {/* ── Mobile: dark toggle + hamburger ─────────────────────────────── */}
+            <div className="sm:hidden flex items-center gap-1">
+              <button
+                onClick={() => setPaletteOpen(true)}
+                className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label="Pretraži"
+              >
+                <Search className="w-5 h-5" />
+              </button>
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+                aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
+              >
+                {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button
+                className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+                onClick={() => setMobileOpen(v => !v)}
+                aria-label="Otvori/zatvori meni"
+              >
+                {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile panel */}
+          {mobileOpen && (
+            <div className="sm:hidden border-t border-honey-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-1 animate-fade-in">
+              {/* Nav items — shared list with the desktop Sidebar */}
+              {getNavItems(navFlags).map(item => (
+                <MobileNavItem
+                  key={item.to}
+                  to={item.to}
+                  icon={item.icon}
+                  label={item.label}
+                  onClick={() => setMobileOpen(false)}
+                />
+              ))}
+              <button
+                onClick={() => { setMobileOpen(false); setScannerOpen(true) }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
+              >
+                <QrCode className="w-4 h-4 text-honey-600 dark:text-honey-400" />
+                Skeniraj
+              </button>
+              {outboxItems.length > 0 && (
+                <MobileNavItem
+                  to="/outbox"
+                  icon={<CloudOff className="w-4 h-4" />}
+                  label={`Neposlani pregledi (${outboxItems.length})`}
+                  onClick={() => setMobileOpen(false)}
+                />
+              )}
+
+              {/* User section */}
+              {user && (
+                <div className="pt-2 mt-1 border-t border-honey-100 dark:border-slate-800 space-y-1">
+                  <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-800">
+                    <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm shrink-0', avatarClass)}>
+                      {user.firstName[0]}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-800 dark:text-slate-100 truncate">
+                        {user.firstName} {user.lastName}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{roleLabel}</p>
+                    </div>
+                  </div>
                   <button
-                    onClick={() => { setProfileOpen(false); navigate('/profile') }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    onClick={() => { setMobileOpen(false); navigate('/profile') }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
                   >
-                    <Settings className="w-4 h-4" />
+                    <Settings className="w-4 h-4 text-honey-600 dark:text-honey-400" />
                     Uredi profil
                   </button>
-                  {/* Sign out */}
                   <button
-                    onClick={() => { setProfileOpen(false); handleLogout() }}
-                    className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
+                    onClick={() => { setMobileOpen(false); handleLogout() }}
+                    className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
                   >
                     <LogOut className="w-4 h-4" />
                     Odjavi se
@@ -217,189 +299,36 @@ export default function Layout() {
                 </div>
               )}
             </div>
-          </div>
+          )}
+        </header>
 
-          {/* ── Mobile: dark toggle + hamburger ─────────────────────────────── */}
-          <div className="sm:hidden flex items-center gap-1">
-            <button
-              onClick={() => setPaletteOpen(true)}
-              className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label="Pretraži"
-            >
-              <Search className="w-5 h-5" />
-            </button>
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
-              aria-label={isDark ? 'Prebaci na svjetlu temu' : 'Prebaci na tamnu temu'}
-            >
-              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-            </button>
-            <button
-              className="p-2 rounded-lg text-gray-600 dark:text-slate-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
-              onClick={() => setMobileOpen(v => !v)}
-              aria-label="Otvori/zatvori meni"
-            >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
-          </div>
-        </div>
-
-        {/* Mobile panel */}
-        {mobileOpen && (
-          <div className="sm:hidden border-t border-honey-100 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-3 space-y-1 animate-fade-in">
-            {/* Nav items */}
-            {isSystemAdmin ? (
-              <MobileNavItem
-                to="/admin"
-                icon={<LayoutDashboard className="w-4 h-4" />}
-                label="Kontrolna ploča"
-                onClick={() => setMobileOpen(false)}
-              />
-            ) : (
-              <MobileNavItem
-                to="/apiaries"
-                icon={<Home className="w-4 h-4" />}
-                label="Pčelinjaci"
-                onClick={() => setMobileOpen(false)}
-              />
-            )}
-            {(isOrgAdmin || isAdmin) && (
-              <MobileNavItem
-                to="/members"
-                icon={<Users className="w-4 h-4" />}
-                label="Članovi"
-                onClick={() => setMobileOpen(false)}
-              />
-            )}
-            {(isOrgAdmin || isSystemAdmin) && (
-              <MobileNavItem
-                to="/pastures"
-                icon={<Tent className="w-4 h-4" />}
-                label="Pašnjaci"
-                onClick={() => setMobileOpen(false)}
-              />
-            )}
-            {canSeeExpenses && (
-              <MobileNavItem
-                to="/expenses"
-                icon={<ReceiptText className="w-4 h-4" />}
-                label="Troškovi"
-                onClick={() => setMobileOpen(false)}
-              />
-            )}
-            <MobileNavItem
-              to="/harvests"
-              icon={<Droplets className="w-4 h-4" />}
-              label="Vrcanja"
-              onClick={() => setMobileOpen(false)}
-            />
-            <MobileNavItem
-              to="/treatments"
-              icon={<Pill className="w-4 h-4" />}
-              label="Tretmani"
-              onClick={() => setMobileOpen(false)}
-            />
-            <MobileNavItem
-              to="/advisor"
-              icon={<Bot className="w-4 h-4" />}
-              label="AI Savjetnik"
-              onClick={() => setMobileOpen(false)}
-            />
-            <MobileNavItem
-              to="/learning"
-              icon={<GraduationCap className="w-4 h-4" />}
-              label="Edukacija"
-              onClick={() => setMobileOpen(false)}
-            />
-            <MobileNavItem
-              to="/calendar"
-              icon={<CalendarDays className="w-4 h-4" />}
-              label="Kalendar"
-              onClick={() => setMobileOpen(false)}
-            />
-            <MobileNavItem
-              to="/stats"
-              icon={<BarChart2 className="w-4 h-4" />}
-              label="Statistike"
-              onClick={() => setMobileOpen(false)}
-            />
-            <button
-              onClick={() => { setMobileOpen(false); setScannerOpen(true) }}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
-            >
-              <QrCode className="w-4 h-4 text-honey-600 dark:text-honey-400" />
-              Skeniraj
-            </button>
-            {outboxItems.length > 0 && (
-              <MobileNavItem
-                to="/outbox"
-                icon={<CloudOff className="w-4 h-4" />}
-                label={`Neposlani pregledi (${outboxItems.length})`}
-                onClick={() => setMobileOpen(false)}
-              />
-            )}
-
-            {/* User section */}
-            {user && (
-              <div className="pt-2 mt-1 border-t border-honey-100 dark:border-slate-800 space-y-1">
-                <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gray-50 dark:bg-slate-800">
-                  <div className={clsx('w-8 h-8 rounded-full flex items-center justify-center font-semibold text-sm shrink-0', avatarClass)}>
-                    {user.firstName[0]}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 dark:text-slate-100 truncate">
-                      {user.firstName} {user.lastName}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-slate-400 truncate">{roleLabel}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => { setMobileOpen(false); navigate('/profile') }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-honey-50 dark:hover:bg-slate-800 transition-colors"
-                >
-                  <Settings className="w-4 h-4 text-honey-600 dark:text-honey-400" />
-                  Uredi profil
-                </button>
-                <button
-                  onClick={() => { setMobileOpen(false); handleLogout() }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
-                >
-                  <LogOut className="w-4 h-4" />
-                  Odjavi se
-                </button>
-              </div>
-            )}
+        {/* ── Offline banner (SPEC-07) ─────────────────────────────────────────── */}
+        {!online && (
+          <div className="sticky top-14 z-20 bg-amber-100 dark:bg-amber-500/15 border-b border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300">
+            <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2 text-sm font-medium">
+              <CloudOff className="w-4 h-4 shrink-0" />
+              Radiš offline — izmjene se čuvaju lokalno.
+              {outboxItems.length > 0 && (
+                <Link to="/outbox" className="ml-auto underline hover:no-underline shrink-0">
+                  Neposlano: {outboxItems.length}
+                </Link>
+              )}
+            </div>
           </div>
         )}
-      </header>
 
-      {/* ── Offline banner (SPEC-07) ───────────────────────────────────────── */}
-      {!online && (
-        <div className="sticky top-14 z-30 bg-amber-100 dark:bg-amber-500/15 border-b border-amber-200 dark:border-amber-500/30 text-amber-800 dark:text-amber-300">
-          <div className="max-w-5xl mx-auto px-4 py-2 flex items-center gap-2 text-sm font-medium">
-            <CloudOff className="w-4 h-4 shrink-0" />
-            Radiš offline — izmjene se čuvaju lokalno.
-            {outboxItems.length > 0 && (
-              <Link to="/outbox" className="ml-auto underline hover:no-underline shrink-0">
-                Neposlano: {outboxItems.length}
-              </Link>
-            )}
-          </div>
-        </div>
-      )}
+        {/* ── Main Content ──────────────────────────────────────────────────────── */}
+        <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+          <Outlet />
+        </main>
 
-      {/* ── Main Content ────────────────────────────────────────────────────── */}
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
-        <Outlet />
-      </main>
+        {/* ── Footer ────────────────────────────────────────────────────────────── */}
+        <footer className="border-t border-honey-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-gray-400 dark:text-slate-500">
+          BeeHive App © {new Date().getFullYear()} — Čuvajte vaše kolonije zdravim 🍯
+        </footer>
+      </div>
 
-      {/* ── Footer ──────────────────────────────────────────────────────────── */}
-      <footer className="border-t border-honey-200 dark:border-slate-800 bg-white dark:bg-slate-900 py-4 text-center text-xs text-gray-400 dark:text-slate-500">
-        BeeHive App © {new Date().getFullYear()} — Čuvajte vaše kolonije zdravim 🍯
-      </footer>
-
-      {/* ── Mobile FAB (scan) ───────────────────────────────────────────────── */}
+      {/* ── Mobile FAB (scan) ─────────────────────────────────────────────────── */}
       <button
         onClick={() => setScannerOpen(true)}
         className="sm:hidden fixed bottom-6 right-6 z-40 flex items-center justify-center w-14 h-14 rounded-full bg-honey-500 hover:bg-honey-600 active:bg-honey-700 text-white shadow-honey shadow-lg transition-colors"
@@ -408,33 +337,12 @@ export default function Layout() {
         <QrCode className="w-6 h-6" />
       </button>
 
-      {/* ── QR Scanner Modal ────────────────────────────────────────────────── */}
+      {/* ── QR Scanner Modal ──────────────────────────────────────────────────── */}
       {scannerOpen && <QrScannerModal onClose={() => setScannerOpen(false)} />}
 
-      {/* ── Command palette (Ctrl/Cmd+K) ────────────────────────────────────── */}
+      {/* ── Command palette (Ctrl/Cmd+K) ──────────────────────────────────────── */}
       <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
     </div>
-  )
-}
-
-// ── Desktop nav pill ──────────────────────────────────────────────────────────
-
-function NavPill({ to, icon, label }: { to: string; icon: React.ReactNode; label: string }) {
-  return (
-    <NavLink
-      to={to}
-      className={({ isActive }) =>
-        clsx(
-          'flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all',
-          isActive
-            ? 'bg-white dark:bg-slate-700 text-honey-800 dark:text-honey-300 shadow-sm'
-            : 'text-gray-600 dark:text-slate-300 hover:bg-white/70 dark:hover:bg-slate-700/70 hover:text-honey-700 dark:hover:text-honey-300'
-        )
-      }
-    >
-      {icon}
-      {label}
-    </NavLink>
   )
 }
 

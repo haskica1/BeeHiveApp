@@ -414,7 +414,7 @@ export default function ApiaryDetailPage() {
           <ApiaryTreatmentsSection apiaryId={apiaryId} />
 
           {/* Pasture moves (selidbe) */}
-          <ApiaryMovesSection apiaryId={apiaryId} canManage={canManageApiaries} />
+          <ApiaryMovesSection apiaryId={apiaryId} canManage={canManageApiaries} hasHomeLocation={apiary.hasHomeLocation} />
 
           {/* Weather forecast */}
           <CollapsibleSection

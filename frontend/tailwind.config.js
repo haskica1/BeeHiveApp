@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  // Absolute paths: the dev server process runs with cwd = repo root, not this directory, and
+  // Tailwind resolves relative content globs against cwd rather than this file's location.
+  content: [`${import.meta.dirname}/index.html`, `${import.meta.dirname}/src/**/*.{js,ts,jsx,tsx}`],
   darkMode: 'class',
   theme: {
     extend: {
