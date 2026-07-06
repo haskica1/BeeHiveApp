@@ -18,6 +18,7 @@ public class UnitOfWork : IUnitOfWork
     private IApiaryRepository? _apiaries;
     private IBeehiveRepository? _beehives;
     private IInspectionRepository? _inspections;
+    private IInspectionPhotoRepository? _inspectionPhotos;
     private IQueenRepository? _queens;
     private IQueenEditLogRepository? _queenEditLogs;
     private ITodoRepository? _todos;
@@ -52,6 +53,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IInspectionRepository Inspections =>
         _inspections ??= new InspectionRepository(_context);
+
+    public IInspectionPhotoRepository InspectionPhotos =>
+        _inspectionPhotos ??= new InspectionPhotoRepository(_context);
 
     public IQueenRepository Queens =>
         _queens ??= new QueenRepository(_context);

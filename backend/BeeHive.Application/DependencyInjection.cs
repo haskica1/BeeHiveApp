@@ -43,6 +43,9 @@ public static class DependencyInjection
         // Cross-cutting authorization — single source of truth for tenant/resource access
         services.AddScoped<IAccessGuard, AccessGuard>();
 
+        // Subscription-plan enforcement (SPEC-09) — single source of truth for plan gates
+        services.AddScoped<IPlanGuard, PlanGuard>();
+
         // Application services
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ICalendarService, CalendarService>();
@@ -54,6 +57,7 @@ public static class DependencyInjection
         services.AddScoped<IApiaryService, ApiaryService>();
         services.AddScoped<IBeehiveService, BeehiveService>();
         services.AddScoped<IInspectionService, InspectionService>();
+        services.AddScoped<IInspectionPhotoService, InspectionPhotoService>();
         services.AddScoped<IQueenService, QueenService>();
         services.AddScoped<ITodoService, TodoService>();
         services.AddScoped<IDietService, DietService>();

@@ -13,5 +13,7 @@ public class InspectionMappingProfile : AutoMapper.Profile
 
         CreateMap<CreateInspectionDto, Inspection>();
         CreateMap<UpdateInspectionDto, Inspection>();
+
+        CreateMap<InspectionPhoto, InspectionPhotoDto>();
     }
 }

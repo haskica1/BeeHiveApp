@@ -1,5 +1,6 @@
 using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Notifications;
 using BeeHive.Application.Features.OrgManagement.DTOs;
 using BeeHive.Domain.Entities;
@@ -12,12 +13,14 @@ public class OrgManagementService : IOrgManagementService
     private readonly IUnitOfWork _uow;
     private readonly INotificationService _notifications;
     private readonly ICurrentUser _currentUser;
+    private readonly IPlanGuard _plan;
 
-    public OrgManagementService(IUnitOfWork uow, INotificationService notifications, ICurrentUser currentUser)
+    public OrgManagementService(IUnitOfWork uow, INotificationService notifications, ICurrentUser currentUser, IPlanGuard plan)
     {
         _uow           = uow;
         _notifications = notifications;
         _currentUser   = currentUser;
+        _plan          = plan;
     }
 
     public async Task<IEnumerable<OrgMemberDto>> GetMembersAsync()
@@ -201,6 +204,8 @@ public class OrgManagementService : IOrgManagementService
 
         if (_currentUser.Role != UserRole.OrganizationAdmin)
             throw new ForbiddenAccessException("Only Organization Admins can add new members.");
+
+        await _plan.EnsureCanAddMemberAsync(orgId);
 
         if (!Enum.TryParse<UserRole>(dto.Role, out var role) || role is not (UserRole.ApiaryAdmin or UserRole.Beekeeper))
             throw new BusinessRuleException("Role must be ApiaryAdmin or Beekeeper.");

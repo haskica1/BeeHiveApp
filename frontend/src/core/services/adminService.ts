@@ -6,6 +6,7 @@ import type {
   AdminBeehiveListItem,
   CreateOrganizationPayload,
   UpdateOrganizationPayload,
+  UpdateOrganizationPlanPayload,
   CreateAdminUserPayload,
   UpdateAdminUserPayload,
 } from '../models'
@@ -29,6 +30,11 @@ export const adminService = {
 
   async updateOrganization(id: number, payload: UpdateOrganizationPayload): Promise<AdminOrganization> {
     const { data } = await apiClient.put<AdminOrganization>(`/admin/organizations/${id}`, payload)
+    return data
+  },
+
+  async updateOrganizationPlan(id: number, payload: UpdateOrganizationPlanPayload): Promise<AdminOrganization> {
+    const { data } = await apiClient.put<AdminOrganization>(`/admin/organizations/${id}/plan`, payload)
     return data
   },
 

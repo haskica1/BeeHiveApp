@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Features.Inspections.Groq;
+using BeeHive.Domain.Common;
 using BeeHive.Application.Features.Notifications;
 using BeeHive.Application.Features.Weather;
 using BeeHive.Domain.Entities;
@@ -64,6 +65,10 @@ public class WeeklySummaryService : IWeeklySummaryService
         foreach (var org in orgs)
         {
             cancellationToken.ThrowIfCancellationRequested();
+
+            // Weekly AI summary is a paid-plan feature (SPEC-09) — no Groq call for Free orgs.
+            if (PlanHelper.Effective(org.Plan, org.PlanValidUntil, DateTime.UtcNow) < PlanType.Standard)
+                continue;
 
             var apiaries = (await _uow.Apiaries.GetAllByOrganizationAsync(org.Id)).ToList();
             if (apiaries.Count == 0) continue;

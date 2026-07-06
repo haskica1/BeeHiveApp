@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { apiaryService } from '../services/apiaryService'
 import { beehiveService, inspectionService } from '../services/beehiveService'
+import { inspectionPhotoService } from '../services/inspectionPhotoService'
 import { queenService } from '../services/queenService'
 import { todoService } from '../services/todoService'
 import { dietService } from '../services/dietService'
@@ -35,6 +36,7 @@ export const queryKeys = {
   beehive:            (id: number) => ['beehives', id] as const,
   inspectionsByHive:  (beehiveId: number) => ['inspections', 'beehive', beehiveId] as const,
   inspection:         (id: number) => ['inspections', id] as const,
+  inspectionPhotos:   (inspectionId: number) => ['inspections', inspectionId, 'photos'] as const,
   queensByBeehive:    (beehiveId: number) => ['queens', 'beehive', beehiveId] as const,
   queenEditHistory:   (queenId: number) => ['queens', queenId, 'history'] as const,
   allOpenTodos:       ['todos', 'all-open'] as const,
@@ -173,6 +175,36 @@ export const useDeleteInspection = (beehiveId: number) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.inspectionsByHive(beehiveId) })
       qc.invalidateQueries({ queryKey: queryKeys.beehive(beehiveId) })
+    },
+  })
+}
+
+// ── Inspection Photo Hooks (SPEC-05) ──────────────────────────────────────────
+
+export const useInspectionPhotos = (inspectionId: number, enabled = true) =>
+  useQuery({
+    queryKey: queryKeys.inspectionPhotos(inspectionId),
+    queryFn: () => inspectionPhotoService.getByInspection(inspectionId),
+    enabled: enabled && !!inspectionId,
+    staleTime: 60_000,
+  })
+
+export const useDeleteInspectionPhoto = (inspectionId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (photoId: number) => inspectionPhotoService.delete(photoId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.inspectionPhotos(inspectionId) })
+    },
+  })
+}
+
+export const useAnalyzeInspectionPhoto = (inspectionId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (photoId: number) => inspectionPhotoService.analyze(photoId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.inspectionPhotos(inspectionId) })
     },
   })
 }

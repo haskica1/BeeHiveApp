@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { NavLink } from 'react-router-dom'
 import {
   BarChart2, Bot, CalendarDays, ChevronsLeft, ChevronsRight, Droplets, GraduationCap, Home,
-  LayoutDashboard, Pill, QrCode, ReceiptText, Tent, Users,
+  LayoutDashboard, Pill, ReceiptText, Tent, Users,
 } from 'lucide-react'
 import clsx from 'clsx'
 
@@ -42,11 +42,10 @@ const STORAGE_KEY = 'beehive-sidebar-expanded'
 
 interface SidebarProps {
   flags: NavRoleFlags
-  onScan: () => void
 }
 
 /** Desktop icon-rail navigation (replaces the horizontal nav-pill row that used to overflow). */
-export function Sidebar({ flags, onScan }: SidebarProps) {
+export function Sidebar({ flags }: SidebarProps) {
   const [expanded, setExpanded] = useState(() => localStorage.getItem(STORAGE_KEY) !== 'false')
 
   function toggle() {
@@ -88,18 +87,6 @@ export function Sidebar({ flags, onScan }: SidebarProps) {
             {expanded && <span className="truncate">{item.label}</span>}
           </NavLink>
         ))}
-
-        <button
-          onClick={onScan}
-          title={expanded ? undefined : 'Skeniraj'}
-          className={clsx(
-            'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-honey-700 dark:text-honey-300 bg-honey-50 dark:bg-honey-500/10 hover:bg-honey-100 dark:hover:bg-honey-500/20 transition-colors',
-            !expanded && 'justify-center',
-          )}
-        >
-          <QrCode className="w-4 h-4 shrink-0" />
-          {expanded && <span className="truncate">Skeniraj</span>}
-        </button>
       </nav>
 
       <button

@@ -18,12 +18,14 @@ public class ApiaryMoveService : IApiaryMoveService
     private readonly IUnitOfWork _uow;
     private readonly ICurrentUser _currentUser;
     private readonly IAccessGuard _access;
+    private readonly IPlanGuard _plan;
 
-    public ApiaryMoveService(IUnitOfWork uow, ICurrentUser currentUser, IAccessGuard access)
+    public ApiaryMoveService(IUnitOfWork uow, ICurrentUser currentUser, IAccessGuard access, IPlanGuard plan)
     {
         _uow = uow;
         _currentUser = currentUser;
         _access = access;
+        _plan = plan;
     }
 
     public async Task<IEnumerable<ApiaryMoveDto>> GetByApiaryAsync(int apiaryId)
@@ -51,6 +53,7 @@ public class ApiaryMoveService : IApiaryMoveService
             ?? throw new NotFoundException(nameof(Apiary), apiaryId);
 
         _access.EnsureInOrganization(apiary.OrganizationId);
+        await _plan.EnsureFeatureAsync(apiary.OrganizationId, PlanFeature.Pastures);
 
         var pasture = await _uow.Pastures.GetByIdAsync(dto.ToPastureId)
             ?? throw new NotFoundException(nameof(Pasture), dto.ToPastureId);
@@ -130,6 +133,7 @@ public class ApiaryMoveService : IApiaryMoveService
             ?? throw new NotFoundException(nameof(Apiary), apiaryId);
 
         _access.EnsureInOrganization(apiary.OrganizationId);
+        await _plan.EnsureFeatureAsync(apiary.OrganizationId, PlanFeature.Pastures);
 
         if (apiary.HomeLatitude is not double homeLat || apiary.HomeLongitude is not double homeLon)
             throw new ValidationException(new Dictionary<string, string[]>

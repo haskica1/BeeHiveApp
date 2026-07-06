@@ -34,7 +34,9 @@ export function useSpeech() {
     const utterances = chunks.map(chunk => {
       const u = new SpeechSynthesisUtterance(chunk)
       if (voice) u.voice = voice
-      u.lang = voice?.lang ?? 'hr'
+      // Always tag as Bosnian — even when falling back to hr/sr voices or the browser default,
+      // so the engine's own lang-based voice selection gets the best chance of a bs-appropriate fit.
+      u.lang = 'bs-BA'
       u.rate = 0.95
       return u
     })

@@ -36,4 +36,7 @@ public class ApiaryRepository : Repository<Apiary>, IApiaryRepository
             return (r.Apiary, r.BeehiveCount);
         }).ToList();
     }
+
+    public async Task<int> CountByOrganizationAsync(int organizationId) =>
+        await _context.Apiaries.CountAsync(a => a.OrganizationId == organizationId);
 }

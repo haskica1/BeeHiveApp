@@ -10,4 +10,10 @@ public interface IAdvisorConversationRepository : IRepository<AdvisorConversatio
 
     /// <summary>A single conversation with its messages (ordered) and beehive — tracked for appends.</summary>
     Task<AdvisorConversation?> GetWithMessagesAsync(int id);
+
+    /// <summary>
+    /// Number of user-role messages sent by the organization's members since the given UTC
+    /// instant — the per-organization monthly advisor quota (SPEC-09).
+    /// </summary>
+    Task<int> CountUserMessagesForOrganizationSinceAsync(int organizationId, DateTime sinceUtc);
 }

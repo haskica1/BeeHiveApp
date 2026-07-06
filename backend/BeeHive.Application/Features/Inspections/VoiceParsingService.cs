@@ -2,6 +2,8 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using BeeHive.Application.Common.Interfaces;
+using BeeHive.Application.Common.Security;
 using BeeHive.Application.Features.Ai;
 using BeeHive.Application.Features.Inspections.DTOs;
 using BeeHive.Application.Features.Inspections.Groq;
@@ -14,6 +16,8 @@ public class VoiceParsingService : IVoiceParsingService
 {
     private readonly HttpClient _http;
     private readonly ITranscriptionService _transcription;
+    private readonly ICurrentUser _currentUser;
+    private readonly IPlanGuard _plan;
 
     private static readonly JsonSerializerOptions JsonOpts = new()
     {
@@ -83,16 +87,27 @@ public class VoiceParsingService : IVoiceParsingService
         6. Vrati SAMO JSON.
         """;
 
-    public VoiceParsingService(HttpClient http, IConfiguration config, ITranscriptionService transcription)
+    public VoiceParsingService(
+        HttpClient http,
+        IConfiguration config,
+        ITranscriptionService transcription,
+        ICurrentUser currentUser,
+        IPlanGuard plan)
     {
         _http = http;
         _transcription = transcription;
+        _currentUser = currentUser;
+        _plan = plan;
         var apiKey = config["Groq:ApiKey"] ?? throw new InvalidOperationException("Groq:ApiKey is not configured.");
         _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
     }
 
     public async Task<ParseVoiceResult> ParseAsync(Stream audioStream, string fileName)
     {
+        // Voice input is a paid-plan feature (SPEC-09); org-less callers pass through.
+        if (_currentUser.OrganizationId is int orgId)
+            await _plan.EnsureFeatureAsync(orgId, PlanFeature.VoiceInput);
+
         // Transcription is shared with the advisor (ITranscriptionService); this service only
         // adds the inspection-field extraction step on top of the transcript.
         var transcript = await _transcription.TranscribeAsync(audioStream, fileName);

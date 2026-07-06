@@ -318,3 +318,65 @@ an in-app flush that reuses the exact same code path as an online submit.
 - Server idempotency keys against double-submit — real fix, but backend changes are out of scope
   for v1; the crash window between `201` and item removal is documented and accepted.
 - `idb` npm package — the hand-rolled wrapper is ~100 lines; not worth a dependency.
+
+---
+
+## ADR-027: Object Storage Behind `IFileStorage`, Photos Served Through the API (SPEC-05)
+
+**Decision:** Inspection photos live in **blob storage behind an `IFileStorage` abstraction**
+(`LocalDiskFileStorage` for dev, `S3FileStorage` for prod — any S3-compatible provider, recommended
+**Cloudflare R2**; switch is config-only via `Storage:Provider`). Image bytes are **streamed through
+the API** (`GET /inspections/photos/{id}/file`, auth-checked, `Cache-Control: private, max-age=86400`);
+the bucket stays private and no presigned-URL machinery exists. The real content type is detected
+from **file header bytes** (JPEG/PNG/WebP), never trusted from the client. New package: `AWSSDK.S3`
+(Infrastructure only).
+
+**Why:** QR codes as Base64 in Postgres are fine at 2 KB but wrong for MB photos (DB/backup/DTO
+bloat), and Render's disk is ephemeral so prod needs object storage. API-streaming keeps
+authorization in one place (`IAccessGuard`, same rights as the parent inspection), works identically
+for Local and S3, and avoids leaking bucket URLs.
+
+**Alternatives considered:**
+- Presigned URLs — faster egress path but splits authorization into a second expiring mechanism and
+  differs between Local and S3; unnecessary at current scale.
+- Base64 in Postgres (QR precedent) — rejected, see above.
+- Azure Blob / Google Cloud Storage SDKs — S3-compatible API covers R2/MinIO/AWS with one SDK.
+
+**Known limit (Phase 2):** Groq caps base64-image requests at 4 MB, so photos over ~3 MB raw are
+rejected for AI analysis with a Bosnian 422 (upload cap stays 8 MB). Server-side downscaling was out
+of SPEC-05 scope — revisit if analysis rejections become common.
+
+---
+
+## ADR-028: Manual Annual Billing First, 402 for Plan Limits, Computed Effective Plan (SPEC-09)
+
+**Decision:** Subscription plans are enforced by a single `IPlanGuard` (mirrors `IAccessGuard`) that
+throws `PlanLimitException` → **HTTP 402** with a top-level `code: "plan-limit"` — deliberately
+distinct from 403 so the frontend renders an upgrade prompt instead of "access denied". The
+**effective plan is computed, never stored** (`PlanHelper.Effective`): an expired paid/Partner plan
+behaves as Free, with no background job. **v1 billing is manual and annual** — SystemAdmin activates
+a plan (`PUT /admin/organizations/{id}/plan`) after a bank transfer; the whole payment seam is just
+`Organization.Plan` + `PlanValidUntil`. New organizations get a 30-day Pro trial implemented as a
+pre-set expiring Pro (no extra machinery). A hidden **Partner** plan (= Max in enforcement) is
+SystemAdmin-only and never shown in public UI/checkout.
+
+**Why:**
+- **Manual + annual, not monthly:** Stripe doesn't support BiH-based merchants, and manually
+  reconciling monthly bank transfers for 20 KM is operationally unworkable. Annual collection with a
+  "2 mjeseca gratis" discount keeps bookkeeping sane until Paddle (Phase 2) automates it.
+- **402 over 403:** the two failure modes are semantically different — "you can't do this" vs. "your
+  plan doesn't include this". A distinct status lets the axios interceptor globally raise the upsell
+  modal without inspecting messages.
+- **Computed effective plan:** the Diets/Treatments precedent — deriving state avoids a background
+  job and a whole class of "we forgot to flip the flag" bugs. Enforcement is **create-only**, so a
+  downgrade never locks or deletes existing data (legal artifacts like the treatment PDF register
+  stay available).
+- **Config-driven limits:** `Plans:{PlanType}:{Key}` with absent = unlimited means tuning a tier (or
+  the advisor quota) is a config change, not a deploy.
+
+**Alternatives considered:**
+- Stored effective plan flipped by a nightly job — rejected (drift, extra moving part).
+- 403 for plan limits — rejected (frontend couldn't cleanly distinguish upsell from authz denial).
+- Immediate Stripe/monthly billing — impossible for BiH now; Paddle deferred to Phase 2 with the
+  two-field seam already in place.
+- Hardcoded limits — rejected; config keeps pricing/limits editable without a rebuild.

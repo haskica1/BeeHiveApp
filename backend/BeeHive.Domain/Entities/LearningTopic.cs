@@ -22,6 +22,15 @@ public class LearningTopic : BaseEntity
     /// <summary>The article body, markdown.</summary>
     public string BodyMarkdown { get; set; } = string.Empty;
 
+    /// <summary>Optional video link (YouTube/Vimeo/direct video file) shown on the topic page.</summary>
+    public string? VideoUrl { get; set; }
+
+    /// <summary>Optional link to an attached file (e.g. a hosted PDF).</summary>
+    public string? FileUrl { get; set; }
+
+    /// <summary>Display label for <see cref="FileUrl"/> — falls back to a generic label when empty.</summary>
+    public string? FileName { get; set; }
+
     public bool IsPublished { get; set; }
 
     /// <summary>Set on the first publish only — the once-per-topic notification guard.</summary>

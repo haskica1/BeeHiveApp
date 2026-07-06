@@ -25,4 +25,7 @@ public enum NotificationType
 
     // ── Learning module (SPEC-06) — 15 was taken by SPEC-08, so 17 ──
     LearningTopicPublished = 17,
+
+    // ── Plans & billing (SPEC-09) ──
+    PlanExpiring           = 18,
 }

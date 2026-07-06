@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { CheckCircle2, GraduationCap } from 'lucide-react'
+import { CheckCircle2, GraduationCap, Paperclip, Video } from 'lucide-react'
 import { useLearningTopics } from '../../core/services/learningQueries'
 import { LearningCategory, LearningCategoryLabels, MonthLabels } from '../../core/models'
 import type { LearningTopicSummary } from '../../core/models'
@@ -150,6 +150,8 @@ function TopicCard({ topic, highlight = false }: { topic: LearningTopicSummary; 
                 {topic.months.map(m => MonthLabels[m - 1].slice(0, 3).toLowerCase()).join(', ')}
               </span>
             )}
+            {topic.videoUrl && <Video className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" aria-label="Sadrži video" />}
+            {topic.fileUrl && <Paperclip className="w-3.5 h-3.5 text-gray-400 dark:text-slate-500" aria-label="Sadrži prilog" />}
           </div>
         </div>
       </div>

@@ -34,6 +34,15 @@
 - OrganizationAdmin/ApiaryAdmin manage members: create ApiaryAdmin/Beekeeper accounts,
   assign apiaries to admins, assign beehives to beekeepers (`OrgManagementService`)
 
+### Plans & billing (SPEC-09)
+- Per-org subscription: `Organization.Plan` (Free/Standard/Pro/Max/**Partner** hidden) + `PlanValidUntil`
+  + `PlanNotes`. Effective plan **computed** (`PlanHelper` — expired paid plan → Free). New orgs get a
+  30-day Pro trial. `IPlanGuard` (config `Plans:*`, enforce on create only) gates apiaries/beehives/
+  members/voice/advisor(+10-msg/mo Standard quota)/pastures/photo-AI/weekly-summary → **402 `plan-limit`**.
+  v1 billing **manual + annual** (`PUT /api/admin/organizations/{id}/plan`; Paddle Phase 2). `GET
+  /api/organizations/my-plan`; `/plans` page + global UpsellModal on 402; `PlanExpiring` alert (type 18).
+  See `features/plans-billing.md` + ADR-028.
+
 ### Apiaries
 - Full CRUD via `/api/apiaries`, org-scoped; ApiaryAdmin sees only their apiary,
   Beekeeper only apiaries containing their assigned hives
@@ -53,6 +62,11 @@
 - **Voice input**: `POST /api/inspections/parse-voice` — audio → Groq Whisper large-v3 transcription (BCS)
   → Llama 3.3 70B field extraction → `{date, honeyLevel, broodStatus, notes}` + transcript.
   15 MB size limit + 10/min rate limit. Frontend records via `useVoiceInput`.
+- **Photos (SPEC-05)**: up to 5 per inspection (8 MB, JPEG/PNG/WebP by header bytes), stored via
+  `IFileStorage` (`Storage:Provider = Local | S3`, prod → S3-compatible bucket e.g. Cloudflare R2;
+  new package `AWSSDK.S3`), streamed through the API (private bucket). Optional **AI frame analysis**
+  (`Groq:VisionModel`, default Llama 4 Scout; rate limit `photo-analyze` 5/min/IP; images ≤ ~3 MB —
+  Groq 4 MB base64 cap). See `features/inspection-photos.md` + ADR-027.
 
 ### Queens (Matice)
 - Per-beehive queen tracking via `/api/beehives/{id}/queens` + `/api/queens/{id}` — active queen + full history
@@ -200,14 +214,9 @@
 
 > Add items here when planned but not yet built.
 
-**Specced — see `docs/specs/README.md` for priority order and full specs:**
+**All roadmap specs shipped** (see `docs/specs/README.md`).
 
-- SPEC-05 Inspection Photos & AI Frame Analysis
-- SPEC-06 Learning Module (edukacija)
-- SPEC-07 Offline Inspections (outbox sync)
-- SPEC-08 Treatment Log (evidencija tretmana — zakonska evidencija, PDF registar)
-
-**Shipped (were specced):** SPEC-01 AI Advisor ✅, SPEC-02 Harvest Log ✅, SPEC-03 Queen Tracking ✅, SPEC-04 Smart Alerts & Weekly AI Summary ✅
+**Shipped (were specced):** SPEC-01 AI Advisor ✅, SPEC-02 Harvest Log ✅, SPEC-03 Queen Tracking ✅, SPEC-04 Smart Alerts & Weekly AI Summary ✅, SPEC-05 Inspection Photos & AI Frame Analysis ✅, SPEC-06 Learning Module ✅, SPEC-07 Offline Inspections ✅, SPEC-08 Treatment Log ✅, SPEC-09 Plans & Billing ✅ (v1 manual annual billing; Paddle Phase 2 remains), SPEC-10 Apiary Migration ✅
 
 **Unspecced ideas:**
 

@@ -224,6 +224,9 @@ public class LearningTopicService : ILearningTopicService
         topic.Months       = dto.Months is { Length: > 0 } ? dto.Months.Distinct().OrderBy(m => m).ToArray() : null;
         topic.Summary      = dto.Summary.Trim();
         topic.BodyMarkdown = dto.BodyMarkdown;
+        topic.VideoUrl     = string.IsNullOrWhiteSpace(dto.VideoUrl) ? null : dto.VideoUrl.Trim();
+        topic.FileUrl      = string.IsNullOrWhiteSpace(dto.FileUrl) ? null : dto.FileUrl.Trim();
+        topic.FileName     = string.IsNullOrWhiteSpace(dto.FileName) ? null : dto.FileName.Trim();
     }
 
     private static T MapCommon<T>(T dto, LearningTopic t, HashSet<int> readIds) where T : LearningTopicSummaryDto
@@ -234,6 +237,9 @@ public class LearningTopicService : ILearningTopicService
         dto.CategoryName = BsLabels.Label(t.Category);
         dto.Months       = t.Months;
         dto.Summary      = t.Summary;
+        dto.VideoUrl     = t.VideoUrl;
+        dto.FileUrl      = t.FileUrl;
+        dto.FileName     = t.FileName;
         dto.IsRead       = readIds.Contains(t.Id);
         dto.PublishedAt  = t.PublishedAt;
         return dto;
@@ -251,6 +257,9 @@ public class LearningTopicService : ILearningTopicService
         Months       = t.Months,
         Summary      = t.Summary,
         BodyMarkdown = t.BodyMarkdown,
+        VideoUrl     = t.VideoUrl,
+        FileUrl      = t.FileUrl,
+        FileName     = t.FileName,
         IsPublished  = t.IsPublished,
         PublishedAt  = t.PublishedAt,
         CreatedAt    = t.CreatedAt,

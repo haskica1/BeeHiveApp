@@ -67,6 +67,13 @@ public class GlobalExceptionMiddleware
                 "Business Rule Violation",
                 new Dictionary<string, string[]> { ["detail"] = [bre.Message] }
             ),
+            // SPEC-09: plan limits are 402 (not 403) so the frontend renders an upgrade
+            // prompt instead of "access denied". See decisions.md.
+            PlanLimitException ple => (
+                HttpStatusCode.PaymentRequired,
+                "Payment Required",
+                new Dictionary<string, string[]> { ["detail"] = [ple.Message] }
+            ),
             // Exception type/message/inner details are only exposed in Development —
             // in production they can leak table names, connection info, etc.
             _ when includeDetails => (
@@ -96,12 +103,16 @@ public class GlobalExceptionMiddleware
             type = $"https://httpstatuses.com/{(int)statusCode}",
             title,
             status = (int)statusCode,
+            // Machine-readable marker the frontend's upsell interceptor keys on (SPEC-09);
+            // null (and omitted from JSON) for every other exception type.
+            code = exception is PlanLimitException ? "plan-limit" : null,
             errors
         };
 
         var json = JsonSerializer.Serialize(response, new JsonSerializerOptions
         {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingNull
         });
 
         await context.Response.WriteAsync(json);

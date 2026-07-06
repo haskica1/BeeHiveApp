@@ -16,12 +16,14 @@ public class PastureService : IPastureService
     private readonly IUnitOfWork _uow;
     private readonly ICurrentUser _currentUser;
     private readonly IAccessGuard _access;
+    private readonly IPlanGuard _plan;
 
-    public PastureService(IUnitOfWork uow, ICurrentUser currentUser, IAccessGuard access)
+    public PastureService(IUnitOfWork uow, ICurrentUser currentUser, IAccessGuard access, IPlanGuard plan)
     {
         _uow = uow;
         _currentUser = currentUser;
         _access = access;
+        _plan = plan;
     }
 
     public async Task<IEnumerable<PastureDto>> GetAllAsync()
@@ -37,6 +39,9 @@ public class PastureService : IPastureService
     {
         if (_currentUser.OrganizationId is not int organizationId)
             throw new ForbiddenAccessException("Morate pripadati organizaciji da biste kreirali pašnjak.");
+
+        // Pastures are a paid-plan feature (SPEC-09); existing data stays readable on downgrade.
+        await _plan.EnsureFeatureAsync(organizationId, PlanFeature.Pastures);
 
         var pasture = new Pasture { OrganizationId = organizationId };
         Apply(pasture, dto);

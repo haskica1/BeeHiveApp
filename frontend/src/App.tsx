@@ -39,6 +39,8 @@ import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
 import StatsPage from './features/stats/StatsPage'
 import CalendarPage from './features/calendar/CalendarPage'
+import PlansPage from './features/plans/PlansPage'
+import UpsellModal from './shared/components/UpsellModal'
 
 const APIARY_MANAGERS   = ['OrganizationAdmin', 'SystemAdmin']
 const HIVE_MANAGERS     = ['ApiaryAdmin', 'OrganizationAdmin', 'SystemAdmin']
@@ -50,6 +52,7 @@ export default function App() {
     <AuthProvider>
       <ToastProvider>
       <BrowserRouter>
+        <UpsellModal />
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
@@ -94,6 +97,9 @@ export default function App() {
 
               {/* Profile — all authenticated users */}
               <Route path="profile" element={<ProfilePage />} />
+
+              {/* Plans & billing (paketi) — all authenticated users */}
+              <Route path="plans" element={<PlansPage />} />
 
               {/* Stats — all authenticated users */}
               <Route path="stats" element={<StatsPage />} />

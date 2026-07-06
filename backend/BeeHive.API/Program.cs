@@ -79,7 +79,7 @@ builder.Services.AddSwaggerGen(c =>
 // Register Application, persistence (Entity), and Infrastructure layers via extension methods
 builder.Services.AddApplication();
 builder.Services.AddEntity(builder.Configuration);
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // Current-user abstraction — resolves the authenticated caller from JWT claims for the
 // Application layer's authorization (see ICurrentUser / IAccessGuard).
@@ -117,6 +117,13 @@ builder.Services.AddHttpClient<IAdvisorAiClient, GroqAdvisorAiClient>(client =>
 builder.Services.AddHttpClient<IWeeklySummaryService, WeeklySummaryService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);
+});
+
+// Frame photo AI analysis (SPEC-05 Phase 2) — Groq vision model, reuses Groq:ApiKey.
+// Longer timeout: multi-MB base64 image upload + vision inference.
+builder.Services.AddHttpClient<IPhotoAnalysisAiClient, GroqPhotoAnalysisAiClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(90);
 });
 
 // ── JWT Authentication ────────────────────────────────────────────────────────
@@ -214,6 +221,17 @@ builder.Services.AddRateLimiter(options =>
             factory: _ => new FixedWindowRateLimiterOptions
             {
                 PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+            }));
+
+    // Photo AI analysis sends multi-MB images to the paid Groq vision model — tighter cap (SPEC-05).
+    options.AddPolicy("photo-analyze", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
                 Window = TimeSpan.FromMinutes(1),
                 QueueLimit = 0,
             }));

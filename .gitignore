@@ -204,3 +204,9 @@ lcov.info
 
 # Docker local compose overrides (if added later)
 docker-compose.override.yml
+
+
+# =============================================================================
+# LOCAL FILE STORAGE (SPEC-05 — dev uploads, never committed)
+# =============================================================================
+backend/BeeHive.API/uploads/

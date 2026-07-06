@@ -20,6 +20,7 @@ public class BeehiveService : IBeehiveService
     private readonly INotificationService _notifications;
     private readonly ICurrentUser _currentUser;
     private readonly IAccessGuard _access;
+    private readonly IPlanGuard _plan;
     private readonly ILogger<BeehiveService> _logger;
     private readonly string _frontendUrl;
 
@@ -30,6 +31,7 @@ public class BeehiveService : IBeehiveService
         INotificationService notifications,
         ICurrentUser currentUser,
         IAccessGuard access,
+        IPlanGuard plan,
         ILogger<BeehiveService> logger,
         IConfiguration config)
     {
@@ -39,6 +41,7 @@ public class BeehiveService : IBeehiveService
         _notifications = notifications;
         _currentUser   = currentUser;
         _access        = access;
+        _plan          = plan;
         _logger        = logger;
         _frontendUrl   = config["FrontendUrl"] ?? "https://bee-hive-app.vercel.app";
     }
@@ -81,10 +84,11 @@ public class BeehiveService : IBeehiveService
 
     public async Task<BeehiveDto> CreateAsync(CreateBeehiveDto dto)
     {
-        if (!await _uow.Apiaries.ExistsAsync(dto.ApiaryId))
-            throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
+        var apiary = await _uow.Apiaries.GetByIdAsync(dto.ApiaryId)
+            ?? throw new NotFoundException(nameof(Apiary), dto.ApiaryId);
 
         await _access.EnsureCanManageApiaryAsync(dto.ApiaryId);
+        await _plan.EnsureCanAddBeehiveAsync(apiary.OrganizationId);
 
         var beehive = _mapper.Map<Beehive>(dto);
         beehive.CreatedById  = _currentUser.UserId;

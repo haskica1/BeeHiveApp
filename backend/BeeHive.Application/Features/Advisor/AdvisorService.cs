@@ -25,6 +25,7 @@ public class AdvisorService : IAdvisorService
     private readonly IAdvisorAiClient _ai;
     private readonly IWeatherService _weather;
     private readonly ITranscriptionService _transcription;
+    private readonly IPlanGuard _plan;
 
     public AdvisorService(
         IUnitOfWork uow,
@@ -32,7 +33,8 @@ public class AdvisorService : IAdvisorService
         ICurrentUser currentUser,
         IAdvisorAiClient ai,
         IWeatherService weather,
-        ITranscriptionService transcription)
+        ITranscriptionService transcription,
+        IPlanGuard plan)
     {
         _uow = uow;
         _access = access;
@@ -40,6 +42,7 @@ public class AdvisorService : IAdvisorService
         _ai = ai;
         _weather = weather;
         _transcription = transcription;
+        _plan = plan;
     }
 
     private const string SystemPrompt =
@@ -86,6 +89,7 @@ public class AdvisorService : IAdvisorService
     public async Task<AdvisorConversationDetailDto> CreateConversationAsync(CreateConversationDto dto)
     {
         var userId = RequireUser();
+        await EnsurePlanAllowsMessageAsync();
         var message = dto.Message.Trim();
 
         string? contextBlock = null;
@@ -124,6 +128,7 @@ public class AdvisorService : IAdvisorService
     public async Task<AdvisorMessagePairDto> SendMessageAsync(int conversationId, SendMessageDto dto)
     {
         var userId = RequireUser();
+        await EnsurePlanAllowsMessageAsync();
         var message = dto.Message.Trim();
 
         var conversation = await _uow.AdvisorConversations.GetWithMessagesAsync(conversationId);
@@ -170,6 +175,11 @@ public class AdvisorService : IAdvisorService
 
     public async Task<string> TranscribeAsync(Stream audioStream, string fileName)
     {
+        // Transcription alone doesn't consume the message quota — it's gated as voice input;
+        // the transcribed text still goes through the quota'd send path.
+        if (_currentUser.OrganizationId is int orgId)
+            await _plan.EnsureFeatureAsync(orgId, PlanFeature.VoiceInput);
+
         var transcript = await _transcription.TranscribeAsync(audioStream, fileName);
         if (string.IsNullOrWhiteSpace(transcript))
             throw new ValidationException(new Dictionary<string, string[]>
@@ -177,6 +187,13 @@ public class AdvisorService : IAdvisorService
                 ["audio"] = ["Nije prepoznat govor u snimku. Pokušaj ponovo."]
             });
         return transcript.Trim();
+    }
+
+    /// <summary>Plan gate + monthly quota (SPEC-09); org-less callers (SystemAdmin) pass through.</summary>
+    private async Task EnsurePlanAllowsMessageAsync()
+    {
+        if (_currentUser.OrganizationId is int orgId)
+            await _plan.EnsureAdvisorMessageAsync(orgId);
     }
 
     // ── AI call (transactional guard) ────────────────────────────────────────────

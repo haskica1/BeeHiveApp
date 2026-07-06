@@ -19,4 +19,7 @@ public interface IBeehiveRepository : IRepository<Beehive>
 
     /// <summary>Returns all beehives that have a UniqueId set (for QR regeneration).</summary>
     Task<IEnumerable<Beehive>> GetAllWithUniqueIdAsync();
+
+    /// <summary>Number of beehives across the organization's apiaries — plan limit checks (SPEC-09).</summary>
+    Task<int> CountByOrganizationAsync(int organizationId);
 }

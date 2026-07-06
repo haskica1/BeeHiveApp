@@ -22,4 +22,10 @@ public class AdvisorConversationRepository : Repository<AdvisorConversation>, IA
             .Include(c => c.Beehive)
             .Include(c => c.Messages.OrderBy(m => m.Id))
             .FirstOrDefaultAsync(c => c.Id == id);
+
+    public async Task<int> CountUserMessagesForOrganizationSinceAsync(int organizationId, DateTime sinceUtc) =>
+        await _context.AdvisorMessages.CountAsync(m =>
+            m.Role == BeeHive.Domain.Enums.AdvisorRole.User &&
+            m.CreatedAt >= sinceUtc &&
+            m.Conversation.User.OrganizationId == organizationId);
 }

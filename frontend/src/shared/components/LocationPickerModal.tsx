@@ -111,8 +111,8 @@ export default function LocationPickerModal({ initialLat, initialLng, onConfirm,
           Kliknite bilo gdje na mapi da postavite marker.
         </div>
 
-        {/* Map */}
-        <div className="flex-1 relative">
+        {/* Map — `isolate` keeps Leaflet's internal z-indexed panes/controls from leaking onto siblings */}
+        <div className="flex-1 relative isolate">
           <MapContainer
             center={[center.lat, center.lng]}
             zoom={zoom}

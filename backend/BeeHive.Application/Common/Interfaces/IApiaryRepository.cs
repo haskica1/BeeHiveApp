@@ -16,4 +16,7 @@ public interface IApiaryRepository : IRepository<Apiary>
     /// computed in the database instead of loading the beehive rows.
     /// </summary>
     Task<IReadOnlyList<(Apiary Apiary, int BeehiveCount)>> GetByOrganizationWithCountsAsync(int organizationId);
+
+    /// <summary>Number of apiaries in the organization — plan limit checks (SPEC-09).</summary>
+    Task<int> CountByOrganizationAsync(int organizationId);
 }

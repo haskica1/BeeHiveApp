@@ -99,8 +99,11 @@ export default function PasturesPage() {
       )}
 
       {/* Overview map */}
+      {/* `isolate` contains Leaflet's internal z-indexed panes/controls (up to ~800) inside their own
+          stacking context — otherwise they leak above later-in-DOM but lower-z-index elements like
+          the "new pasture" modal (z-50). */}
       {!isLoading && located.length > 0 && (
-        <div className="rounded-2xl overflow-hidden border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none">
+        <div className="relative isolate rounded-2xl overflow-hidden border border-honey-100 dark:border-slate-800 shadow-sm dark:shadow-none">
           <MapContainer
             center={[located[0].latitude!, located[0].longitude!]}
             zoom={9}

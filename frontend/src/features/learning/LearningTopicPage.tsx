@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { ArrowLeft, CheckCircle2, Loader2, Pause, Play, Square, Volume2 } from 'lucide-react'
+import { ArrowLeft, CheckCircle2, Loader2, Paperclip, Pause, Play, Square, Volume2 } from 'lucide-react'
 import { useLearningTopic, useMarkTopicRead } from '../../core/services/learningQueries'
 import { MonthLabels } from '../../core/models'
 import { useSpeech } from '../../core/hooks/useSpeech'
@@ -104,6 +104,24 @@ export default function LearningTopicPage() {
           <p className="mt-2 text-xs text-gray-400 dark:text-slate-500">Kvalitet glasa zavisi od uređaja.</p>
         )}
 
+        {/* Video / file attachment */}
+        {(topic.videoUrl || topic.fileUrl) && (
+          <div className="mt-6 border-t border-gray-100 dark:border-slate-800 pt-6 space-y-4">
+            {topic.videoUrl && <VideoAttachment url={topic.videoUrl} title={topic.title} />}
+            {topic.fileUrl && (
+              <a
+                href={topic.fileUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2.5 px-4 py-3 rounded-xl border border-honey-200 dark:border-slate-700 bg-honey-50 dark:bg-slate-800/60 text-sm font-medium text-honey-800 dark:text-honey-300 hover:bg-honey-100 dark:hover:bg-slate-800 transition-colors"
+              >
+                <Paperclip className="w-4 h-4 shrink-0" />
+                {topic.fileName || 'Otvori prilog'}
+              </a>
+            )}
+          </div>
+        )}
+
         {/* Article — react-markdown with default escaping (no raw HTML) as the XSS guard */}
         <div className="mt-6 border-t border-gray-100 dark:border-slate-800 pt-6">
           <MarkdownArticle markdown={topic.bodyMarkdown} />
@@ -111,4 +129,55 @@ export default function LearningTopicPage() {
       </div>
     </div>
   )
+}
+
+// ── Video attachment ───────────────────────────────────────────────────────────
+
+/** YouTube/Vimeo links render as an embedded player; anything else is treated as a direct video file. */
+function VideoAttachment({ url, title }: { url: string; title: string }) {
+  const embedUrl = toEmbedUrl(url)
+  return (
+    <div className="relative w-full rounded-xl overflow-hidden bg-black" style={{ paddingTop: '56.25%' }}>
+      {embedUrl ? (
+        <iframe
+          src={embedUrl}
+          title={title}
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowFullScreen
+          className="absolute inset-0 w-full h-full border-0"
+        />
+      ) : (
+        <video src={url} controls className="absolute inset-0 w-full h-full" />
+      )}
+    </div>
+  )
+}
+
+/** YouTube/Vimeo URL → embeddable player URL; null means "not a known provider" (render as `<video>`). */
+function toEmbedUrl(url: string): string | null {
+  let u: URL
+  try {
+    u = new URL(url)
+  } catch {
+    return null
+  }
+  const host = u.hostname.replace(/^www\.|^m\./, '')
+
+  if (host === 'youtube.com') {
+    const id =
+      u.pathname === '/watch' ? u.searchParams.get('v')
+      : u.pathname.startsWith('/embed/') ? u.pathname.split('/')[2]
+      : u.pathname.startsWith('/shorts/') ? u.pathname.split('/')[2]
+      : null
+    return id ? `https://www.youtube.com/embed/${id}` : null
+  }
+  if (host === 'youtu.be') {
+    const id = u.pathname.slice(1)
+    return id ? `https://www.youtube.com/embed/${id}` : null
+  }
+  if (host === 'vimeo.com') {
+    const id = u.pathname.slice(1).split('/')[0]
+    return id ? `https://player.vimeo.com/video/${id}` : null
+  }
+  return null
 }

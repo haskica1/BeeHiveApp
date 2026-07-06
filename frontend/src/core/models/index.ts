@@ -184,6 +184,28 @@ export interface ParseVoiceResult {
   notes?: string | null
 }
 
+// ── Inspection Photos (SPEC-05) ───────────────────────────────────────────────
+
+export interface InspectionPhoto {
+  id: number
+  inspectionId: number
+  contentType: string
+  sizeBytes: number
+  caption?: string | null
+  /** Raw AI frame-analysis JSON; null until the photo is analyzed (Phase 2). */
+  analysisJson?: string | null
+  createdAt: string
+}
+
+/** Parsed shape of InspectionPhoto.analysisJson (SPEC-05 Phase 2). */
+export interface PhotoAnalysis {
+  isFramePhoto: boolean
+  broodPattern?: number | null
+  queenCellsVisible?: boolean | null
+  anomalies: string[]
+  summary?: string | null
+}
+
 // ── Queen ─────────────────────────────────────────────────────────────────────
 
 export enum QueenMarkColor {
@@ -497,6 +519,17 @@ export interface AdminOrganization {
   apiaryCount: number
   createdByName?: string
   createdAt: string
+  // Subscription plan (SPEC-09)
+  plan: PlanType
+  planName: string
+  planValidUntil?: string | null
+  planNotes?: string | null
+}
+
+export interface UpdateOrganizationPlanPayload {
+  plan: PlanType
+  planValidUntil?: string | null
+  planNotes?: string | null
 }
 
 export interface CreateOrganizationPayload {
@@ -960,6 +993,9 @@ export interface LearningTopicSummary {
   categoryName: string
   months?: number[] | null
   summary: string
+  videoUrl?: string | null
+  fileUrl?: string | null
+  fileName?: string | null
   isRead: boolean
   publishedAt?: string
 }
@@ -976,6 +1012,9 @@ export interface AdminLearningTopic {
   months?: number[] | null
   summary: string
   bodyMarkdown: string
+  videoUrl?: string | null
+  fileUrl?: string | null
+  fileName?: string | null
   isPublished: boolean
   publishedAt?: string
   createdAt: string
@@ -988,6 +1027,9 @@ export interface SaveLearningTopicPayload {
   months?: number[] | null
   summary: string
   bodyMarkdown: string
+  videoUrl?: string | null
+  fileUrl?: string | null
+  fileName?: string | null
 }
 
 export interface GenerateDraftPayload {
@@ -1053,4 +1095,44 @@ export interface ApiError {
   title: string
   status: number
   errors: Record<string, string[]>
+}
+
+// ── Plans & billing (SPEC-09) ───────────────────────────────────────────────────
+
+export enum PlanType {
+  Free     = 1,
+  Standard = 2,
+  Pro      = 3,
+  Max      = 4,
+  /** Hidden plan — never shown in public plan lists; assigned only by SystemAdmin. */
+  Partner  = 5,
+}
+
+export const PlanTypeLabels: Record<PlanType, string> = {
+  [PlanType.Free]:     'Besplatni',
+  [PlanType.Standard]: 'Standard',
+  [PlanType.Pro]:      'Pro',
+  [PlanType.Max]:      'Max',
+  [PlanType.Partner]:  'Partner',
+}
+
+export interface PlanUsage {
+  apiaries: number
+  apiariesLimit?: number | null
+  beehives: number
+  beehivesLimit?: number | null
+  members: number
+  membersLimit?: number | null
+  advisorMessagesThisMonth: number
+  advisorMessagesLimit?: number | null
+}
+
+export interface MyPlan {
+  plan: PlanType
+  planName: string
+  effectivePlan: PlanType
+  effectivePlanName: string
+  planValidUntil?: string | null
+  planNotes?: string | null
+  usage: PlanUsage
 }

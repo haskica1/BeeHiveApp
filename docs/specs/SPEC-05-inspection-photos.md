@@ -2,7 +2,7 @@
 
 | | |
 |---|---|
-| **Status** | 📋 Planned |
+| **Status** | ✅ Implemented (2026-07-05) — both phases; see notes in Acceptance criteria |
 | **Effort** | L (~3+ days — introduces file storage) |
 | **Depends on** | nothing (Phase 2 reuses `Groq:ApiKey`) |
 | **New secrets** | `Storage__*` (S3-compatible credentials) — prod only |
@@ -108,11 +108,21 @@ varroa **counting** (board photos) — possible future spec.
 
 ## Acceptance criteria
 
-- [ ] Phase 1: upload from phone camera works; 6th photo and 9 MB file rejected with Bosnian errors.
-- [ ] Photos visible only to users who can view the inspection (guard test); file URL unauthenticated → 401.
-- [ ] Deleting inspection removes DB rows and blobs (local dev verify).
-- [ ] Works with `Storage:Provider=Local` (dev) and `=S3` (staging/prod) with no code changes.
-- [ ] Phase 2: non-frame photo (e.g. a car) → `isFramePhoto=false` path renders gracefully.
-- [ ] Phase 2: analysis JSON parses robustly (malformed model output → Bosnian error, photo unaffected).
-- [ ] Docs updated: `features/inspection-photos.md`, `api-contracts.md`, `context.md`
-      (new config + package + storage decision in `decisions.md`), this spec → ✅.
+- [x] Phase 1: upload works (live-verified in dev: browser file → 201 → strip → lightbox; camera
+      input uses `capture="environment"` + separate gallery picker — **real-phone camera check still
+      owed**); 6th photo, 9 MB file and fake-header file rejected with Bosnian errors (unit tests;
+      fake JPEG live-verified → 422).
+- [x] Photos visible only to users who can view the inspection (guard unit tests); file URL is
+      `[Authorize]`d (unauthenticated → 401 via JWT middleware).
+- [x] Deleting inspection removes DB rows (FK cascade) and blobs best-effort (unit tests incl.
+      partial-failure continuation).
+- [x] Works with `Storage:Provider=Local` (dev, live-verified) and `=S3` with no code changes —
+      config-only switch; **S3/R2 staging smoke test still owed** (needs bucket credentials).
+- [x] Phase 2: non-frame photo → `isFramePhoto=false` empties the assessment (parser unit test) and
+      the UI renders the "nije okvir" panel. **Live Groq call still owed — dev `Groq:ApiKey` was
+      empty at implementation time** (endpoint verified up to Groq's 401).
+- [x] Phase 2: analysis JSON parses robustly (malformed output → Bosnian 422, photo unaffected —
+      unit tests). Note: Groq caps base64 requests at 4 MB → photos over ~3 MB raw get a Bosnian
+      422 before the Groq call (resizing out of scope, see ADR-027).
+- [x] Docs updated: `features/inspection-photos.md`, `api-contracts.md`, `context.md`
+      (new config + package + storage decision in `decisions.md` ADR-027), this spec → ✅.

@@ -58,6 +58,16 @@ public static class BsLabels
         _                 => h.ToString(),
     };
 
+    public static string Label(PlanType p) => p switch
+    {
+        PlanType.Free     => "Besplatni",
+        PlanType.Standard => "Standard",
+        PlanType.Pro      => "Pro",
+        PlanType.Max      => "Max",
+        PlanType.Partner  => "Partner",
+        _                 => p.ToString(),
+    };
+
     public static string Label(TodoPriority p) => p switch
     {
         TodoPriority.Low    => "Nizak",

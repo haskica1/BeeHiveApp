@@ -10,4 +10,7 @@ public class SaveLearningTopicDto
     public int[]? Months { get; set; }
     public string Summary { get; set; } = string.Empty;
     public string BodyMarkdown { get; set; } = string.Empty;
+    public string? VideoUrl { get; set; }
+    public string? FileUrl { get; set; }
+    public string? FileName { get; set; }
 }

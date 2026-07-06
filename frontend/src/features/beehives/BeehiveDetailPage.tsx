@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Bot, CloudOff, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
+import { Link, useParams } from 'react-router-dom'
+import { Bot, CloudOff, Download, Pencil, Plus, QrCode, Thermometer, Trash2 } from 'lucide-react'
 import { differenceInDays, format, isPast, isToday, parseISO } from 'date-fns'
 import { downloadBeehiveQrPdf } from '../../shared/utils/qrPdf'
 import {
@@ -20,6 +20,7 @@ import {
 import { TodoSection } from '../../shared/components/TodoSection'
 import { CollapsibleSection } from '../../shared/components/CollapsibleSection'
 import DietSection from '../diets/DietSection'
+import { InspectionPhotoStrip } from '../inspections/InspectionPhotos'
 import { QueenSection } from './QueenSection'
 import { HiveYieldCard } from './HiveYieldCard'
 import { HiveTreatmentCard } from '../treatments/HiveTreatmentCard'
@@ -33,7 +34,6 @@ import { usePermissions } from '../../core/hooks/usePermissions'
 
 export default function BeehiveDetailPage() {
   const { id } = useParams<{ id: string }>()
-  const navigate = useNavigate()
   const beehiveId = Number(id)
 
   const { canEditDelete, canManageInspections, canManageHiveTodos, isAssignedToHive } = usePermissions()
@@ -113,13 +113,6 @@ export default function BeehiveDetailPage() {
                       dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none">
         <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
         <div className="relative p-5 sm:p-7">
-          <button
-            onClick={() => navigate(`/apiaries/${beehive.apiaryId}`)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" /> Nazad na pčelinjak
-          </button>
-
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
@@ -469,6 +462,9 @@ function InspectionTimelineItem({ inspection, beehiveId, canManage, isLast, onDe
               <span className="italic">{inspection.notes}</span>
             </div>
           )}
+
+          {/* Photos (SPEC-05) — renders nothing when the inspection has none */}
+          <InspectionPhotoStrip inspectionId={inspection.id} canManage={canManage} />
         </div>
       </div>
     </div>

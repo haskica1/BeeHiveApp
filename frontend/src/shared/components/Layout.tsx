@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, CloudOff, LogOut, Menu, Moon, QrCode, Search, Settings, Sun, X } from 'lucide-react'
+import { ArrowLeft, CloudOff, CreditCard, LogOut, Menu, Moon, QrCode, Search, Settings, Sun, X } from 'lucide-react'
 import clsx from 'clsx'
 import { useAuth } from '../../core/context/AuthContext'
 import { useTheme } from '../../core/hooks/useTheme'
@@ -86,7 +86,7 @@ export default function Layout() {
 
   return (
     <div className="min-h-screen flex">
-      <Sidebar flags={navFlags} onScan={() => setScannerOpen(true)} />
+      <Sidebar flags={navFlags} />
 
       <div className="flex-1 flex flex-col min-w-0">
 
@@ -119,6 +119,16 @@ export default function Layout() {
 
             {/* ── Desktop utilities ───────────────────────────────────────────── */}
             <div className="hidden sm:flex items-center gap-3">
+
+              {/* Scan (Skeniraj) — kept in the header for quick, always-visible access */}
+              <button
+                onClick={() => setScannerOpen(true)}
+                className="w-8 h-8 rounded-full flex items-center justify-center text-honey-600 dark:text-honey-400 hover:bg-honey-100 dark:hover:bg-honey-500/20 transition-colors"
+                aria-label="Skeniraj QR kod"
+                title="Skeniraj"
+              >
+                <QrCode className="w-[18px] h-[18px]" />
+              </button>
 
               {/* Command palette trigger */}
               <button
@@ -199,6 +209,14 @@ export default function Layout() {
                     >
                       <Settings className="w-4 h-4" />
                       Uredi profil
+                    </button>
+                    {/* Plan (SPEC-09) */}
+                    <button
+                      onClick={() => { setProfileOpen(false); navigate('/plans') }}
+                      className="w-full flex items-center gap-2.5 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <CreditCard className="w-4 h-4" />
+                      Paket i pretplata
                     </button>
                     {/* Sign out */}
                     <button

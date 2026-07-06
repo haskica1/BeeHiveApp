@@ -50,12 +50,18 @@ public class AuthService : IAuthService
         // The registrant becomes the Organization Admin of a brand-new organisation.
         // OrganizationAdmin requires an organisation and must NOT have an apiary
         // (mirrors AdminService's role/org/apiary consistency rules).
+        // New organisations start on a Pro trial (SPEC-09) — just a pre-set expiring Pro:
+        // the computed effective plan falls back to Free after PlanValidUntil, no extra machinery.
+        var trialDays = int.TryParse(_config["Plans:Trial:Days"], out var d) ? d : 30;
         var organization = new Organization
         {
             Name = dto.OrganizationName.Trim(),
             Description = string.IsNullOrWhiteSpace(dto.OrganizationDescription)
                 ? null
                 : dto.OrganizationDescription.Trim(),
+            Plan = PlanType.Pro,
+            PlanValidUntil = now.Date.AddDays(trialDays),
+            PlanNotes = "Probni period",
             CreatedAt = now,
         };
 

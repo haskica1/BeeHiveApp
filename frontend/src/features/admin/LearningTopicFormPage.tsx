@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertCircle, Eye, Loader2, Pencil, Sparkles } from 'lucide-react'
+import { AlertCircle, Eye, Loader2, Paperclip, Pencil, Sparkles, Video } from 'lucide-react'
 import {
   useAdminLearningTopic,
   useCreateLearningTopic,
@@ -32,6 +32,9 @@ export default function LearningTopicFormPage() {
   const [months, setMonths] = useState<number[]>([])
   const [summary, setSummary] = useState('')
   const [body, setBody] = useState('')
+  const [videoUrl, setVideoUrl] = useState('')
+  const [fileUrl, setFileUrl] = useState('')
+  const [fileName, setFileName] = useState('')
   const [outline, setOutline] = useState('')
   const [showPreview, setShowPreview] = useState(false)
   const [formError, setFormError] = useState<string | null>(null)
@@ -43,6 +46,9 @@ export default function LearningTopicFormPage() {
       setMonths(existing.months ?? [])
       setSummary(existing.summary)
       setBody(existing.bodyMarkdown)
+      setVideoUrl(existing.videoUrl ?? '')
+      setFileUrl(existing.fileUrl ?? '')
+      setFileName(existing.fileName ?? '')
     }
   }, [existing, isEdit])
 
@@ -80,6 +86,9 @@ export default function LearningTopicFormPage() {
       months: months.length > 0 ? months : null,
       summary: summary.trim(),
       bodyMarkdown: body,
+      videoUrl: videoUrl.trim() || null,
+      fileUrl: fileUrl.trim() || null,
+      fileName: fileName.trim() || null,
     }
 
     try {
@@ -238,6 +247,55 @@ export default function LearningTopicFormPage() {
             <p className="text-xs text-gray-400 dark:text-slate-500 mt-1.5">
               Skica se može sačuvati bez teksta; za objavu je tekst obavezan.
             </p>
+          </div>
+
+          {/* Video / file attachment (optional) */}
+          <div className="space-y-4">
+            <div>
+              <label className={labelClass}>
+                <Video className="w-3.5 h-3.5 inline -mt-0.5 mr-1 text-honey-500" />
+                Video (opcionalno)
+              </label>
+              <input
+                type="url"
+                maxLength={500}
+                placeholder="npr. https://youtu.be/XXXXXXXXXXX"
+                value={videoUrl}
+                onChange={e => setVideoUrl(e.target.value)}
+                className={inputClass}
+              />
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                YouTube, Vimeo ili direktan link ka video fajlu — prikazuje se na stranici teme.
+              </p>
+            </div>
+
+            <div>
+              <label className={labelClass}>
+                <Paperclip className="w-3.5 h-3.5 inline -mt-0.5 mr-1 text-honey-500" />
+                Fajl (opcionalno)
+              </label>
+              <div className="grid grid-cols-1 sm:grid-cols-[2fr_1fr] gap-3">
+                <input
+                  type="url"
+                  maxLength={500}
+                  placeholder="link ka fajlu (npr. PDF)"
+                  value={fileUrl}
+                  onChange={e => setFileUrl(e.target.value)}
+                  className={inputClass}
+                />
+                <input
+                  type="text"
+                  maxLength={150}
+                  placeholder="naziv za prikaz (opcionalno)"
+                  value={fileName}
+                  onChange={e => setFileName(e.target.value)}
+                  className={inputClass}
+                />
+              </div>
+              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                Prikazuje se kao dugme za preuzimanje/otvaranje na stranici teme.
+              </p>
+            </div>
           </div>
 
           {/* Actions */}

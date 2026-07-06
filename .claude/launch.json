@@ -13,5 +13,6 @@
       "runtimeArgs": ["frontend/node_modules/vite/bin/vite.js", "frontend"],
       "port": 5173
     }
-  ]
+  ],
+  "autoVerify": false
 }

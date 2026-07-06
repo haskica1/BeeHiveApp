@@ -1,12 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Circle, Loader2, Mic, Square } from 'lucide-react'
+import { Camera, Circle, ImagePlus, Loader2, Mic, Square, X } from 'lucide-react'
 import {
   useCreateInspection,
+  useInspectionPhotos,
   useUpdateInspection,
 } from '../../core/services/queries'
 import { inspectionService } from '../../core/services/beehiveService'
+import {
+  MAX_PHOTOS_PER_INSPECTION,
+  inspectionPhotoService,
+  validatePhotoFile,
+} from '../../core/services/inspectionPhotoService'
+import { InspectionPhotoStrip } from './InspectionPhotos'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
@@ -47,6 +54,21 @@ export default function InspectionFormPage() {
   const [isParsing, setIsParsing]     = useState(false)
   const [parseError, setParseError]   = useState<string | null>(null)
   const blobRef = useRef<Blob | null>(null)   // stable ref alongside state
+
+  // ── Photo attachments (SPEC-05) ──────────────────────────────────────────
+  // Files picked before saving; uploaded sequentially AFTER the inspection is saved.
+  const [pendingPhotos, setPendingPhotos] = useState<{ file: File; preview: string }[]>([])
+  // Set once the inspection is saved but photo upload(s) failed — the submit button
+  // then only retries the uploads (the inspection is never rolled back).
+  const [savedInspectionId, setSavedInspectionId] = useState<number | null>(null)
+  const cameraInputRef  = useRef<HTMLInputElement>(null)
+  const galleryInputRef = useRef<HTMLInputElement>(null)
+  const pendingRef = useRef(pendingPhotos)
+  pendingRef.current = pendingPhotos
+  const { data: existingPhotos } = useInspectionPhotos(inspectionId, isEditing)
+
+  // Revoke preview object URLs on unmount.
+  useEffect(() => () => { pendingRef.current.forEach(p => URL.revokeObjectURL(p.preview)) }, [])
 
   const voice = useVoiceInput()
   const isRecording = voice.state === 'recording'
@@ -168,11 +190,67 @@ export default function InspectionFormPage() {
     }
   }
 
+  // ── Photo handlers (SPEC-05) ─────────────────────────────────────────────
+
+  const remainingPhotoSlots =
+    MAX_PHOTOS_PER_INSPECTION - (existingPhotos?.length ?? 0) - pendingPhotos.length
+
+  const handleAddFiles = (list: FileList | null) => {
+    if (!list?.length) return
+    const accepted: { file: File; preview: string }[] = []
+    let slots = remainingPhotoSlots
+    for (const file of Array.from(list)) {
+      if (slots <= 0) {
+        toast.error(`Pregled može imati najviše ${MAX_PHOTOS_PER_INSPECTION} fotografija.`)
+        break
+      }
+      const err = validatePhotoFile(file)
+      if (err) { toast.error(err); continue }
+      accepted.push({ file, preview: URL.createObjectURL(file) })
+      slots--
+    }
+    if (accepted.length) setPendingPhotos(prev => [...prev, ...accepted])
+  }
+
+  const removePendingPhoto = (index: number) => {
+    setPendingPhotos(prev => {
+      URL.revokeObjectURL(prev[index].preview)
+      return prev.filter((_, i) => i !== index)
+    })
+  }
+
+  /** Sequential upload; failures stay in state for retry. Returns true when everything is sent. */
+  const uploadPendingPhotos = async (targetInspectionId: number): Promise<boolean> => {
+    const failed: { file: File; preview: string }[] = []
+    for (const item of pendingRef.current) {
+      try {
+        await inspectionPhotoService.upload(targetInspectionId, item.file)
+        URL.revokeObjectURL(item.preview)
+      } catch {
+        failed.push(item)
+      }
+    }
+    setPendingPhotos(failed)
+    void queryClient.invalidateQueries({ queryKey: queryKeys.inspectionPhotos(targetInspectionId) })
+    if (failed.length) {
+      toast.error(
+        failed.length === 1
+          ? 'Jedna fotografija nije poslana — pokušajte ponovo.'
+          : `${failed.length} fotografija nije poslano — pokušajte ponovo.`,
+      )
+      return false
+    }
+    return true
+  }
+
   // ── Form submit ──────────────────────────────────────────────────────────
 
   /** Saves the inspection to the local outbox (create or refresh of the edited item). */
   const saveToOutbox = async (payload: CreateInspectionPayload) => {
     if (!user?.email) return
+    // Photos can't be queued offline (SPEC-07 keeps the outbox JSON-only).
+    if (pendingRef.current.length)
+      toast.info('Fotografije nije moguće sačuvati bez mreže — dodajte ih naknadno uređivanjem pregleda.')
     const existing = outboxItemRef.current
     if (existing) {
       await updateOutboxItem({ ...existing, payload, status: 'pending', error: undefined })
@@ -190,6 +268,12 @@ export default function InspectionFormPage() {
   }
 
   const onSubmit = async (data: CreateInspectionPayload) => {
+    // Retry-only path (SPEC-05): the inspection is already saved, only photos are missing.
+    if (savedInspectionId != null) {
+      if (await uploadPendingPhotos(savedInspectionId)) navigate(backUrl)
+      return
+    }
+
     const payload: CreateInspectionPayload = {
       ...data,
       honeyLevel:  Number(data.honeyLevel),
@@ -198,6 +282,10 @@ export default function InspectionFormPage() {
     }
     if (isEditing) {
       await updateMutation.mutateAsync(payload)
+      if (pendingRef.current.length) {
+        setSavedInspectionId(inspectionId)
+        if (!(await uploadPendingPhotos(inspectionId))) return
+      }
       navigate(backUrl)
       return
     }
@@ -208,8 +296,9 @@ export default function InspectionFormPage() {
       return
     }
 
+    let created
     try {
-      await createMutation.mutateAsync(payload)
+      created = await createMutation.mutateAsync(payload)
     } catch (err) {
       // Network-level failure (no response — airplane mode mid-request included) → outbox.
       // HTTP errors with a response are real rejections and render via createMutation.error.
@@ -219,6 +308,12 @@ export default function InspectionFormPage() {
 
     // Sent for real — an outbox copy being edited is now obsolete.
     if (outboxItemRef.current) await removeOutboxItem(outboxItemRef.current.localId)
+
+    // Photos upload AFTER the inspection is saved; a failed upload never rolls it back (SPEC-05).
+    if (pendingRef.current.length) {
+      setSavedInspectionId(created.id)
+      if (!(await uploadPendingPhotos(created.id))) return
+    }
     navigate(backUrl)
   }
 
@@ -487,6 +582,88 @@ export default function InspectionFormPage() {
                 {errors.notes && <p className="form-error">{errors.notes.message}</p>}
               </div>
 
+              {/* Photos (SPEC-05) */}
+              <div>
+                <label className="form-label">Fotografije</label>
+
+                {/* Existing photos while editing (delete via lightbox) */}
+                {isEditing && !!existingPhotos?.length && (
+                  <div className="mb-2">
+                    <InspectionPhotoStrip inspectionId={inspectionId} canManage />
+                  </div>
+                )}
+
+                {/* Pending (not yet uploaded) photos */}
+                {pendingPhotos.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mb-3">
+                    {pendingPhotos.map((p, i) => (
+                      <div key={p.preview} className="relative w-16 h-16">
+                        <img
+                          src={p.preview}
+                          alt={p.file.name}
+                          className="w-16 h-16 object-cover rounded-lg border border-honey-100 dark:border-slate-700"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removePendingPhoto(i)}
+                          className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 hover:bg-red-600
+                            text-white flex items-center justify-center shadow"
+                          title="Ukloni"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {savedInspectionId != null && pendingPhotos.length > 0 && (
+                  <p className="text-xs text-amber-600 dark:text-amber-400 mb-2">
+                    Pregled je sačuvan — preostalo je samo slanje fotografija.
+                  </p>
+                )}
+
+                <div className="flex gap-2">
+                  <input
+                    ref={cameraInputRef}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={e => { handleAddFiles(e.target.files); e.target.value = '' }}
+                  />
+                  <input
+                    ref={galleryInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    className="hidden"
+                    onChange={e => { handleAddFiles(e.target.files); e.target.value = '' }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => cameraInputRef.current?.click()}
+                    disabled={remainingPhotoSlots <= 0 || !online}
+                    className="btn-secondary flex-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Camera className="w-4 h-4" /> Uslikaj
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => galleryInputRef.current?.click()}
+                    disabled={remainingPhotoSlots <= 0 || !online}
+                    className="btn-secondary flex-1 text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <ImagePlus className="w-4 h-4" /> Iz galerije
+                  </button>
+                </div>
+                <p className="mt-1.5 text-xs text-gray-400 dark:text-slate-500">
+                  Najviše {MAX_PHOTOS_PER_INSPECTION} fotografija po pregledu, do 8 MB (JPEG, PNG ili WebP).
+                  Fotografije se čuvaju u izvornom obliku, uključujući EXIF podatke (npr. lokaciju snimanja).
+                  {!online && ' Slanje fotografija zahtijeva mrežu.'}
+                </p>
+              </div>
+
               {/* Actions */}
               <div className="flex gap-3 pt-2">
                 <button
@@ -499,6 +676,8 @@ export default function InspectionFormPage() {
                 <button type="submit" className="btn-primary flex-1" disabled={isSubmitting}>
                   {isSubmitting ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : savedInspectionId != null ? (
+                    'Pošalji fotografije'
                   ) : isEditing ? (
                     'Spremi promjene'
                   ) : (

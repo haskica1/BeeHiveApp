@@ -16,9 +16,10 @@ public class ApiaryMoveServiceTests
 {
     private readonly IUnitOfWork _uow = Substitute.For<IUnitOfWork>();
     private readonly IAccessGuard _access = Substitute.For<IAccessGuard>();
+    private readonly IPlanGuard _plan = Substitute.For<IPlanGuard>();
 
     private ApiaryMoveService Service() =>
-        new(_uow, new TestCurrentUser { UserId = 1, Role = UserRole.OrganizationAdmin, OrganizationId = 1 }, _access);
+        new(_uow, new TestCurrentUser { UserId = 1, Role = UserRole.OrganizationAdmin, OrganizationId = 1 }, _access, _plan);
 
     private static Apiary Apiary(
         int? currentPastureId = null, double? lat = 10, double? lon = 20,

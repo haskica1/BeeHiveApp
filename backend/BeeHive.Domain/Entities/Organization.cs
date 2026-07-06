@@ -1,4 +1,5 @@
 using BeeHive.Domain.Common;
+using BeeHive.Domain.Enums;
 
 namespace BeeHive.Domain.Entities;
 
@@ -6,6 +7,15 @@ public class Organization : BaseEntity
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
+
+    // ── Subscription plan (SPEC-09) ──
+    public PlanType Plan { get; set; } = PlanType.Free;
+
+    /// <summary>Plan expiry; null = bez isteka. The effective plan is computed via <see cref="PlanHelper"/>.</summary>
+    public DateTime? PlanValidUntil { get; set; }
+
+    /// <summary>Manual bookkeeping: broj uplatnice, ko je platio, "Probni period"…</summary>
+    public string? PlanNotes { get; set; }
 
     public int? CreatedById { get; set; }
     public User? CreatedBy { get; set; }

@@ -23,6 +23,26 @@ apiClient.interceptors.request.use((config) => {
   return config
 })
 
+// SPEC-09: surface plan-limit responses (402 + code "plan-limit") as a global upsell event,
+// then let the error continue through the normal rejection path untouched. Registered BEFORE
+// the 401 interceptor so it sees the raw response before it is reduced to an Error message.
+// (This does not alter the 401 handling below — see ignore.md.)
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError<{ code?: string; errors?: { detail?: string[] } }>) => {
+    if (error.response?.status === 402 && error.response.data?.code === 'plan-limit') {
+      const detail =
+        error.response.data?.errors?.detail?.[0] ??
+        'Ova funkcija zahtijeva nadogradnju paketa.'
+      window.dispatchEvent(new CustomEvent('plan-limit', { detail }))
+      // Reject with the Bosnian message so any inline form error shows it too (instead of the
+      // generic English "Payment Required" title the downstream interceptor would derive).
+      return Promise.reject(new Error(detail))
+    }
+    return Promise.reject(error)
+  },
+)
+
 // Single-flight refresh: concurrent 401s share one /auth/refresh call so the
 // rotating refresh token is only spent once.
 let refreshPromise: Promise<string | null> | null = null

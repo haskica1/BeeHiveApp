@@ -46,6 +46,9 @@ public class AlertRuleService : IAlertRuleService
         var karencaEnabled = GetBool("Alerts:KarencaEnded:Enabled", true);
         var stripDays      = GetInt("Alerts:StripRemovalDays", 42);
 
+        if (GetBool("Alerts:PlanExpiring:Enabled", true))
+            await ApplyPlanExpiringAsync(now);
+
         var apiaries = (await _uow.Apiaries.GetAllAsync()).ToList();
 
         foreach (var apiary in apiaries)
@@ -199,6 +202,28 @@ public class AlertRuleService : IAlertRuleService
             "Najavljen mraz",
             $"Najavljen mraz za pčelinjak '{apiary.Name}' ({minTemp:0.#} °C). Provjeri prihranu i utopljenost.",
             NotificationType.FrostWarning, apiary.Id, nameof(Apiary), TimeSpan.FromDays(3));
+    }
+
+    // ── Rule 7: plan expiring (SPEC-09) — org-level, OrgAdmins only ──────────────
+
+    private async Task ApplyPlanExpiringAsync(DateTime now)
+    {
+        var orgs = await _uow.Organizations.GetAllAsync();
+        foreach (var org in orgs)
+        {
+            if (org.PlanValidUntil is not DateTime validUntil) continue;
+
+            // Already expired (effective plan fell to Free) → nothing left to preserve.
+            if (PlanHelper.Effective(org.Plan, org.PlanValidUntil, now) == PlanType.Free) continue;
+
+            if ((validUntil.Date - now.Date).TotalDays > 7) continue;
+
+            var recipients = await _uow.Users.GetOrganizationAdminIdsAsync(org.Id);
+            await DispatchAsync(recipients,
+                "Paket ističe",
+                $"Vaš {Common.Localization.BsLabels.Label(org.Plan)} paket ističe {validUntil:dd.MM.yyyy.} — produžite da zadržite AI funkcije i limite.",
+                NotificationType.PlanExpiring, org.Id, nameof(Organization), TimeSpan.FromDays(7));
+        }
     }
 
     // ── Recipients ───────────────────────────────────────────────────────────────

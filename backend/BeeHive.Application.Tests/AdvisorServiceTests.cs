@@ -22,9 +22,10 @@ public class AdvisorServiceTests
     private readonly IAdvisorAiClient _ai = Substitute.For<IAdvisorAiClient>();
     private readonly IWeatherService _weather = Substitute.For<IWeatherService>();
     private readonly ITranscriptionService _transcription = Substitute.For<ITranscriptionService>();
+    private readonly IPlanGuard _plan = Substitute.For<IPlanGuard>();
 
     private AdvisorService Service(int userId = 1) =>
-        new(_uow, _access, new TestCurrentUser { UserId = userId, Role = UserRole.Beekeeper }, _ai, _weather, _transcription);
+        new(_uow, _access, new TestCurrentUser { UserId = userId, Role = UserRole.Beekeeper }, _ai, _weather, _transcription, _plan);
 
     [Fact]
     public async Task GetConversation_NotOwner_ThrowsNotFound()

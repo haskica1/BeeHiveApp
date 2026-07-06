@@ -14,9 +14,10 @@ public class PastureServiceTests
 {
     private readonly IUnitOfWork _uow = Substitute.For<IUnitOfWork>();
     private readonly IAccessGuard _access = Substitute.For<IAccessGuard>();
+    private readonly IPlanGuard _plan = Substitute.For<IPlanGuard>();
 
     private PastureService Service(int? organizationId = 1) =>
-        new(_uow, new TestCurrentUser { UserId = 1, Role = UserRole.OrganizationAdmin, OrganizationId = organizationId }, _access);
+        new(_uow, new TestCurrentUser { UserId = 1, Role = UserRole.OrganizationAdmin, OrganizationId = organizationId }, _access, _plan);
 
     [Fact]
     public async Task Delete_ReferencedPasture_ThrowsValidation_NothingDeleted()

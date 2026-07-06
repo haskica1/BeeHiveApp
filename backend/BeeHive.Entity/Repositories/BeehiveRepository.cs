@@ -40,4 +40,7 @@ public class BeehiveRepository : Repository<Beehive>, IBeehiveRepository
         await _context.Beehives
             .Where(b => b.UniqueId != null)
             .ToListAsync();
+
+    public async Task<int> CountByOrganizationAsync(int organizationId) =>
+        await _context.Beehives.CountAsync(b => b.Apiary.OrganizationId == organizationId);
 }

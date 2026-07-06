@@ -676,6 +676,50 @@ namespace BeeHive.Entity.Migrations
                         });
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.InspectionPhoto", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AnalysisJson")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("InspectionId")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("StoragePath")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InspectionId");
+
+                    b.ToTable("InspectionPhotos", (string)null);
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.LearningTopic", b =>
                 {
                     b.Property<int>("Id")
@@ -693,6 +737,14 @@ namespace BeeHive.Entity.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("FileName")
+                        .HasMaxLength(150)
+                        .HasColumnType("character varying(150)");
+
+                    b.Property<string>("FileUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.Property<bool>("IsPublished")
                         .HasColumnType("boolean");
@@ -715,6 +767,10 @@ namespace BeeHive.Entity.Migrations
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VideoUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
 
                     b.HasKey("Id");
 
@@ -829,6 +885,18 @@ namespace BeeHive.Entity.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("character varying(200)");
 
+                    b.Property<int>("Plan")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("PlanNotes")
+                        .HasMaxLength(300)
+                        .HasColumnType("character varying(300)");
+
+                    b.Property<DateTime?>("PlanValidUntil")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -844,14 +912,16 @@ namespace BeeHive.Entity.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "A family-run beekeeping operation in the lowlands, specialising in wildflower honey.",
-                            Name = "Golden Hive Co"
+                            Name = "Golden Hive Co",
+                            Plan = 1
                         },
                         new
                         {
                             Id = 2,
                             CreatedAt = new DateTime(2024, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Description = "High-altitude apiculture collective producing premium acacia and linden honey.",
-                            Name = "Mountain Bees"
+                            Name = "Mountain Bees",
+                            Plan = 1
                         });
                 });
 
@@ -1489,6 +1559,17 @@ namespace BeeHive.Entity.Migrations
                     b.Navigation("Beehive");
                 });
 
+            modelBuilder.Entity("BeeHive.Domain.Entities.InspectionPhoto", b =>
+                {
+                    b.HasOne("BeeHive.Domain.Entities.Inspection", "Inspection")
+                        .WithMany("Photos")
+                        .HasForeignKey("InspectionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inspection");
+                });
+
             modelBuilder.Entity("BeeHive.Domain.Entities.LearningTopicRead", b =>
                 {
                     b.HasOne("BeeHive.Domain.Entities.LearningTopic", "Topic")
@@ -1718,6 +1799,11 @@ namespace BeeHive.Entity.Migrations
             modelBuilder.Entity("BeeHive.Domain.Entities.Harvest", b =>
                 {
                     b.Navigation("Entries");
+                });
+
+            modelBuilder.Entity("BeeHive.Domain.Entities.Inspection", b =>
+                {
+                    b.Navigation("Photos");
                 });
 
             modelBuilder.Entity("BeeHive.Domain.Entities.LearningTopic", b =>

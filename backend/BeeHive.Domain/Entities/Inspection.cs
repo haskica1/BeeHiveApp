@@ -23,6 +23,7 @@ public class Inspection : BaseEntity
     // Foreign key
     public int BeehiveId { get; set; }
 
-    // Navigation property
+    // Navigation properties
     public Beehive Beehive { get; set; } = null!;
+    public ICollection<InspectionPhoto> Photos { get; set; } = new List<InspectionPhoto>();
 }

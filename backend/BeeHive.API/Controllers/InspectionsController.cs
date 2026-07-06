@@ -18,20 +18,26 @@ namespace BeeHive.API.Controllers;
 public class InspectionsController : ControllerBase
 {
     private readonly IInspectionService _service;
+    private readonly IInspectionPhotoService _photoService;
     private readonly IVoiceParsingService _voiceParsingService;
     private readonly IValidator<CreateInspectionDto> _createValidator;
     private readonly IValidator<UpdateInspectionDto> _updateValidator;
+    private readonly IValidator<UploadInspectionPhotoDto> _uploadPhotoValidator;
 
     public InspectionsController(
         IInspectionService service,
+        IInspectionPhotoService photoService,
         IVoiceParsingService voiceParsingService,
         IValidator<CreateInspectionDto> createValidator,
-        IValidator<UpdateInspectionDto> updateValidator)
+        IValidator<UpdateInspectionDto> updateValidator,
+        IValidator<UploadInspectionPhotoDto> uploadPhotoValidator)
     {
-        _service             = service;
-        _voiceParsingService = voiceParsingService;
-        _createValidator     = createValidator;
-        _updateValidator     = updateValidator;
+        _service              = service;
+        _photoService         = photoService;
+        _voiceParsingService  = voiceParsingService;
+        _createValidator      = createValidator;
+        _updateValidator      = updateValidator;
+        _uploadPhotoValidator = uploadPhotoValidator;
     }
 
     /// <summary>Returns all inspections for the specified beehive, newest first.</summary>
@@ -95,6 +101,87 @@ public class InspectionsController : ControllerBase
     public async Task<IActionResult> Delete(int id)
     {
         await _service.DeleteAsync(id);
+        return NoContent();
+    }
+
+    // ── Photos (SPEC-05) ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Attaches a photo to an inspection. Max 5 photos per inspection, max 8 MB each;
+    /// JPEG/PNG/WebP only (validated from real header bytes). EXIF metadata is preserved.
+    /// </summary>
+    [HttpPost("{id:int}/photos")]
+    [Consumes("multipart/form-data")]
+    // 8 MB photo cap + multipart/form overhead.
+    [RequestSizeLimit(9_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 9_000_000)]
+    [ProducesResponseType(typeof(InspectionPhotoDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> UploadPhoto(int id, IFormFile? file, [FromForm] string? caption)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "Fotografija je obavezna." });
+
+        var validation = await _uploadPhotoValidator.ValidateAsync(new UploadInspectionPhotoDto(caption));
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        await using var stream = file.OpenReadStream();
+        var created = await _photoService.AddAsync(id, stream, file.Length, caption);
+        return CreatedAtAction(nameof(GetPhotoFile), new { photoId = created.Id }, created);
+    }
+
+    /// <summary>Returns photo metadata for an inspection (image bytes are streamed per photo).</summary>
+    [HttpGet("{id:int}/photos")]
+    [ProducesResponseType(typeof(IEnumerable<InspectionPhotoDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPhotos(int id)
+    {
+        var photos = await _photoService.GetByInspectionAsync(id);
+        return Ok(photos);
+    }
+
+    /// <summary>Streams the photo image. Auth-checked — the storage bucket is never public.</summary>
+    [HttpGet("photos/{photoId:int}/file")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetPhotoFile(int photoId)
+    {
+        var (content, contentType) = await _photoService.OpenFileAsync(photoId);
+        Response.Headers.CacheControl = "private, max-age=86400";
+        return File(content, contentType);
+    }
+
+    /// <summary>
+    /// Runs the AI frame analysis on a photo (SPEC-05 Phase 2). Persists and returns the
+    /// result; re-running overwrites the previous analysis. Paid Groq call → rate limited.
+    /// </summary>
+    [HttpPost("photos/{photoId:int}/analyze")]
+    [EnableRateLimiting("photo-analyze")]
+    [ProducesResponseType(typeof(InspectionPhotoDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> AnalyzePhoto(int photoId)
+    {
+        var updated = await _photoService.AnalyzeAsync(photoId);
+        return Ok(updated);
+    }
+
+    /// <summary>Deletes a photo (row + stored file).</summary>
+    [HttpDelete("photos/{photoId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> DeletePhoto(int photoId)
+    {
+        await _photoService.DeleteAsync(photoId);
         return NoContent();
     }
 

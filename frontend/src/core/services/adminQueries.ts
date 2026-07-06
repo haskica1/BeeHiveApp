@@ -3,6 +3,7 @@ import { adminService } from './adminService'
 import type {
   CreateOrganizationPayload,
   UpdateOrganizationPayload,
+  UpdateOrganizationPlanPayload,
   CreateAdminUserPayload,
   UpdateAdminUserPayload,
 } from '../models'
@@ -40,6 +41,17 @@ export const useUpdateOrganization = (id: number) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: UpdateOrganizationPayload) => adminService.updateOrganization(id, payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: adminQueryKeys.organizations })
+      qc.invalidateQueries({ queryKey: adminQueryKeys.organization(id) })
+    },
+  })
+}
+
+export const useUpdateOrganizationPlan = (id: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: UpdateOrganizationPlanPayload) => adminService.updateOrganizationPlan(id, payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: adminQueryKeys.organizations })
       qc.invalidateQueries({ queryKey: adminQueryKeys.organization(id) })

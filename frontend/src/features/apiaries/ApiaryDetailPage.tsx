@@ -1,6 +1,6 @@
 ﻿import { useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Download, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
+import { Download, Pencil, Plus, Trash2, MapPin, Wind, Droplets, Thermometer, Search } from 'lucide-react'
 import { format, parseISO, isPast, isToday } from 'date-fns'
 import { bs } from 'date-fns/locale'
 import { downloadBeehivesQrPdf } from '../../shared/utils/qrPdf'
@@ -205,13 +205,6 @@ export default function ApiaryDetailPage() {
                       dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none">
         <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
         <div className="relative p-5 sm:p-7">
-          <button
-            onClick={() => navigate('/apiaries')}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" /> Svi pčelinjaci
-          </button>
-
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">
@@ -394,28 +387,6 @@ export default function ApiaryDetailPage() {
             )}
           </CollapsibleSection>
 
-          {/* To-do list */}
-          <TodoSection
-            todos={todos}
-            isLoading={todosLoading}
-            apiaryId={apiaryId}
-            canCreate={canManageApiaryTodos}
-            canManage={canManageApiaryTodos}
-            onCreate={p => createTodo.mutateAsync(p)}
-            onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
-            onDelete={id => deleteTodo.mutateAsync(id)}
-            isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
-          />
-
-          {/* Harvests (vrcanja) */}
-          <ApiaryHarvestsSection apiaryId={apiaryId} />
-
-          {/* Treatments (tretmani) */}
-          <ApiaryTreatmentsSection apiaryId={apiaryId} />
-
-          {/* Pasture moves (selidbe) */}
-          <ApiaryMovesSection apiaryId={apiaryId} canManage={canManageApiaries} hasHomeLocation={apiary.hasHomeLocation} />
-
           {/* Weather forecast */}
           <CollapsibleSection
             title="7-dnevna vremenska prognoza"
@@ -502,6 +473,28 @@ export default function ApiaryDetailPage() {
               <p className="text-center py-4 text-gray-400 dark:text-slate-500 text-sm">Vremenski podaci nisu dostupni.</p>
             )}
           </CollapsibleSection>
+
+          {/* To-do list */}
+          <TodoSection
+            todos={todos}
+            isLoading={todosLoading}
+            apiaryId={apiaryId}
+            canCreate={canManageApiaryTodos}
+            canManage={canManageApiaryTodos}
+            onCreate={p => createTodo.mutateAsync(p)}
+            onUpdate={(id, p) => updateTodo.mutateAsync({ id, payload: p })}
+            onDelete={id => deleteTodo.mutateAsync(id)}
+            isMutating={createTodo.isPending || updateTodo.isPending || deleteTodo.isPending}
+          />
+
+          {/* Harvests (vrcanja) */}
+          <ApiaryHarvestsSection apiaryId={apiaryId} />
+
+          {/* Treatments (tretmani) */}
+          <ApiaryTreatmentsSection apiaryId={apiaryId} />
+
+          {/* Pasture moves (selidbe) */}
+          <ApiaryMovesSection apiaryId={apiaryId} canManage={canManageApiaries} hasHomeLocation={apiary.hasHomeLocation} />
         </div>
 
         {/* Sidebar */}

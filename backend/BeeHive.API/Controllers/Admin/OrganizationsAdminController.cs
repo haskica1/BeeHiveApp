@@ -60,6 +60,27 @@ public class OrganizationsAdminController : ControllerBase
         return Ok(updated);
     }
 
+    /// <summary>
+    /// Manual plan activation (SPEC-09 v1 billing): sets plan, expiry and bookkeeping note.
+    /// Accepts all five plans including the hidden Partner plan.
+    /// </summary>
+    [HttpPut("{id:int}/plan")]
+    [ProducesResponseType(typeof(AdminOrganizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateOrganizationPlan(
+        int id,
+        [FromBody] UpdateOrganizationPlanDto dto,
+        [FromServices] FluentValidation.IValidator<UpdateOrganizationPlanDto> validator)
+    {
+        var validation = await validator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        var updated = await _service.UpdateOrganizationPlanAsync(id, dto);
+        return Ok(updated);
+    }
+
     [HttpDelete("{id:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

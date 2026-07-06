@@ -111,9 +111,42 @@ HTTP `200 OK`, `201 Created`, `204 No Content` — response body is the DTO dire
 | GET | `/inspections/{id}` | `InspectionDto` |
 | POST | `/inspections` | `201 + InspectionDto` |
 | PUT | `/inspections/{id}` | `200 + InspectionDto` |
-| DELETE | `/inspections/{id}` | `204` |
+| DELETE | `/inspections/{id}` | `204` — also deletes attached photo blobs (best-effort) |
 
 **InspectionDto:** `{ id, beehiveId, date, temperature, honeyLevel, broodStatus, notes, createdAt }`
+
+#### Inspection photos (SPEC-05)
+
+| Method | Path | Returns |
+|---|---|---|
+| POST | `/inspections/{id}/photos` | `201 + InspectionPhotoDto` — multipart (`file` + optional `caption`); max 5/inspection, 8 MB, JPEG/PNG/WebP validated by header bytes → `422` with Bosnian message otherwise |
+| GET | `/inspections/{id}/photos` | `InspectionPhotoDto[]` (no image bytes) |
+| GET | `/inspections/photos/{photoId}/file` | image stream, `Cache-Control: private, max-age=86400` — auth-checked, storage never public |
+| DELETE | `/inspections/photos/{photoId}` | `204` — deletes row + blob (blob best-effort) |
+| POST | `/inspections/photos/{photoId}/analyze` | `200 + InspectionPhotoDto` (fresh `analysisJson`) — Groq vision, rate-limited `photo-analyze` 5/min/IP; `422` for >~3 MB images (Groq 4 MB base64 request cap) or unparseable model output |
+
+**InspectionPhotoDto:** `{ id, inspectionId, contentType, sizeBytes, caption?, analysisJson?, createdAt }`
+
+**analysisJson (parsed):** `{ isFramePhoto, broodPattern (1–5|null), queenCellsVisible?, anomalies: string[], summary? }` — Bosnian, observations only (never diagnoses). Access to all photo endpoints mirrors the parent inspection (`IAccessGuard`).
+
+---
+
+### Plans & billing (SPEC-09)
+
+| Method | Path | Returns |
+|---|---|---|
+| GET | `/organizations/my-plan` | `MyPlanDto` — any authenticated org member; org-less SystemAdmin → `404` |
+| PUT | `/admin/organizations/{id}/plan` | `200 + AdminOrganizationDto` — SystemAdmin only; body `{ plan, planValidUntil?, planNotes? }`; accepts all five plans incl. Partner |
+
+**MyPlanDto:** `{ plan, planName, effectivePlan, effectivePlanName, planValidUntil?, planNotes?, usage: { apiaries, apiariesLimit?, beehives, beehivesLimit?, members, membersLimit?, advisorMessagesThisMonth, advisorMessagesLimit? } }` — a null limit means unlimited for the effective plan.
+
+**PlanType:** `Free=1, Standard=2, Pro=3, Max=4, Partner=5` (Partner is hidden from public UI).
+
+**Plan-limit error:** exceeding a plan limit returns **402 Payment Required** with a top-level
+`code: "plan-limit"` and `errors.detail[0]` = Bosnian message (distinct from 403 so the frontend
+renders an upsell). Gated actions: create apiary/beehive/member, voice parse, advisor create/send
+(+ monthly quota on Standard), pasture/move create, photo AI analysis. `AdminOrganizationDto` gained
+`plan`/`planName`/`planValidUntil`/`planNotes`.
 
 ---
 

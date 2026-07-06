@@ -10,6 +10,7 @@ public interface IUnitOfWork : IDisposable
     IApiaryRepository Apiaries { get; }
     IBeehiveRepository Beehives { get; }
     IInspectionRepository Inspections { get; }
+    IInspectionPhotoRepository InspectionPhotos { get; }
     IQueenRepository Queens { get; }
     IQueenEditLogRepository QueenEditLogs { get; }
     ITodoRepository Todos { get; }

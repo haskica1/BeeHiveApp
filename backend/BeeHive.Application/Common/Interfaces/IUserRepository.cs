@@ -34,4 +34,7 @@ public interface IUserRepository : IRepository<User>
 
     /// <summary>Ids of every user on the platform — no entities loaded (SPEC-06 publish broadcast).</summary>
     Task<List<int>> GetAllIdsAsync();
+
+    /// <summary>Number of user accounts in the organization — plan member-limit checks (SPEC-09).</summary>
+    Task<int> CountByOrganizationAsync(int organizationId);
 }

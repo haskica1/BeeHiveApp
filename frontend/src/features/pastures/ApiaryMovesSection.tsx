@@ -29,7 +29,6 @@ export function ApiaryMovesSection({ apiaryId, canManage, hasHomeLocation }: Api
   const { toast } = useToast()
   const { data: moves = [], isLoading } = useApiaryMoves(apiaryId)
   const deleteMove = useDeleteApiaryMove(apiaryId)
-  const returnHome = useReturnHomeApiaryMove(apiaryId)
   const setHomeLocation = useSetHomeLocation(apiaryId)
 
   const [moveModalOpen, setMoveModalOpen] = useState(false)
@@ -54,15 +53,6 @@ export function ApiaryMovesSection({ apiaryId, canManage, hasHomeLocation }: Api
     }
   }
 
-  async function handleReturnHome() {
-    try {
-      await returnHome.mutateAsync()
-      toast.success('Pčelinjak je vraćen na matičnu lokaciju.')
-    } catch (e: any) {
-      toast.error(e?.response?.data?.errors?.apiaryId?.[0] ?? e?.response?.data?.detail ?? 'Greška pri povratku na matičnu lokaciju.')
-    }
-  }
-
   async function handleSetHomeLocation(lat: number, lng: number) {
     try {
       await setHomeLocation.mutateAsync({ latitude: lat, longitude: lng })
@@ -81,16 +71,6 @@ export function ApiaryMovesSection({ apiaryId, canManage, hasHomeLocation }: Api
       defaultOpen={false}
       action={canManage ? (
         <div className="flex items-center gap-3">
-          {isAway && hasHomeLocation && (
-            <button
-              onClick={handleReturnHome}
-              disabled={returnHome.isPending}
-              className="inline-flex items-center gap-1 text-xs text-honey-600 dark:text-honey-400 hover:underline font-medium disabled:opacity-60"
-            >
-              {returnHome.isPending ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Home className="w-3.5 h-3.5" />}
-              Vrati na matičnu lokaciju
-            </button>
-          )}
           {isAway && !hasHomeLocation && (
             <button
               onClick={() => setHomePickerOpen(true)}
@@ -151,6 +131,7 @@ export function ApiaryMovesSection({ apiaryId, canManage, hasHomeLocation }: Api
         <MoveApiaryModal
           apiaryId={apiaryId}
           currentPastureId={latest?.toPastureId ?? null}
+          canReturnHome={isAway && hasHomeLocation}
           onClose={() => setMoveModalOpen(false)}
         />
       )}
@@ -179,14 +160,16 @@ export function ApiaryMovesSection({ apiaryId, canManage, hasHomeLocation }: Api
 
 // ── Move modal ─────────────────────────────────────────────────────────────────
 
-function MoveApiaryModal({ apiaryId, currentPastureId, onClose }: {
+function MoveApiaryModal({ apiaryId, currentPastureId, canReturnHome, onClose }: {
   apiaryId: number
   currentPastureId: number | null
+  canReturnHome: boolean
   onClose: () => void
 }) {
   const { toast } = useToast()
   const { data: pastures = [] } = usePastures()
   const createMove = useCreateApiaryMove(apiaryId)
+  const returnHome = useReturnHomeApiaryMove(apiaryId)
 
   const [toPastureId, setToPastureId] = useState<number>(0)
   const [movedAt, setMovedAt] = useState<string>(today())
@@ -195,6 +178,16 @@ function MoveApiaryModal({ apiaryId, currentPastureId, onClose }: {
   const [formError, setFormError] = useState<string | null>(null)
 
   const options = pastures.filter(p => p.id !== currentPastureId)
+
+  async function handleReturnHome() {
+    try {
+      await returnHome.mutateAsync()
+      toast.success('Pčelinjak je vraćen na matičnu lokaciju.')
+      onClose()
+    } catch (e: any) {
+      toast.error(e?.response?.data?.errors?.apiaryId?.[0] ?? e?.response?.data?.detail ?? 'Greška pri povratku na matičnu lokaciju.')
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -236,7 +229,26 @@ function MoveApiaryModal({ apiaryId, currentPastureId, onClose }: {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="px-6 py-5 space-y-4">
+        {canReturnHome && (
+          <div className="px-6 pt-5">
+            <button
+              type="button"
+              onClick={handleReturnHome}
+              disabled={returnHome.isPending}
+              className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-xl border-2 border-dashed border-honey-300 dark:border-honey-500/40 text-honey-700 dark:text-honey-300 text-sm font-semibold hover:bg-honey-50 dark:hover:bg-honey-500/10 transition-colors disabled:opacity-60"
+            >
+              {returnHome.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Home className="w-4 h-4" />}
+              Vrati na matičnu lokaciju
+            </button>
+            <div className="flex items-center gap-3 my-4">
+              <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
+              <span className="text-xs text-gray-400 dark:text-slate-500 shrink-0">ili preseli na drugi pašnjak</span>
+              <div className="h-px flex-1 bg-gray-200 dark:bg-slate-700" />
+            </div>
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className={`px-6 pb-5 space-y-4 ${canReturnHome ? '' : 'pt-5'}`}>
           {formError && (
             <p className="text-sm text-red-600 dark:text-red-300 bg-red-50 dark:bg-red-500/10 rounded-lg px-4 py-3">{formError}</p>
           )}

@@ -11,6 +11,9 @@ public class LearningTopicSummaryDto
     public string CategoryName { get; set; } = string.Empty;
     public int[]? Months { get; set; }
     public string Summary { get; set; } = string.Empty;
+    public string? VideoUrl { get; set; }
+    public string? FileUrl { get; set; }
+    public string? FileName { get; set; }
     public bool IsRead { get; set; }
     public DateTime? PublishedAt { get; set; }
 }

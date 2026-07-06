@@ -9,6 +9,7 @@ import {
 } from '../../core/services/adminQueries'
 import { VitalCard, Skeleton, ConfirmDialog } from '../../shared/components'
 import { useToast } from '../../core/context/ToastContext'
+import { PlanTypeLabels, type AdminOrganization } from '../../core/models'
 
 export default function AdminDashboardPage() {
   const navigate = useNavigate()
@@ -125,7 +126,7 @@ export default function AdminDashboardPage() {
               <thead className="bg-honey-50 dark:bg-slate-800/60 border-y border-honey-100 dark:border-slate-800">
                 <tr>
                   <Th>Naziv</Th>
-                  <Th className="hidden md:table-cell">Opis</Th>
+                  <Th className="text-center">Paket</Th>
                   <Th className="text-center">Korisnici</Th>
                   <Th className="text-center">Pčelinjaci</Th>
                   <th className="px-4 py-3" />
@@ -135,8 +136,8 @@ export default function AdminDashboardPage() {
                 {filteredOrgs.map((org) => (
                   <tr key={org.id} className="hover:bg-honey-50/50 dark:hover:bg-slate-800/50 transition-colors">
                     <td className="px-4 py-3 font-medium text-gray-900 dark:text-slate-100">{org.name}</td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-slate-400 hidden md:table-cell max-w-xs truncate">
-                      {org.description ?? '—'}
+                    <td className="px-4 py-3 text-center">
+                      <PlanBadge org={org} />
                     </td>
                     <td className="px-4 py-3 text-center text-gray-700 dark:text-slate-300">{org.userCount}</td>
                     <td className="px-4 py-3 text-center text-gray-700 dark:text-slate-300">{org.apiaryCount}</td>
@@ -297,6 +298,27 @@ function SectionCard({
 
 function Th({ children, className = '' }: { children: React.ReactNode; className?: string }) {
   return <th className={`text-left px-4 py-3 font-medium text-gray-600 dark:text-slate-300 ${className}`}>{children}</th>
+}
+
+/** Plan chip for the admin org table (SPEC-09). Marks an expired plan so billing follow-up is visible. */
+function PlanBadge({ org }: { org: AdminOrganization }) {
+  const expired = !!org.planValidUntil && new Date(org.planValidUntil).setHours(23, 59, 59, 999) < Date.now()
+  return (
+    <span className="inline-flex flex-col items-center">
+      <span className={`text-[11px] font-semibold px-2 py-0.5 rounded-full ${
+        expired
+          ? 'bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-300'
+          : 'bg-honey-100 text-honey-700 dark:bg-honey-500/20 dark:text-honey-300'
+      }`}>
+        {PlanTypeLabels[org.plan]}
+      </span>
+      {org.planValidUntil && (
+        <span className={`text-[10px] mt-0.5 ${expired ? 'text-red-500' : 'text-gray-400 dark:text-slate-500'}`}>
+          {expired ? 'isteklo' : `do ${new Date(org.planValidUntil).toLocaleDateString('bs-BA')}`}
+        </span>
+      )}
+    </span>
+  )
 }
 
 function RowAction({ kind, onClick, loading }: { kind: 'edit' | 'delete'; onClick: () => void; loading?: boolean }) {

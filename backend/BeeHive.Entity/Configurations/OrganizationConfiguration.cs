@@ -17,6 +17,14 @@ public class OrganizationConfiguration : IEntityTypeConfiguration<Organization>
         builder.Property(o => o.Description)
             .HasMaxLength(1000);
 
+        // ── Subscription plan (SPEC-09) — existing rows default to Free ──
+        builder.Property(o => o.Plan)
+            .IsRequired()
+            .HasDefaultValue(BeeHive.Domain.Enums.PlanType.Free);
+
+        builder.Property(o => o.PlanNotes)
+            .HasMaxLength(300);
+
         builder.HasOne(o => o.CreatedBy)
             .WithMany()
             .HasForeignKey(o => o.CreatedById)

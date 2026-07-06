@@ -64,6 +64,23 @@ public class AdminService : IAdminService
         return MapOrganization(org);
     }
 
+    public async Task<AdminOrganizationDto> UpdateOrganizationPlanAsync(int id, UpdateOrganizationPlanDto dto)
+    {
+        var org = await _uow.Organizations.GetWithDetailsAsync(id)
+            ?? throw new NotFoundException(nameof(Organization), id);
+
+        // Manual activation (SPEC-09 v1): SystemAdmin sets the plan after a bank-transfer payment;
+        // null PlanValidUntil = bez isteka (doživotno — early adopters / Partner orgs).
+        org.Plan = dto.Plan;
+        org.PlanValidUntil = dto.PlanValidUntil;
+        org.PlanNotes = string.IsNullOrWhiteSpace(dto.PlanNotes) ? null : dto.PlanNotes.Trim();
+
+        await _uow.Organizations.UpdateAsync(org);
+        await _uow.SaveChangesAsync();
+
+        return MapOrganization(org);
+    }
+
     public async Task DeleteOrganizationAsync(int id)
     {
         var org = await _uow.Organizations.GetWithDetailsAsync(id)
@@ -432,7 +449,11 @@ public class AdminService : IAdminService
         UserCount = o.Users.Count,
         ApiaryCount = o.Apiaries.Count,
         CreatedByName = o.CreatedBy != null ? $"{o.CreatedBy.FirstName} {o.CreatedBy.LastName}" : null,
-        CreatedAt = o.CreatedAt
+        CreatedAt = o.CreatedAt,
+        Plan = o.Plan,
+        PlanName = Common.Localization.BsLabels.Label(o.Plan),
+        PlanValidUntil = o.PlanValidUntil,
+        PlanNotes = o.PlanNotes,
     };
 
     private static AdminUserDto MapUser(User u) => new()

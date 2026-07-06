@@ -11,12 +11,14 @@ import {
   useDeleteAdvisorConversation,
   advisorQueryKeys,
 } from '../../core/services/advisorQueries'
+import { Link } from 'react-router-dom'
 import { useBeehive } from '../../core/services/queries'
+import { useMyPlan } from '../../core/services/planService'
 import { ConfirmDialog } from '../../shared/components'
 import { useToast } from '../../core/context/ToastContext'
 import { ChatThread } from './ChatThread'
 import { ChatInput } from './ChatInput'
-import type { AdvisorConversationSummary } from '../../core/models'
+import { PlanType, type AdvisorConversationSummary } from '../../core/models'
 
 export default function AdvisorPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -98,6 +100,7 @@ export default function AdvisorPage() {
 
   return (
     <div className="animate-fade-in">
+      <AdvisorPlanBanner />
       <div className="flex h-[calc(100dvh-8.5rem)] rounded-3xl border border-honey-200 dark:border-slate-800 overflow-hidden shadow-card dark:shadow-none bg-white dark:bg-slate-900">
 
         {/* ── Conversation list ─────────────────────────────────────────────── */}
@@ -220,6 +223,39 @@ interface ConversationItemProps {
   active: boolean
   onSelect: () => void
   onDelete: () => void
+}
+
+/** Proactive plan hint (SPEC-09): locked for Free, remaining-quota counter for Standard. */
+function AdvisorPlanBanner() {
+  const { data: plan } = useMyPlan()
+  if (!plan) return null
+
+  const eff = plan.effectivePlan
+  if (eff === PlanType.Free) {
+    return (
+      <Link
+        to="/plans"
+        className="mb-3 flex items-center gap-2.5 px-4 py-2.5 rounded-xl border border-honey-200 dark:border-honey-500/30
+          bg-honey-50 dark:bg-honey-500/10 text-sm font-medium text-honey-800 dark:text-honey-300
+          hover:bg-honey-100 dark:hover:bg-honey-500/20 transition-colors"
+      >
+        🔒 AI savjetnik je dio plaćenih paketa — nadogradite paket da postavljate pitanja.
+        <span className="ml-auto underline shrink-0">Pogledaj pakete</span>
+      </Link>
+    )
+  }
+
+  const limit = plan.usage.advisorMessagesLimit
+  if (limit != null && limit > 0) {
+    const remaining = Math.max(0, limit - plan.usage.advisorMessagesThisMonth)
+    return (
+      <div className="mb-3 px-4 py-2 rounded-xl bg-gray-50 dark:bg-slate-800/60 text-xs text-gray-500 dark:text-slate-400">
+        AI poruke ovog mjeseca: <strong className="text-gray-700 dark:text-slate-200">{plan.usage.advisorMessagesThisMonth}/{limit}</strong>
+        {remaining === 0 && ' — iskorišteno. Nadogradite na Pro za neograničeno.'}
+      </div>
+    )
+  }
+  return null
 }
 
 function ConversationItem({ conversation: c, active, onSelect, onDelete }: ConversationItemProps) {

@@ -103,4 +103,7 @@ public class UserRepository : Repository<User>, IUserRepository
         await _context.Users
             .Select(u => u.Id)
             .ToListAsync();
+
+    public async Task<int> CountByOrganizationAsync(int organizationId) =>
+        await _context.Users.CountAsync(u => u.OrganizationId == organizationId);
 }

@@ -6,12 +6,21 @@ import {
   useAdminOrganization,
   useCreateOrganization,
   useUpdateOrganization,
+  useUpdateOrganizationPlan,
 } from '../../core/services/adminQueries'
 import { FormHeader } from '../../shared/components'
+import { useToast } from '../../core/context/ToastContext'
+import { PlanType, PlanTypeLabels } from '../../core/models'
 
 interface OrgForm {
   name: string
   description: string
+}
+
+interface PlanForm {
+  plan: PlanType
+  planValidUntil: string
+  planNotes: string
 }
 
 export default function OrganizationFormPage() {
@@ -23,6 +32,8 @@ export default function OrganizationFormPage() {
   const { data: existing, isLoading: loadingExisting } = useAdminOrganization(orgId)
   const createOrg = useCreateOrganization()
   const updateOrg = useUpdateOrganization(orgId)
+  const updatePlan = useUpdateOrganizationPlan(orgId)
+  const { toast } = useToast()
 
   const {
     register,
@@ -32,11 +43,36 @@ export default function OrganizationFormPage() {
     formState: { errors, isSubmitting },
   } = useForm<OrgForm>()
 
+  const {
+    register: registerPlan,
+    handleSubmit: handleSubmitPlan,
+    reset: resetPlan,
+    formState: { isSubmitting: isSubmittingPlan },
+  } = useForm<PlanForm>()
+
   useEffect(() => {
     if (existing) {
       reset({ name: existing.name, description: existing.description ?? '' })
+      resetPlan({
+        plan: existing.plan,
+        planValidUntil: existing.planValidUntil ? existing.planValidUntil.split('T')[0] : '',
+        planNotes: existing.planNotes ?? '',
+      })
     }
-  }, [existing, reset])
+  }, [existing, reset, resetPlan])
+
+  async function onSubmitPlan(data: PlanForm) {
+    try {
+      await updatePlan.mutateAsync({
+        plan: Number(data.plan),
+        planValidUntil: data.planValidUntil ? new Date(data.planValidUntil).toISOString() : null,
+        planNotes: data.planNotes || null,
+      })
+      toast.success('Paket organizacije je ažuriran.')
+    } catch (e: any) {
+      toast.error(e?.response?.data?.errors?.detail?.[0] ?? e?.message ?? 'Greška pri ažuriranju paketa.')
+    }
+  }
 
   async function onSubmit(data: OrgForm) {
     const payload = {
@@ -134,6 +170,63 @@ export default function OrganizationFormPage() {
           </div>
         </form>
       </div>
+
+      {/* Plan & billing (SPEC-09) — edit mode only */}
+      {isEdit && (
+        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm dark:shadow-none border border-honey-100 dark:border-slate-800 px-8 py-8 mt-6">
+          <h2 className="font-display text-lg font-semibold text-gray-800 dark:text-slate-100 mb-1">Paket i naplata</h2>
+          <p className="text-xs text-gray-500 dark:text-slate-400 mb-5">
+            Ručna aktivacija paketa (v1). Ostavite datum praznim za doživotni paket. Partner paket je skriven od korisnika.
+          </p>
+
+          <form onSubmit={handleSubmitPlan(onSubmitPlan)} className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Paket</label>
+              <select
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none
+                  bg-gray-50 focus:bg-white dark:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+                {...registerPlan('plan', { required: true })}
+              >
+                {Object.values(PlanType).filter(v => typeof v === 'number').map(v => (
+                  <option key={v} value={v}>{PlanTypeLabels[v as PlanType]}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Važi do (opcionalno)</label>
+              <input
+                type="date"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none
+                  bg-gray-50 focus:bg-white dark:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+                {...registerPlan('planValidUntil')}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-1.5">Napomena (uplatnica, ko je platio…)</label>
+              <input
+                type="text"
+                maxLength={300}
+                placeholder="npr. Uplatnica #123 / Probni period"
+                className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-slate-700 text-sm outline-none
+                  bg-gray-50 focus:bg-white dark:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-2 focus:ring-honey-100 transition-all"
+                {...registerPlan('planNotes')}
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmittingPlan}
+              className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-honey-500 hover:bg-honey-600 text-white text-sm font-semibold
+                disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+            >
+              {isSubmittingPlan ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+              Spremi paket
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

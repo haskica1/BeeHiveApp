@@ -9,6 +9,7 @@ public interface IAdminService
     Task<AdminOrganizationDto> GetOrganizationByIdAsync(int id);
     Task<AdminOrganizationDto> CreateOrganizationAsync(CreateOrganizationDto dto, int? createdById);
     Task<AdminOrganizationDto> UpdateOrganizationAsync(int id, UpdateOrganizationDto dto);
+    Task<AdminOrganizationDto> UpdateOrganizationPlanAsync(int id, UpdateOrganizationPlanDto dto);
     Task DeleteOrganizationAsync(int id);
 
     // Apiaries (for org-scoped picker)

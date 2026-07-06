@@ -15,6 +15,7 @@ public class InspectionService : IInspectionService
     private readonly IMapper _mapper;
     private readonly IAccessGuard _access;
     private readonly IWeatherService _weather;
+    private readonly IFileStorage _storage;
     private readonly ILogger<InspectionService> _logger;
 
     public InspectionService(
@@ -22,12 +23,14 @@ public class InspectionService : IInspectionService
         IMapper mapper,
         IAccessGuard access,
         IWeatherService weather,
+        IFileStorage storage,
         ILogger<InspectionService> logger)
     {
         _uow = uow;
         _mapper = mapper;
         _access = access;
         _weather = weather;
+        _storage = storage;
         _logger = logger;
     }
 
@@ -104,8 +107,24 @@ public class InspectionService : IInspectionService
 
         await _access.EnsureCanAccessBeehiveAsync(inspection.BeehiveId);
 
+        // Capture blob paths first — the FK cascade removes the photo rows with the inspection.
+        var photos = await _uow.InspectionPhotos.GetByInspectionIdAsync(id);
+
         await _uow.Inspections.DeleteAsync(inspection);
         await _uow.SaveChangesAsync();
+
+        // Blob removal is best-effort — a storage failure never blocks the delete (SPEC-05).
+        foreach (var photo in photos)
+        {
+            try
+            {
+                await _storage.DeleteAsync(photo.StoragePath);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not delete stored file {StoragePath} while deleting inspection {InspectionId}", photo.StoragePath, id);
+            }
+        }
     }
 
     // ── Helpers ────────────────────────────────────────────────────────────────

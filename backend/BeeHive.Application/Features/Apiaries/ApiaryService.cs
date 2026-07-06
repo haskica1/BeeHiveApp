@@ -14,13 +14,15 @@ public class ApiaryService : IApiaryService
     private readonly IMapper _mapper;
     private readonly ICurrentUser _currentUser;
     private readonly IAccessGuard _access;
+    private readonly IPlanGuard _plan;
 
-    public ApiaryService(IUnitOfWork uow, IMapper mapper, ICurrentUser currentUser, IAccessGuard access)
+    public ApiaryService(IUnitOfWork uow, IMapper mapper, ICurrentUser currentUser, IAccessGuard access, IPlanGuard plan)
     {
         _uow = uow;
         _mapper = mapper;
         _currentUser = currentUser;
         _access = access;
+        _plan = plan;
     }
 
     /// <inheritdoc />
@@ -92,6 +94,8 @@ public class ApiaryService : IApiaryService
     {
         if (_currentUser.OrganizationId is not int organizationId)
             throw new ForbiddenAccessException("You must belong to an organization to create an apiary.");
+
+        await _plan.EnsureCanAddApiaryAsync(organizationId);
 
         var apiary = _mapper.Map<Apiary>(dto);
         apiary.OrganizationId = organizationId;
