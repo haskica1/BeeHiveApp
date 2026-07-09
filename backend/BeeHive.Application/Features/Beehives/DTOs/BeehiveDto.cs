@@ -13,6 +13,7 @@ public class BeehiveDto
     public string MaterialName { get; set; } = string.Empty;
     public DateTime DateCreated { get; set; }
     public string? Notes { get; set; }
+    public string? LabelNumber { get; set; }
     public int ApiaryId { get; set; }
     public int InspectionCount { get; set; }
     public string? CreatedByName { get; set; }

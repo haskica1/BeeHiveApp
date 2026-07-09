@@ -14,6 +14,13 @@ public class Beehive : BaseEntity
     public DateTime DateCreated { get; set; }
     public string? Notes { get; set; }
 
+    /// <summary>
+    /// Optional physical label/number painted on the hive (e.g. "1", "01", "A3"). Used by the
+    /// "scan by number" flow to resolve a photographed number to this hive; when empty the flow
+    /// falls back to a number parsed from <see cref="Name"/>.
+    /// </summary>
+    public string? LabelNumber { get; set; }
+
     /// <summary>Permanent, globally-unique identifier for this hive. Encoded into the QR code.</summary>
     public Guid? UniqueId { get; set; }
 

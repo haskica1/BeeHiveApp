@@ -4,6 +4,7 @@ import type {
   Beehive,
   BeehiveDetail,
   BeehiveQr,
+  BeehiveNumberMatchResult,
   CreateBeehivePayload,
   UpdateBeehivePayload,
   Inspection,
@@ -78,6 +79,23 @@ export const beehiveService = {
   checkAccess: async (id: number): Promise<boolean> => {
     const res = await apiClient.get<{ hasAccess: boolean }>(`/beehives/${id}/has-access`)
     return res.data.hasAccess
+  },
+
+  /** Scan-by-number cheap path: resolve an on-device–recognised number to the caller's hives. */
+  resolveByNumber: async (number: string): Promise<BeehiveNumberMatchResult> => {
+    const res = await apiClient.post<BeehiveNumberMatchResult>('/beehives/resolve-by-number', { number })
+    return res.data
+  },
+
+  /** Scan-by-number fallback: send the photo so the Groq vision model reads the number, then match. */
+  scanByNumber: async (image: Blob): Promise<BeehiveNumberMatchResult> => {
+    const formData = new FormData()
+    formData.append('file', image, 'hive.jpg')
+    const res = await apiClient.post<BeehiveNumberMatchResult>('/beehives/scan-by-number', formData, {
+      headers: { 'Content-Type': undefined },
+      timeout: 30_000,
+    })
+    return res.data
   },
 }
 

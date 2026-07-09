@@ -27,5 +27,9 @@ public class CreateBeehiveValidator : AbstractValidator<CreateBeehiveDto>
         RuleFor(x => x.Notes)
             .MaximumLength(2000).WithMessage("Notes must not exceed 2000 characters.")
             .When(x => x.Notes is not null);
+
+        RuleFor(x => x.LabelNumber)
+            .MaximumLength(20).WithMessage("Label must not exceed 20 characters.")
+            .When(x => x.LabelNumber is not null);
     }
 }

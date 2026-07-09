@@ -4,6 +4,7 @@ using BeeHive.Application.Features.Beehives.DTOs;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace BeeHive.API.Controllers;
 
@@ -68,6 +69,65 @@ public class BeehivesController : ControllerBase
     {
         var count = await _service.RegenerateAllQrCodesAsync();
         return Ok(new { updated = count, message = $"QR codes regenerated for {count} beehive(s)." });
+    }
+
+    /// <summary>
+    /// Resolves an on-device–recognised number to the caller's beehives (by LabelNumber, else a number
+    /// parsed from the name). Cheap path — no image upload, no AI. Returns 0/1/many matches.
+    /// </summary>
+    [HttpPost("resolve-by-number")]
+    [ProducesResponseType(typeof(BeehiveNumberMatchResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ResolveByNumber([FromBody] ResolveByNumberDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Number) || dto.Number.Length > 20)
+            return BadRequest(new { message = "Broj košnice je obavezan." });
+
+        var result = await _service.MatchByNumberAsync(dto.Number);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Fallback path: reads the number from a photo via the Groq vision model, then matches it to the
+    /// caller's beehives. Paid AI call → rate limited. Images only (JPEG/PNG/WebP), max 8 MB.
+    /// </summary>
+    [HttpPost("scan-by-number")]
+    [Consumes("multipart/form-data")]
+    [EnableRateLimiting("photo-analyze")]
+    [RequestSizeLimit(9_000_000)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 9_000_000)]
+    [ProducesResponseType(typeof(BeehiveNumberMatchResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
+    public async Task<IActionResult> ScanByNumber(IFormFile? file)
+    {
+        if (file == null || file.Length == 0)
+            return BadRequest(new { message = "Fotografija je obavezna." });
+
+        if (string.IsNullOrWhiteSpace(file.ContentType) ||
+            !file.ContentType.StartsWith("image/", StringComparison.OrdinalIgnoreCase))
+            return BadRequest(new { message = "Podržane su samo slike (JPEG, PNG, WebP)." });
+
+        await using var stream = file.OpenReadStream();
+        using var buffer = new MemoryStream();
+        await stream.CopyToAsync(buffer);
+
+        var result = await _service.ScanByNumberAsync(buffer.ToArray(), file.ContentType);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// One-time backfill: fills empty LabelNumbers from a number parsed from each hive's name.
+    /// SystemAdmin only — run once after deploying the "scan by number" feature.
+    /// </summary>
+    [HttpPost("backfill-label-numbers")]
+    [Authorize(Roles = Roles.SystemAdmin)]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    public async Task<IActionResult> BackfillLabelNumbers()
+    {
+        var count = await _service.BackfillLabelNumbersFromNamesAsync();
+        return Ok(new { updated = count, message = $"Label set for {count} beehive(s) from their names." });
     }
 
     /// <summary>Returns all beehives accessible to the current user (role-scoped). Used by global search.</summary>

@@ -24,4 +24,22 @@ public interface IBeehiveService
 
     /// <summary>Returns all beehives accessible to the current user (role-scoped).</summary>
     Task<IEnumerable<BeehiveDto>> GetAllForCurrentUserAsync();
+
+    /// <summary>
+    /// Resolves a number/label to the caller's beehives (LabelNumber first, else a number parsed
+    /// from the name), scoped to what the caller may access. Returns 0/1/many matches.
+    /// </summary>
+    Task<BeehiveNumberMatchResult> MatchByNumberAsync(string number);
+
+    /// <summary>
+    /// Reads the number/label from a photo via the vision model, then resolves it like
+    /// <see cref="MatchByNumberAsync"/>. Used as the fallback when on-device OCR is not confident.
+    /// </summary>
+    Task<BeehiveNumberMatchResult> ScanByNumberAsync(byte[] image, string contentType, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// One-time backfill: fills empty LabelNumbers from a number parsed from each hive's name.
+    /// Returns the number of beehives updated. SystemAdmin operation.
+    /// </summary>
+    Task<int> BackfillLabelNumbersFromNamesAsync();
 }

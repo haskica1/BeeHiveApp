@@ -17,6 +17,9 @@ public class BeehiveConfiguration : IEntityTypeConfiguration<Beehive>
         builder.Property(b => b.Notes)
             .HasMaxLength(2000);
 
+        builder.Property(b => b.LabelNumber)
+            .HasMaxLength(20);
+
         builder.Property(b => b.UniqueId)
             .HasColumnType("uuid");
 

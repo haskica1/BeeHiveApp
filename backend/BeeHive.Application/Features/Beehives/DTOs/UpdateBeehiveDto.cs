@@ -9,5 +9,6 @@ public class UpdateBeehiveDto
     public BeehiveMaterial Material { get; set; }
     public DateTime DateCreated { get; set; }
     public string? Notes { get; set; }
+    public string? LabelNumber { get; set; }
     public int ApiaryId { get; set; }
 }

@@ -46,6 +46,7 @@ export default function BeehiveFormPage() {
         material: beehive.material,
         dateCreated: beehive.dateCreated.split('T')[0],
         notes: beehive.notes ?? '',
+        labelNumber: beehive.labelNumber ?? '',
         apiaryId: beehive.apiaryId,
       })
     }
@@ -57,6 +58,7 @@ export default function BeehiveFormPage() {
       type: Number(data.type),
       material: Number(data.material),
       apiaryId: Number(data.apiaryId),
+      labelNumber: data.labelNumber?.trim() || undefined,
     }
 
     if (isEditing) {
@@ -113,6 +115,25 @@ export default function BeehiveFormPage() {
               })}
             />
             {errors.name && <p className="form-error">{errors.name.message}</p>}
+          </div>
+
+          {/* Label number — the physical number painted on the hive, used by scan-by-number */}
+          <div>
+            <label className="form-label" htmlFor="labelNumber">Broj na košnici</label>
+            <input
+              id="labelNumber"
+              type="text"
+              inputMode="numeric"
+              placeholder="npr. 1"
+              className="form-input"
+              {...register('labelNumber', {
+                maxLength: { value: 20, message: 'Oznaka ne smije prelaziti 20 znakova' },
+              })}
+            />
+            <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
+              Broj naslikan na košnici — omogućava otvaranje slikanjem broja, bez QR koda.
+            </p>
+            {errors.labelNumber && <p className="form-error">{errors.labelNumber.message}</p>}
           </div>
 
           {/* Type + Material row */}

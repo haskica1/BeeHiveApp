@@ -126,6 +126,13 @@ builder.Services.AddHttpClient<IPhotoAnalysisAiClient, GroqPhotoAnalysisAiClient
     client.Timeout = TimeSpan.FromSeconds(90);
 });
 
+// "Scan by number" fallback — Groq vision reads the hive's painted number/label when on-device
+// OCR is not confident. Same Groq vision model + Groq:ApiKey as photo analysis.
+builder.Services.AddHttpClient<IHiveNumberOcrClient, GroqHiveNumberOcrClient>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(90);
+});
+
 // ── JWT Authentication ────────────────────────────────────────────────────────
 var jwtSecret = builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer = builder.Configuration["Jwt:Issuer"]!;

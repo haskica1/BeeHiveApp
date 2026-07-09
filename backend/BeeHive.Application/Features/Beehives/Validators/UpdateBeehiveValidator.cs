@@ -19,5 +19,9 @@ public class UpdateBeehiveValidator : AbstractValidator<UpdateBeehiveDto>
             .LessThanOrEqualTo(DateTime.UtcNow).WithMessage("Date created cannot be in the future.");
 
         RuleFor(x => x.ApiaryId).GreaterThan(0).WithMessage("A valid apiary must be specified.");
+
+        RuleFor(x => x.LabelNumber)
+            .MaximumLength(20).WithMessage("Label must not exceed 20 characters.")
+            .When(x => x.LabelNumber is not null);
     }
 }

@@ -119,6 +119,8 @@ export interface Beehive {
   materialName: string
   dateCreated: string
   notes?: string
+  /** Physical number/label painted on the hive (e.g. "1", "A3"). Used by scan-by-number. */
+  labelNumber?: string
   apiaryId: number
   inspectionCount: number
   createdByName?: string
@@ -145,10 +147,26 @@ export interface CreateBeehivePayload {
   material: BeehiveMaterial
   dateCreated: string
   notes?: string
+  labelNumber?: string
   apiaryId: number
 }
 
 export interface UpdateBeehivePayload extends CreateBeehivePayload {}
+
+/** A hive that matched a scanned/typed number (scan-by-number), with apiary for disambiguation. */
+export interface BeehiveMatch {
+  id: number
+  name: string
+  labelNumber?: string
+  apiaryId: number
+  apiaryName?: string
+}
+
+/** Result of resolving a number to hives: `recognizedNumber` null → OCR couldn't read a number. */
+export interface BeehiveNumberMatchResult {
+  recognizedNumber?: string | null
+  matches: BeehiveMatch[]
+}
 
 // ── Inspection ────────────────────────────────────────────────────────────────
 

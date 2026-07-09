@@ -3,6 +3,7 @@ using BeeHive.Application.Common.Exceptions;
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Application.Common.Security;
 using BeeHive.Application.Common.Services;
+using BeeHive.Application.Features.Ai;
 using BeeHive.Application.Features.Beehives.DTOs;
 using BeeHive.Application.Features.Notifications;
 using BeeHive.Domain.Entities;
@@ -21,6 +22,7 @@ public class BeehiveService : IBeehiveService
     private readonly ICurrentUser _currentUser;
     private readonly IAccessGuard _access;
     private readonly IPlanGuard _plan;
+    private readonly IHiveNumberOcrClient _ocr;
     private readonly ILogger<BeehiveService> _logger;
     private readonly string _frontendUrl;
 
@@ -32,6 +34,7 @@ public class BeehiveService : IBeehiveService
         ICurrentUser currentUser,
         IAccessGuard access,
         IPlanGuard plan,
+        IHiveNumberOcrClient ocr,
         ILogger<BeehiveService> logger,
         IConfiguration config)
     {
@@ -42,6 +45,7 @@ public class BeehiveService : IBeehiveService
         _currentUser   = currentUser;
         _access        = access;
         _plan          = plan;
+        _ocr           = ocr;
         _logger        = logger;
         _frontendUrl   = config["FrontendUrl"] ?? "https://bee-hive-app.vercel.app";
     }
@@ -184,35 +188,92 @@ public class BeehiveService : IBeehiveService
     public Task<bool> CanCurrentUserAccessAsync(int beehiveId) =>
         _access.CanAccessBeehiveAsync(beehiveId);
 
-    public async Task<IEnumerable<BeehiveDto>> GetAllForCurrentUserAsync()
-    {
-        IEnumerable<Beehive> beehives;
+    public async Task<IEnumerable<BeehiveDto>> GetAllForCurrentUserAsync() =>
+        _mapper.Map<IEnumerable<BeehiveDto>>(await GetAccessibleBeehivesAsync());
 
+    /// <summary>Role-scoped set of beehive entities the current caller may see. Shared by the list and number matching.</summary>
+    private async Task<IEnumerable<Beehive>> GetAccessibleBeehivesAsync()
+    {
         if (_currentUser.Role == UserRole.SystemAdmin)
-        {
-            beehives = await _uow.Beehives.GetAllAsync();
-        }
-        else if (_currentUser.Role == UserRole.Beekeeper)
+            return await _uow.Beehives.GetAllAsync();
+
+        if (_currentUser.Role == UserRole.Beekeeper)
         {
             var assignedIds = await _access.GetAssignedBeehiveIdsAsync();
-            beehives = assignedIds.Count > 0
+            return assignedIds.Count > 0
                 ? await _uow.Beehives.FindAsync(b => assignedIds.Contains(b.Id))
                 : [];
         }
-        else if (_currentUser.Role == UserRole.ApiaryAdmin && _currentUser.ApiaryId.HasValue)
-        {
-            beehives = await _uow.Beehives.GetByApiaryIdAsync(_currentUser.ApiaryId.Value);
-        }
-        else if (_currentUser.OrganizationId.HasValue)
-        {
-            beehives = await _uow.Beehives.GetByOrganizationAsync(_currentUser.OrganizationId.Value);
-        }
-        else
-        {
-            beehives = [];
-        }
 
-        return _mapper.Map<IEnumerable<BeehiveDto>>(beehives);
+        if (_currentUser.Role == UserRole.ApiaryAdmin && _currentUser.ApiaryId.HasValue)
+            return await _uow.Beehives.GetByApiaryIdAsync(_currentUser.ApiaryId.Value);
+
+        if (_currentUser.OrganizationId.HasValue)
+            return await _uow.Beehives.GetByOrganizationAsync(_currentUser.OrganizationId.Value);
+
+        return [];
+    }
+
+    public async Task<BeehiveNumberMatchResult> MatchByNumberAsync(string number)
+    {
+        var target = HiveNumberMatcher.Normalize(number);
+        if (target is null)
+            return new BeehiveNumberMatchResult { RecognizedNumber = number };
+
+        var matched = (await GetAccessibleBeehivesAsync())
+            .Where(b => HiveNumberMatcher.Matches(b.LabelNumber, b.Name, target))
+            .ToList();
+
+        // Apiary names for the picker — batch-loaded so we don't rely on each query eager-loading Apiary.
+        var apiaryIds = matched.Select(b => b.ApiaryId).Distinct().ToList();
+        var apiaryNames = apiaryIds.Count > 0
+            ? (await _uow.Apiaries.FindAsync(a => apiaryIds.Contains(a.Id))).ToDictionary(a => a.Id, a => a.Name)
+            : new Dictionary<int, string>();
+
+        return new BeehiveNumberMatchResult
+        {
+            RecognizedNumber = number,
+            Matches = matched
+                .Select(b => new BeehiveMatchDto
+                {
+                    Id          = b.Id,
+                    Name        = b.Name,
+                    LabelNumber = b.LabelNumber,
+                    ApiaryId    = b.ApiaryId,
+                    ApiaryName  = apiaryNames.GetValueOrDefault(b.ApiaryId),
+                })
+                .OrderBy(m => m.ApiaryName)
+                .ThenBy(m => m.Name)
+                .ToList(),
+        };
+    }
+
+    public async Task<BeehiveNumberMatchResult> ScanByNumberAsync(byte[] image, string contentType, CancellationToken cancellationToken = default)
+    {
+        var ocr = await _ocr.RecognizeNumberAsync(image, contentType, cancellationToken);
+        if (string.IsNullOrWhiteSpace(ocr.Number))
+            return new BeehiveNumberMatchResult { RecognizedNumber = null };
+
+        return await MatchByNumberAsync(ocr.Number);
+    }
+
+    public async Task<int> BackfillLabelNumbersFromNamesAsync()
+    {
+        var all = await _uow.Beehives.GetAllAsync();
+        int count = 0;
+        foreach (var b in all)
+        {
+            if (!string.IsNullOrWhiteSpace(b.LabelNumber)) continue;
+
+            var parsed = HiveNumberMatcher.PrimaryNameNumber(b.Name);
+            if (parsed is null) continue;
+
+            b.LabelNumber = parsed;
+            await _uow.Beehives.UpdateAsync(b);
+            count++;
+        }
+        await _uow.SaveChangesAsync();
+        return count;
     }
 
     public async Task<int> RegenerateAllQrCodesAsync()
