@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
-import { Camera, Circle, ImagePlus, Loader2, Mic, Square, X } from 'lucide-react'
+import { Camera, CheckCircle2, Circle, ImagePlus, Loader2, Mic, Square, X } from 'lucide-react'
 import {
   useCreateInspection,
   useInspectionPhotos,
@@ -18,7 +18,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { queryKeys } from '../../core/services/queries'
 import { LoadingSpinner, ErrorMessage, FormHeader } from '../../shared/components'
 import { HoneyLevel, HoneyLevelLabels } from '../../core/models'
-import type { Beehive, CreateInspectionPayload } from '../../core/models'
+import type { Beehive, CreateInspectionPayload, ParseVoiceResult } from '../../core/models'
 import { useVoiceInput } from '../../core/hooks/useVoiceInput'
 import { useOnlineStatus } from '../../core/hooks/useOnlineStatus'
 import { useAuth } from '../../core/context/AuthContext'
@@ -31,6 +31,9 @@ import {
   type OutboxItem,
 } from '../../core/offline/outbox'
 import { isNetworkError } from '../../core/offline/syncOutbox'
+
+const voiceChipCls =
+  'text-xs font-medium px-2.5 py-1 rounded-full bg-honey-100 text-honey-700 dark:bg-honey-500/15 dark:text-honey-300'
 
 export default function InspectionFormPage() {
   const { id } = useParams<{ id?: string }>()
@@ -53,6 +56,7 @@ export default function InspectionFormPage() {
   const [recordedBlob, setRecordedBlob] = useState<Blob | null>(null)
   const [isParsing, setIsParsing]     = useState(false)
   const [parseError, setParseError]   = useState<string | null>(null)
+  const [parsedResult, setParsedResult] = useState<ParseVoiceResult | null>(null)  // review shown after processing
   const blobRef = useRef<Blob | null>(null)   // stable ref alongside state
 
   // ── Photo attachments (SPEC-05) ──────────────────────────────────────────
@@ -137,6 +141,7 @@ export default function InspectionFormPage() {
     setRecordedBlob(null)
     blobRef.current = null
     setParseError(null)
+    setParsedResult(null)
     setVoiceOpen(true)
   }
 
@@ -145,6 +150,7 @@ export default function InspectionFormPage() {
     setRecordedBlob(null)
     blobRef.current = null
     setParseError(null)
+    setParsedResult(null)
     setVoiceOpen(false)
   }
 
@@ -178,11 +184,12 @@ export default function InspectionFormPage() {
       if (result.honeyLevel  != null) setValue('honeyLevel', result.honeyLevel)
       if (result.broodStatus)        setValue('broodStatus', result.broodStatus)
       if (result.notes)              setValue('notes', result.notes)
-      // Close voice panel and let user review the populated form
+      // Show a review of what the server recognized (the live transcript isn't available on
+      // most mobile browsers) before returning to the form.
       voice.reset()
       setRecordedBlob(null)
       blobRef.current = null
-      setVoiceOpen(false)
+      setParsedResult(result)
     } catch {
       setParseError('Greška pri obradi snimka. Pokušajte ponovo ili unesite podatke ručno.')
     } finally {
@@ -351,6 +358,34 @@ export default function InspectionFormPage() {
                 <p className="text-xs text-gray-400 dark:text-slate-500">
                   Transkribovanje i ekstrakcija podataka
                 </p>
+              </div>
+            ) : parsedResult ? (
+              /* ── Review of what the server recognized (works on mobile too) ── */
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+                  <CheckCircle2 className="w-5 h-5 shrink-0" />
+                  <span className="text-sm font-semibold">Snimak obrađen — podaci su uneseni u formu.</span>
+                </div>
+
+                {parsedResult.transcript && (
+                  <div>
+                    <label className="form-label">Prepoznati tekst</label>
+                    <div className="w-full rounded-xl border border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800/60 px-4 py-3 text-sm leading-relaxed text-gray-700 dark:text-slate-200 max-h-40 overflow-y-auto whitespace-pre-line">
+                      {parsedResult.transcript}
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  {parsedResult.date && <span className={voiceChipCls}>Datum: {parsedResult.date}</span>}
+                  {parsedResult.honeyLevel != null && <span className={voiceChipCls}>Med: {HoneyLevelLabels[parsedResult.honeyLevel]}</span>}
+                  {parsedResult.broodStatus && <span className={voiceChipCls}>Leglo: {parsedResult.broodStatus}</span>}
+                  {parsedResult.notes && <span className={voiceChipCls}>Napomena dodana</span>}
+                </div>
+
+                <button type="button" onClick={handleCloseVoice} className="btn-primary w-full">
+                  Uredu — pregledaj formu
+                </button>
               </div>
             ) : (
               <>

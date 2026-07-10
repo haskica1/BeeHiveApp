@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet'
+import { useEffect, useState } from 'react'
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
 import { Flower2, Loader2, MapPin, PencilLine, Plus, Tent, Trash2, X } from 'lucide-react'
 import {
@@ -13,6 +13,19 @@ import { ConfirmDialog, EmptyState, VitalsSkeleton } from '../../shared/componen
 import LocationPickerModal from '../../shared/components/LocationPickerModal'
 import { usePermissions } from '../../core/hooks/usePermissions'
 import { useToast } from '../../core/context/ToastContext'
+
+/** Auto-fits the map so every pasture marker is visible; re-fits only when the coordinates change. */
+function FitBounds({ points }: { points: [number, number][] }) {
+  const map = useMap()
+  const key = points.map(p => p.join(',')).join('|')
+  useEffect(() => {
+    if (points.length === 0) return
+    if (points.length === 1) map.setView(points[0], 12)
+    else map.fitBounds(points, { padding: [40, 40], maxZoom: 13 })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, key])
+  return null
+}
 
 export default function PasturesPage() {
   const { canManageApiaries } = usePermissions()
@@ -114,6 +127,7 @@ export default function PasturesPage() {
               attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
+            <FitBounds points={located.map(p => [p.latitude!, p.longitude!] as [number, number])} />
             {located.map(p => (
               <Marker key={p.id} position={[p.latitude!, p.longitude!]}>
                 <Popup>

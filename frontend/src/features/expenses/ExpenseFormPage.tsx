@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
-import { useFieldArray, useForm } from 'react-hook-form'
+import { useFieldArray, useForm, useWatch } from 'react-hook-form'
 import { AlertCircle, Loader2, Plus, Trash2 } from 'lucide-react'
 import { useExpense, useCreateExpense, useUpdateExpense } from '../../core/services/expenseQueries'
 import { ExpenseSource } from '../../core/models'
@@ -23,6 +23,11 @@ interface FormValues {
 
 const DEFAULT_CURRENCIES = ['BAM', 'EUR', 'USD', 'HRK']
 
+const itemInputCls =
+  'w-full px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all'
+// Field labels shown only on mobile (the desktop layout has a shared header row instead).
+const itemLabelCls = 'sm:hidden block text-[11px] font-medium text-gray-400 dark:text-slate-500 mb-1'
+
 export default function ExpenseFormPage() {
   const { id } = useParams<{ id: string }>()
   const expenseId = id ? parseInt(id) : undefined
@@ -43,6 +48,7 @@ export default function ExpenseFormPage() {
     reset,
     watch,
     setValue,
+    getValues,
   } = useForm<FormValues>({
     defaultValues: {
       purchaseDate: new Date().toISOString().split('T')[0],
@@ -80,15 +86,21 @@ export default function ExpenseFormPage() {
     }
   }, [existing, isEdit, reset])
 
-  // Auto-compute total from items
-  const watchedItems = watch('items')
-  useEffect(() => {
-    const sum = watchedItems.reduce((acc, item) => {
-      const tp = parseFloat(item.totalPrice) || 0
-      return acc + tp
-    }, 0)
-    if (sum > 0) setValue('totalAmount', sum.toFixed(2))
-  }, [watchedItems, setValue])
+  // Live grand total, summed from each row's line total. useWatch stays reactive on every
+  // keystroke — the previous watch()+useEffect combo missed nested edits, so the total went
+  // stale until a new row was added or the page reloaded.
+  const watchedItems = useWatch({ control, name: 'items' })
+  const grandTotal = (watchedItems ?? []).reduce(
+    (sum, it) => sum + (parseFloat(it?.totalPrice) || 0),
+    0,
+  )
+
+  // When both quantity and unit price are known, fill the row's line total automatically.
+  const recomputeRow = (index: number) => {
+    const q = parseFloat(getValues(`items.${index}.quantity`)) || 0
+    const u = parseFloat(getValues(`items.${index}.unitPrice`)) || 0
+    if (q > 0 && u > 0) setValue(`items.${index}.totalPrice`, (q * u).toFixed(2))
+  }
 
   const isSaving = createExpense.isPending || updateExpense.isPending
   const error = createExpense.error || updateExpense.error
@@ -103,10 +115,13 @@ export default function ExpenseFormPage() {
       sortOrder: i,
     }))
 
+    // Total is always the sum of the line totals — never a stale form field.
+    const totalAmount = items.reduce((sum, it) => sum + it.totalPrice, 0)
+
     if (isEdit && expenseId) {
       await updateExpense.mutateAsync({
         purchaseDate: values.purchaseDate,
-        totalAmount: parseFloat(values.totalAmount) || 0,
+        totalAmount,
         currency: values.currency,
         notes: values.notes.trim() || undefined,
         items,
@@ -115,7 +130,7 @@ export default function ExpenseFormPage() {
       await createExpense.mutateAsync({
         source: prefilled?.source ?? ExpenseSource.Manual,
         purchaseDate: values.purchaseDate,
-        totalAmount: parseFloat(values.totalAmount) || 0,
+        totalAmount,
         currency: values.currency,
         notes: values.notes.trim() || undefined,
         items,
@@ -203,79 +218,77 @@ export default function ExpenseFormPage() {
               </button>
             </div>
 
-            {/* Column headers */}
-            <div className="grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 px-1 mb-1">
+            {/* Column headers (desktop only) */}
+            <div className="hidden sm:grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 px-1 mb-1">
               {['Proizvod', 'Kol.', 'Jed.', 'Jed. cijena', 'Ukupno', ''].map(h => (
                 <span key={h} className="text-xs font-medium text-gray-400 dark:text-slate-500">{h}</span>
               ))}
             </div>
 
-            <div className="space-y-2">
-              {fields.map((field, index) => (
-                <div key={field.id} className="grid grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 items-center">
-                  <input
-                    type="text"
-                    placeholder="Šećer"
-                    {...register(`items.${index}.name`, { required: true })}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="25"
-                    {...register(`items.${index}.quantity`, { required: true })}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
-                  />
-                  <input
-                    type="text"
-                    placeholder="kg"
-                    {...register(`items.${index}.unit`)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="1.60"
-                    {...register(`items.${index}.unitPrice`)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
-                  />
-                  <input
-                    type="number"
-                    step="0.01"
-                    min="0"
-                    placeholder="40.00"
-                    {...register(`items.${index}.totalPrice`)}
-                    className="px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => remove(index)}
-                    disabled={fields.length === 1}
-                    className="p-1.5 rounded-lg text-gray-300 dark:text-slate-600 hover:text-red-400 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                    aria-label="Ukloni stavku"
+            <div className="space-y-3 sm:space-y-2">
+              {fields.map((field, index) => {
+                const qtyReg   = register(`items.${index}.quantity`, { required: true })
+                const priceReg = register(`items.${index}.unitPrice`)
+                return (
+                  <div
+                    key={field.id}
+                    className="grid grid-cols-2 sm:grid-cols-[2fr_1fr_0.8fr_1fr_1fr_auto] gap-2 sm:items-center
+                               rounded-xl border border-gray-100 dark:border-slate-800 p-3 sm:p-0 sm:border-0 sm:rounded-none"
                   >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              ))}
+                    <div className="col-span-2 sm:col-span-1">
+                      <label className={itemLabelCls}>Proizvod</label>
+                      <input type="text" placeholder="Šećer" {...register(`items.${index}.name`, { required: true })} className={itemInputCls} />
+                    </div>
+                    <div>
+                      <label className={itemLabelCls}>Količina</label>
+                      <input
+                        type="number" step="0.01" min="0" inputMode="decimal" placeholder="25"
+                        {...qtyReg}
+                        onChange={e => { qtyReg.onChange(e); recomputeRow(index) }}
+                        className={itemInputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className={itemLabelCls}>Jedinica</label>
+                      <input type="text" placeholder="kg" {...register(`items.${index}.unit`)} className={itemInputCls} />
+                    </div>
+                    <div>
+                      <label className={itemLabelCls}>Jed. cijena</label>
+                      <input
+                        type="number" step="0.01" min="0" inputMode="decimal" placeholder="1.60"
+                        {...priceReg}
+                        onChange={e => { priceReg.onChange(e); recomputeRow(index) }}
+                        className={itemInputCls}
+                      />
+                    </div>
+                    <div>
+                      <label className={itemLabelCls}>Ukupno</label>
+                      <input type="number" step="0.01" min="0" inputMode="decimal" placeholder="40.00" {...register(`items.${index}.totalPrice`)} className={itemInputCls} />
+                    </div>
+                    <div className="col-span-2 sm:col-span-1 flex justify-end sm:block">
+                      <button
+                        type="button"
+                        onClick={() => remove(index)}
+                        disabled={fields.length === 1}
+                        className="p-1.5 rounded-lg text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                        aria-label="Ukloni stavku"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
 
-          {/* Total */}
-          <div className="flex items-center justify-end gap-3 pt-2 border-t border-gray-100 dark:border-slate-800">
-            <span className="text-sm text-gray-500 dark:text-slate-400">Ukupan iznos</span>
-            <div className="flex items-center gap-2">
-              <input
-                type="number"
-                step="0.01"
-                min="0"
-                {...register('totalAmount', { required: true })}
-                className="w-28 px-3 py-2 rounded-lg border border-gray-200 dark:border-slate-700 text-sm font-semibold outline-none bg-gray-50 focus:bg-white dark:bg-slate-800 dark:focus:bg-slate-800 dark:text-slate-100 focus:border-honey-400 focus:ring-1 focus:ring-honey-100 transition-all text-right"
-              />
-              <span className="text-sm font-medium text-gray-600 dark:text-slate-300">{watch('currency')}</span>
-            </div>
+          {/* Total — always the live sum of the line totals */}
+          <div className="flex items-center justify-between gap-3 pt-3 border-t border-gray-100 dark:border-slate-800">
+            <span className="text-sm font-medium text-gray-600 dark:text-slate-300">Ukupan iznos</span>
+            <span className="text-lg font-bold text-gray-900 dark:text-slate-50 tabular-nums">
+              {grandTotal.toFixed(2)}{' '}
+              <span className="text-sm font-medium text-gray-500 dark:text-slate-400">{watch('currency')}</span>
+            </span>
           </div>
 
           {/* Actions */}

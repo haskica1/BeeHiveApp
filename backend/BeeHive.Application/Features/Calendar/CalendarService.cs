@@ -129,6 +129,9 @@ public class CalendarService : ICalendarService
             .ToList();
 
         var calendarEntries = diets
+            // A diet stopped early is no longer scheduled — drop it from the calendar entirely
+            // (its remaining entries would otherwise linger as never-completing "overdue" feedings).
+            .Where(d => d.Status != DietStatus.StoppedEarly)
             .SelectMany(d => d.FeedingEntries.Select(e => new CalendarFeedingEntryDto
             {
                 Id            = e.Id,

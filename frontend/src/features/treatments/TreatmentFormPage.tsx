@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { AlertCircle, Loader2 } from 'lucide-react'
+import { AlertCircle, ChevronDown, ChevronUp, Loader2 } from 'lucide-react'
 import { useApiaries, useBeehivesByApiary } from '../../core/services/queries'
 import { useTreatment, useCreateTreatment, useUpdateTreatment } from '../../core/services/treatmentQueries'
 import {
@@ -68,6 +68,7 @@ export default function TreatmentFormPage() {
   const [checked, setChecked] = useState<Record<number, boolean>>({})
   const [doseNotes, setDoseNotes] = useState<Record<number, string>>({})
   const [presetIdx, setPresetIdx] = useState<string>('')
+  const [showAdvanced, setShowAdvanced] = useState<boolean>(false)
   const [formError, setFormError] = useState<string | null>(null)
   const [pendingSave, setPendingSave] = useState<TreatmentCommonPayload | null>(null)
 
@@ -91,6 +92,8 @@ export default function TreatmentFormPage() {
       setBatchNumber(existing.batchNumber ?? '')
       setSupplier(existing.supplier ?? '')
       setNotes(existing.notes ?? '')
+      // Reveal the advanced section when editing a record that already uses those fields.
+      setShowAdvanced(Boolean(existing.batchNumber || existing.supplier || existing.notes))
       const c: Record<number, boolean> = {}
       const d: Record<number, string> = {}
       for (const e of existing.entries) {
@@ -258,29 +261,13 @@ export default function TreatmentFormPage() {
             </div>
           </div>
 
-          {/* Product + substance */}
+          {/* Preparat + doza (bitno) */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>
                 Preparat <span className="text-red-500">*</span>
               </label>
               <input type="text" placeholder="npr. Apivar" value={productName} onChange={e => setProductName(e.target.value)} className={inputClass} />
-            </div>
-            <div>
-              <label className={labelClass}>Aktivna tvar</label>
-              <select value={substance} onChange={e => setSubstance(Number(e.target.value))} className={inputClass}>
-                {SUBSTANCES.map(s => <option key={s} value={s}>{ActiveSubstanceLabels[s]}</option>)}
-              </select>
-            </div>
-          </div>
-
-          {/* Method + dose */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Način primjene</label>
-              <select value={method} onChange={e => setMethod(Number(e.target.value))} className={inputClass}>
-                {METHODS.map(m => <option key={m} value={m}>{ApplicationMethodLabels[m]}</option>)}
-              </select>
             </div>
             <div>
               <label className={labelClass}>
@@ -307,25 +294,6 @@ export default function TreatmentFormPage() {
               <label className={labelClass}>Karenca (dana)</label>
               <input type="number" min="0" max="365" step="1" value={withdrawalDays} onChange={e => setWithdrawalDays(e.target.value)} className={inputClass} />
             </div>
-          </div>
-
-          {/* LOT + supplier */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>LOT broj</label>
-              <input type="text" placeholder="broj serije s pakovanja" value={batchNumber} onChange={e => setBatchNumber(e.target.value)} className={inputClass} />
-              <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Zakonski se očekuje u evidenciji.</p>
-            </div>
-            <div>
-              <label className={labelClass}>Dobavljač</label>
-              <input type="text" placeholder="gdje je preparat kupljen" value={supplier} onChange={e => setSupplier(e.target.value)} className={inputClass} />
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className={labelClass}>Napomena</label>
-            <input type="text" placeholder="npr. Jesenji tretman nakon vrcanja" value={notes} onChange={e => setNotes(e.target.value)} className={inputClass} />
           </div>
 
           {/* Hive selection */}
@@ -386,6 +354,55 @@ export default function TreatmentFormPage() {
                   <p className="text-xs text-red-500 dark:text-red-400 mt-1">Odaberite barem jednu košnicu da biste sačuvali tretman.</p>
                 )}
               </>
+            )}
+          </div>
+
+          {/* Više detalja — napredna / zakonska polja (skriveno po defaultu za brži unos) */}
+          <div className="border-t border-gray-100 dark:border-slate-800 pt-4">
+            <button
+              type="button"
+              onClick={() => setShowAdvanced(v => !v)}
+              className="flex items-center gap-1.5 text-sm font-medium text-honey-600 dark:text-honey-400 hover:text-honey-700 dark:hover:text-honey-300 transition-colors"
+            >
+              {showAdvanced ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              Više detalja
+              <span className="text-xs font-normal text-gray-400 dark:text-slate-500">(tvar, način, LOT, dobavljač, napomena)</span>
+            </button>
+
+            {showAdvanced && (
+              <div className="space-y-4 mt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>Aktivna tvar</label>
+                    <select value={substance} onChange={e => setSubstance(Number(e.target.value))} className={inputClass}>
+                      {SUBSTANCES.map(s => <option key={s} value={s}>{ActiveSubstanceLabels[s]}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Način primjene</label>
+                    <select value={method} onChange={e => setMethod(Number(e.target.value))} className={inputClass}>
+                      {METHODS.map(m => <option key={m} value={m}>{ApplicationMethodLabels[m]}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className={labelClass}>LOT broj</label>
+                    <input type="text" placeholder="broj serije s pakovanja" value={batchNumber} onChange={e => setBatchNumber(e.target.value)} className={inputClass} />
+                    <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">Zakonski se očekuje u evidenciji.</p>
+                  </div>
+                  <div>
+                    <label className={labelClass}>Dobavljač</label>
+                    <input type="text" placeholder="gdje je preparat kupljen" value={supplier} onChange={e => setSupplier(e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+
+                <div>
+                  <label className={labelClass}>Napomena</label>
+                  <input type="text" placeholder="npr. Jesenji tretman nakon vrcanja" value={notes} onChange={e => setNotes(e.target.value)} className={inputClass} />
+                </div>
+              </div>
             )}
           </div>
 

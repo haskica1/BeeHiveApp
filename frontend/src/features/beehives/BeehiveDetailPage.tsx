@@ -30,6 +30,12 @@ import { DietStatus, HoneyLevel } from '../../core/models'
 import type { Inspection } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
 
+// QR label side in mm — printable range. Empty/invalid input falls back to the minimum.
+const QR_MIN_MM = 10
+const QR_MAX_MM = 200
+const clampQrMm = (value: string): number =>
+  Math.min(QR_MAX_MM, Math.max(QR_MIN_MM, Math.round(Number(value) || QR_MIN_MM)))
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function BeehiveDetailPage() {
@@ -53,7 +59,8 @@ export default function BeehiveDetailPage() {
 
   const [deleteTarget, setDeleteTarget] = useState<{ id: number } | null>(null)
   const [qrOpen, setQrOpen] = useState(false)
-  const [qrSize, setQrSize] = useState({ w: 60, h: 60 })
+  // Kept as strings so the field can be cleared / retyped freely; clamped to 10–200 mm on blur & export.
+  const [qrSize, setQrSize] = useState({ w: '60', h: '60' })
 
   const handleDelete = async () => {
     if (!deleteTarget) return
@@ -129,17 +136,17 @@ export default function BeehiveDetailPage() {
             </div>
 
             <div className="flex gap-2 shrink-0">
-              <Link to={`/advisor?beehiveId=${beehiveId}`} className="btn-secondary text-sm">
-                <Bot className="w-4 h-4" /> Pitaj savjetnika
+              <Link to={`/advisor?beehiveId=${beehiveId}`} className="btn-secondary text-sm" title="Pitaj savjetnika" aria-label="Pitaj savjetnika">
+                <Bot className="w-4 h-4" /> <span className="hidden sm:inline">Pitaj savjetnika</span>
               </Link>
               {hasQr && (
-                <button onClick={() => setQrOpen(true)} className="btn-secondary text-sm">
-                  <QrCode className="w-4 h-4" /> QR Code
+                <button onClick={() => setQrOpen(true)} className="btn-secondary text-sm" title="QR kod" aria-label="QR kod">
+                  <QrCode className="w-4 h-4" /> <span className="hidden sm:inline">QR kod</span>
                 </button>
               )}
               {canEditDelete && (
-                <Link to={`/beehives/${beehiveId}/edit`} className="btn-secondary text-sm">
-                  <Pencil className="w-4 h-4" /> Uredi
+                <Link to={`/beehives/${beehiveId}/edit`} className="btn-secondary text-sm" title="Uredi" aria-label="Uredi">
+                  <Pencil className="w-4 h-4" /> <span className="hidden sm:inline">Uredi</span>
                 </Link>
               )}
             </div>
@@ -315,8 +322,8 @@ export default function BeehiveDetailPage() {
       {qrOpen && hasQr && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setQrOpen(false)} />
-          <div className="relative bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-8 max-w-sm w-full animate-fade-in">
-            <div className="text-center mb-4">
+          <div className="relative bg-white dark:bg-slate-900 dark:border dark:border-slate-800 rounded-2xl shadow-2xl p-6 max-w-sm w-full animate-fade-in">
+            <div className="text-center mb-3">
               <h2 className="font-display text-xl font-bold text-gray-800 dark:text-slate-100">{beehive.name}</h2>
               <p className="text-xs text-gray-400 dark:text-slate-500 font-mono mt-1">{beehive.uniqueId}</p>
             </div>
@@ -324,7 +331,7 @@ export default function BeehiveDetailPage() {
             <img
               src={`data:image/png;base64,${beehive.qrCodeBase64}`}
               alt={`QR code for ${beehive.name}`}
-              className="w-full max-w-[240px] mx-auto block rounded-lg border border-gray-100 bg-white p-2"
+              className="w-full max-w-[220px] mx-auto block rounded-lg border border-gray-100 bg-white p-1"
             />
 
             <div className="mt-4 grid grid-cols-2 gap-3">
@@ -332,22 +339,24 @@ export default function BeehiveDetailPage() {
                 <label className="form-label text-xs">Širina (mm)</label>
                 <input
                   type="number"
-                  min={20}
-                  max={200}
+                  min={QR_MIN_MM}
+                  max={QR_MAX_MM}
                   className="form-input text-sm"
                   value={qrSize.w}
-                  onChange={e => setQrSize(s => ({ ...s, w: Math.max(20, Math.min(200, Number(e.target.value))) }))}
+                  onChange={e => setQrSize(s => ({ ...s, w: e.target.value }))}
+                  onBlur={e => setQrSize(s => ({ ...s, w: String(clampQrMm(e.target.value)) }))}
                 />
               </div>
               <div>
                 <label className="form-label text-xs">Visina (mm)</label>
                 <input
                   type="number"
-                  min={20}
-                  max={200}
+                  min={QR_MIN_MM}
+                  max={QR_MAX_MM}
                   className="form-input text-sm"
                   value={qrSize.h}
-                  onChange={e => setQrSize(s => ({ ...s, h: Math.max(20, Math.min(200, Number(e.target.value))) }))}
+                  onChange={e => setQrSize(s => ({ ...s, h: e.target.value }))}
+                  onBlur={e => setQrSize(s => ({ ...s, h: String(clampQrMm(e.target.value)) }))}
                 />
               </div>
             </div>
@@ -360,7 +369,7 @@ export default function BeehiveDetailPage() {
                 Zatvori
               </button>
               <button
-                onClick={() => downloadBeehiveQrPdf(beehive, qrSize)}
+                onClick={() => downloadBeehiveQrPdf(beehive, { w: clampQrMm(qrSize.w), h: clampQrMm(qrSize.h) })}
                 className="btn-primary flex-1 text-sm py-2 px-3"
               >
                 <Download className="w-4 h-4" /> Preuzmi PDF

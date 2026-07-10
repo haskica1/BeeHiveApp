@@ -20,9 +20,13 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   const isRecording = voice.state === 'recording'
   const busy = disabled || transcribing
 
-  async function submit() {
-    const trimmed = text.trim()
-    if (!trimmed || busy) return
+  async function submit(messageOverride?: string) {
+    const trimmed = (messageOverride ?? text).trim()
+    if (!trimmed) return
+    // Voice auto-submit passes an explicit message and must not be blocked by the transient
+    // `transcribing` flag; a manual send still waits until nothing is busy.
+    if (messageOverride === undefined && busy) return
+    if (disabled) return
     try {
       await onSend(trimmed)
       setText('') // only clear on success — a failed send keeps the text for retry
@@ -32,22 +36,29 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
   }
 
   async function toggleMic() {
-    if (isRecording) {
-      const blob = await voice.stopRecording()
-      setTranscribing(true)
-      try {
-        const transcript = await advisorService.transcribe(blob)
-        setText(prev => (prev.trim() ? `${prev.trim()} ${transcript}` : transcript))
-        taRef.current?.focus()
-      } catch {
-        toast.error('Transkripcija nije uspjela. Pokušajte ponovo ili ukucajte poruku.')
-      } finally {
-        setTranscribing(false)
-        voice.reset()
-      }
-    } else {
+    if (!isRecording) {
       await voice.startRecording()
+      return
     }
+
+    const blob = await voice.stopRecording()
+    setTranscribing(true)
+    let transcript = ''
+    try {
+      transcript = await advisorService.transcribe(blob)
+    } catch {
+      toast.error('Transkripcija nije uspjela. Pokušajte ponovo ili ukucajte poruku.')
+    } finally {
+      setTranscribing(false)
+      voice.reset()
+    }
+
+    const spoken = transcript.trim()
+    if (!spoken) return
+    // A voice question sends itself — no extra tap on the send button needed.
+    const message = text.trim() ? `${text.trim()} ${spoken}` : spoken
+    setText(message)
+    await submit(message)
   }
 
   return (
@@ -86,7 +97,7 @@ export function ChatInput({ onSend, disabled }: ChatInputProps) {
         </button>
         <button
           type="button"
-          onClick={submit}
+          onClick={() => submit()}
           disabled={busy || !text.trim()}
           className="shrink-0 w-11 h-11 rounded-2xl flex items-center justify-center bg-honey-500 hover:bg-honey-600 text-white transition-colors disabled:opacity-50"
           aria-label="Pošalji"

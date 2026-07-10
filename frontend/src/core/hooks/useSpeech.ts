@@ -12,9 +12,30 @@ export function useSpeech() {
   const isSupported = typeof window !== 'undefined' && 'speechSynthesis' in window
   const [status, setStatus] = useState<SpeechStatus>('idle')
   const queueRef = useRef<SpeechSynthesisUtterance[]>([])
+  const voicesRef = useRef<SpeechSynthesisVoice[]>([])
+  const keepAliveRef = useRef<number | null>(null)
+
+  // Voices load asynchronously; cache them and refresh on `voiceschanged` so the very first
+  // "Poslušaj" tap already has a bs/hr/sr voice available. Without this, the first play often
+  // falls back to the browser default reading Bosnian text with an English accent.
+  useEffect(() => {
+    if (!isSupported) return
+    const load = () => { voicesRef.current = window.speechSynthesis.getVoices() }
+    load()
+    window.speechSynthesis.addEventListener('voiceschanged', load)
+    return () => window.speechSynthesis.removeEventListener('voiceschanged', load)
+  }, [isSupported])
+
+  const clearKeepAlive = () => {
+    if (keepAliveRef.current !== null) {
+      clearInterval(keepAliveRef.current)
+      keepAliveRef.current = null
+    }
+  }
 
   const stop = useCallback(() => {
     if (!isSupported) return
+    clearKeepAlive()
     queueRef.current = []
     window.speechSynthesis.cancel()
     setStatus('idle')
@@ -26,27 +47,41 @@ export function useSpeech() {
   const speak = useCallback((text: string) => {
     if (!isSupported) return
     window.speechSynthesis.cancel()
+    clearKeepAlive()
 
-    const voice = pickVoice(window.speechSynthesis.getVoices())
+    const available = voicesRef.current.length ? voicesRef.current : window.speechSynthesis.getVoices()
+    const voice = pickVoice(available)
     const chunks = toChunks(text)
     if (chunks.length === 0) return
 
     const utterances = chunks.map(chunk => {
       const u = new SpeechSynthesisUtterance(chunk)
-      if (voice) u.voice = voice
-      // Always tag as Bosnian — even when falling back to hr/sr voices or the browser default,
-      // so the engine's own lang-based voice selection gets the best chance of a bs-appropriate fit.
-      u.lang = 'bs-BA'
+      if (voice) {
+        u.voice = voice
+        u.lang = voice.lang
+      } else {
+        // No regional voice installed — tag as Bosnian so the engine makes its best guess.
+        u.lang = 'bs-BA'
+      }
       u.rate = 0.95
+      u.pitch = 1
       return u
     })
 
     const last = utterances[utterances.length - 1]
-    last.onend = () => setStatus('idle')
-    last.onerror = () => setStatus('idle')
+    last.onend = () => { clearKeepAlive(); setStatus('idle') }
+    last.onerror = () => { clearKeepAlive(); setStatus('idle') }
 
     queueRef.current = utterances
     for (const u of utterances) window.speechSynthesis.speak(u)
+
+    // Chrome halts long speech after ~15 s of a synthesis session; a periodic pause/resume nudge
+    // keeps multi-paragraph articles playing to the end. Guarded so a user pause is respected.
+    keepAliveRef.current = window.setInterval(() => {
+      const s = window.speechSynthesis
+      if (s.speaking && !s.paused) { s.pause(); s.resume() }
+    }, 10000)
+
     setStatus('speaking')
   }, [isSupported])
 
@@ -65,11 +100,11 @@ export function useSpeech() {
   return { isSupported, status, speak, pause, resume, stop }
 }
 
-/** bs → hr → sr → null (browser default). */
+/** bs → hr → sr → null (browser default); prefers a local (offline) voice, usually higher quality. */
 function pickVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
   for (const prefix of ['bs', 'hr', 'sr']) {
-    const match = voices.find(v => v.lang.toLowerCase().startsWith(prefix))
-    if (match) return match
+    const matches = voices.filter(v => v.lang.toLowerCase().startsWith(prefix))
+    if (matches.length) return matches.find(v => v.localService) ?? matches[0]
   }
   return null
 }

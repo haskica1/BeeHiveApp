@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
-  ArrowLeft, CheckCircle2, Circle, Pencil, Trash2,
+  CheckCircle2, Circle, Pencil, Trash2,
   CalendarDays, Utensils, AlertTriangle, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { format, isPast, isToday } from 'date-fns'
@@ -212,13 +212,6 @@ export default function DietDetailPage() {
                       dark:from-slate-900 dark:via-slate-900 dark:to-slate-950 shadow-card dark:shadow-none mb-6">
         <div className="absolute inset-0 bg-honeycomb opacity-60 dark:opacity-100 pointer-events-none" />
         <div className="relative p-5 sm:p-7">
-          <button
-            onClick={() => navigate(`/beehives/${diet.beehiveId}`)}
-            className="inline-flex items-center gap-1 text-sm text-gray-500 dark:text-slate-400 hover:text-honey-600 dark:hover:text-honey-400 transition-colors mb-4"
-          >
-            <ArrowLeft className="w-4 h-4" /> Nazad na košnicu
-          </button>
-
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div className="flex items-center gap-4 min-w-0">
               <div className="w-14 h-14 shrink-0 rounded-2xl bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 flex items-center justify-center text-3xl shadow-honey dark:shadow-none">

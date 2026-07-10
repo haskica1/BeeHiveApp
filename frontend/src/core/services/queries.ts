@@ -283,7 +283,10 @@ export const useCreateTodo = (invalidateKey: readonly unknown[]) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreateTodoPayload) => todoService.create(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: invalidateKey }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invalidateKey })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
+    },
   })
 }
 
@@ -292,7 +295,10 @@ export const useUpdateTodo = (invalidateKey: readonly unknown[]) => {
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: UpdateTodoPayload }) =>
       todoService.update(id, payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: invalidateKey }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invalidateKey })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
+    },
   })
 }
 
@@ -300,7 +306,10 @@ export const useDeleteTodo = (invalidateKey: readonly unknown[]) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => todoService.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: invalidateKey }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: invalidateKey })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
+    },
   })
 }
 
@@ -324,7 +333,10 @@ export const useCreateDiet = (beehiveId: number) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (payload: CreateDietPayload) => dietService.create(payload),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
+    },
   })
 }
 
@@ -335,6 +347,7 @@ export const useUpdateDiet = (id: number, beehiveId: number) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.diet(id) })
       qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
     },
   })
 }
@@ -343,7 +356,10 @@ export const useDeleteDiet = (beehiveId: number) => {
   const qc = useQueryClient()
   return useMutation({
     mutationFn: (id: number) => dietService.delete(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
+    },
   })
 }
 
@@ -354,6 +370,7 @@ export const useCompleteEarlyDiet = (id: number, beehiveId: number) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.diet(id) })
       qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
     },
   })
 }
@@ -365,6 +382,7 @@ export const useCompleteFeedingEntry = (dietId: number, beehiveId: number) => {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.diet(dietId) })
       qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
     },
   })
 }
@@ -384,5 +402,8 @@ export const useCalendarEvents = () =>
   useQuery({
     queryKey: queryKeys.calendarEvents,
     queryFn:  calendarService.getEvents,
-    staleTime: 1000 * 60 * 5,
+    // Always refetch when the Calendar page is opened so newly added tasks/feedings
+    // show up immediately — no manual refresh needed.
+    staleTime: 0,
+    refetchOnMount: 'always',
   })
