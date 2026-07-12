@@ -83,6 +83,64 @@ public class DietService : IDietService
         return MapToDietDetailDto(saved);
     }
 
+    /// <summary>
+    /// Copies an existing diet's programme (definition + freshly generated schedule) onto one or more
+    /// other beehives. Progress/completed feedings are never carried over — each copy starts clean.
+    /// Access is enforced independently for the source hive and for every target: a single denial
+    /// aborts the whole batch before anything is persisted.
+    /// </summary>
+    public async Task<IEnumerable<DietDto>> CopyToBeehivesAsync(int sourceDietId, CopyDietDto dto)
+    {
+        var source = await _uow.Diets.GetWithEntriesAsync(sourceDietId)
+            ?? throw new NotFoundException(nameof(Diet), sourceDietId);
+
+        // Caller must be able to access the diet they are copying from…
+        await _access.EnsureCanAccessBeehiveAsync(source.BeehiveId);
+
+        // Normalise targets: unique, positive, never the source's own hive.
+        var targetIds = dto.TargetBeehiveIds
+            .Where(id => id > 0 && id != source.BeehiveId)
+            .Distinct()
+            .ToList();
+
+        if (targetIds.Count == 0)
+            throw new BusinessRuleException("Odaberite bar jednu drugu košnicu za kopiranje.");
+
+        var created = new List<Diet>();
+
+        foreach (var targetId in targetIds)
+        {
+            if (!await _uow.Beehives.ExistsAsync(targetId))
+                throw new NotFoundException(nameof(Beehive), targetId);
+
+            // …and able to access every target hive. Never trust the client's list.
+            await _access.EnsureCanAccessBeehiveAsync(targetId);
+
+            var copy = new Diet
+            {
+                Name           = source.Name,
+                StartDate      = source.StartDate,
+                Reason         = source.Reason,
+                CustomReason   = source.CustomReason,
+                DurationDays   = source.DurationDays,
+                FrequencyDays  = source.FrequencyDays,
+                FoodType       = source.FoodType,
+                CustomFoodType = source.CustomFoodType,
+                BeehiveId      = targetId,
+                Status         = CalculateInitialStatus(source.StartDate),
+                CreatedById    = _currentUser.UserId,
+                FeedingEntries = GenerateEntries(source.StartDate, source.DurationDays, source.FrequencyDays),
+            };
+
+            await _uow.Diets.AddAsync(copy);
+            created.Add(copy);
+        }
+
+        await _uow.SaveChangesAsync();
+
+        return created.Select(MapToDietDto);
+    }
+
     public async Task<DietDetailDto> UpdateAsync(int id, UpdateDietDto dto)
     {
         var diet = await _uow.Diets.GetWithEntriesAsync(id)

@@ -5,6 +5,7 @@ import type {
   CreateDietPayload,
   UpdateDietPayload,
   CompleteEarlyPayload,
+  CopyDietPayload,
 } from '../models'
 
 export const dietService = {
@@ -20,6 +21,12 @@ export const dietService = {
 
   create: async (payload: CreateDietPayload): Promise<DietDetail> => {
     const res = await apiClient.post<DietDetail>('/feedings', payload)
+    return res.data
+  },
+
+  /** Copies an existing diet's programme onto other beehives. Returns the created diets. */
+  copy: async (id: number, payload: CopyDietPayload): Promise<Diet[]> => {
+    const res = await apiClient.post<Diet[]>(`/feedings/${id}/copy`, payload)
     return res.data
   },
 

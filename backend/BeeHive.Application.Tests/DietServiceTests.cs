@@ -99,6 +99,128 @@ public class DietServiceTests
         Assert.Equal(1, result.TotalEntries);
     }
 
+    // ── CopyToBeehivesAsync ────────────────────────────────────────────────────
+
+    private static Diet SourceDiet(DateTime start, int duration = 10, int frequency = 2, int beehiveId = 10) => new()
+    {
+        Id            = 1,
+        Name          = "Zimsko hranjenje",
+        BeehiveId     = beehiveId,
+        StartDate     = start,
+        Reason        = DietReason.WinterFeeding,
+        DurationDays  = duration,
+        FrequencyDays = frequency,
+        FoodType      = FoodType.SugarSyrup,
+        Status        = DietStatus.InProgress,
+    };
+
+    /// <summary>Wires the source load + captures every diet handed to AddAsync.</summary>
+    private List<Diet> WireCopyPipeline(Diet source)
+    {
+        _uow.Diets.GetWithEntriesAsync(source.Id).Returns(source);
+        var added = new List<Diet>();
+        _uow.Diets.AddAsync(Arg.Do<Diet>(d => added.Add(d))).Returns(ci => ci.Arg<Diet>());
+        return added;
+    }
+
+    [Fact]
+    public async Task Copy_CreatesOneDietPerTarget_WithFreshPendingEntries()
+    {
+        var source = SourceDiet(DateTime.UtcNow.Date.AddDays(1), duration: 10, frequency: 2);
+        var added = WireCopyPipeline(source);
+        _uow.Beehives.ExistsAsync(11).Returns(true);
+        _uow.Beehives.ExistsAsync(12).Returns(true);
+
+        var result = await _service.CopyToBeehivesAsync(1, new CopyDietDto { TargetBeehiveIds = [11, 12] });
+
+        Assert.Equal(2, added.Count);
+        Assert.Equal([11, 12], added.Select(d => d.BeehiveId).OrderBy(x => x).ToArray());
+        Assert.All(added, d => Assert.Equal(5, d.FeedingEntries.Count));
+        Assert.All(added, d => Assert.All(d.FeedingEntries, e => Assert.Equal(FeedingEntryStatus.Pending, e.Status)));
+        Assert.Equal(2, result.Count());
+        await _uow.Received(1).SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Copy_PreservesSourceDefinitionAndStartDate()
+    {
+        var start = DateTime.UtcNow.Date.AddDays(-3);
+        var source = SourceDiet(start, duration: 8, frequency: 4);
+        var added = WireCopyPipeline(source);
+        _uow.Beehives.ExistsAsync(11).Returns(true);
+
+        await _service.CopyToBeehivesAsync(1, new CopyDietDto { TargetBeehiveIds = [11] });
+
+        var copy = Assert.Single(added);
+        Assert.Equal(source.Name, copy.Name);
+        Assert.Equal(source.StartDate, copy.StartDate);
+        Assert.Equal(source.Reason, copy.Reason);
+        Assert.Equal(source.FoodType, copy.FoodType);
+        Assert.Equal(source.DurationDays, copy.DurationDays);
+        Assert.Equal(source.FrequencyDays, copy.FrequencyDays);
+        Assert.Equal(2, copy.FeedingEntries.Count); // 8 / 4
+    }
+
+    [Fact]
+    public async Task Copy_ExcludesSourceHiveAndDeduplicatesTargets()
+    {
+        var source = SourceDiet(DateTime.UtcNow.Date, beehiveId: 10);
+        var added = WireCopyPipeline(source);
+        _uow.Beehives.ExistsAsync(11).Returns(true);
+
+        await _service.CopyToBeehivesAsync(1, new CopyDietDto { TargetBeehiveIds = [10, 11, 11] });
+
+        var copy = Assert.Single(added); // 10 == source (skipped), 11 de-duplicated
+        Assert.Equal(11, copy.BeehiveId);
+    }
+
+    [Fact]
+    public async Task Copy_OnlySourceHiveInTargets_ThrowsAndSavesNothing()
+    {
+        var source = SourceDiet(DateTime.UtcNow.Date, beehiveId: 10);
+        WireCopyPipeline(source);
+
+        await Assert.ThrowsAsync<BusinessRuleException>(() =>
+            _service.CopyToBeehivesAsync(1, new CopyDietDto { TargetBeehiveIds = [10] }));
+        await _uow.DidNotReceive().SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Copy_TargetAccessDenied_ThrowsAndSavesNothing()
+    {
+        var source = SourceDiet(DateTime.UtcNow.Date);
+        WireCopyPipeline(source);
+        _uow.Beehives.ExistsAsync(11).Returns(true);
+        _uow.Beehives.ExistsAsync(12).Returns(true);
+        _access.When(a => a.EnsureCanAccessBeehiveAsync(12))
+               .Do(_ => throw new ForbiddenAccessException());
+
+        await Assert.ThrowsAsync<ForbiddenAccessException>(() =>
+            _service.CopyToBeehivesAsync(1, new CopyDietDto { TargetBeehiveIds = [11, 12] }));
+        await _uow.DidNotReceive().SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Copy_UnknownTargetHive_Throws()
+    {
+        var source = SourceDiet(DateTime.UtcNow.Date);
+        WireCopyPipeline(source);
+        _uow.Beehives.ExistsAsync(11).Returns(false);
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _service.CopyToBeehivesAsync(1, new CopyDietDto { TargetBeehiveIds = [11] }));
+        await _uow.DidNotReceive().SaveChangesAsync();
+    }
+
+    [Fact]
+    public async Task Copy_UnknownSourceDiet_Throws()
+    {
+        _uow.Diets.GetWithEntriesAsync(99).Returns((Diet?)null);
+
+        await Assert.ThrowsAsync<NotFoundException>(() =>
+            _service.CopyToBeehivesAsync(99, new CopyDietDto { TargetBeehiveIds = [11] }));
+    }
+
     // ── UpdateAsync guards ─────────────────────────────────────────────────────
 
     [Theory]

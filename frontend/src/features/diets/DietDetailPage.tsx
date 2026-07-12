@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams, Link } from 'react-router-dom'
 import {
-  CheckCircle2, Circle, Pencil, Trash2,
+  CheckCircle2, Circle, Pencil, Trash2, Copy,
   CalendarDays, Utensils, AlertTriangle, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { format, isPast, isToday } from 'date-fns'
@@ -17,6 +17,7 @@ import {
 import { DietStatus, FeedingEntryStatus } from '../../core/models'
 import type { FeedingEntry } from '../../core/models'
 import { usePermissions } from '../../core/hooks/usePermissions'
+import CopyDietDialog from './CopyDietDialog'
 
 // ── Status badge ──────────────────────────────────────────────────────────────
 
@@ -175,6 +176,7 @@ export default function DietDetailPage() {
 
   const [showDeleteConfirm,  setShowDeleteConfirm]  = useState(false)
   const [showCompleteEarly,  setShowCompleteEarly]   = useState(false)
+  const [showCopy,           setShowCopy]            = useState(false)
   const [showCompleted,      setShowCompleted]       = useState(true)
 
   if (isLoading) return <PageSkeleton />
@@ -227,6 +229,11 @@ export default function DietDetailPage() {
             </div>
 
             <div className="flex gap-2 flex-wrap shrink-0">
+              {canManage && (
+                <button onClick={() => setShowCopy(true)} className="btn-secondary text-sm">
+                  <Copy className="w-4 h-4" /> Kopiraj
+                </button>
+              )}
               {canDelete && (
                 <button
                   onClick={() => setShowDeleteConfirm(true)}
@@ -369,6 +376,11 @@ export default function DietDetailPage() {
           onCancel={() => setShowCompleteEarly(false)}
           isLoading={completeMutation.isPending}
         />
+      )}
+
+      {/* Copy-to-other-hives dialog */}
+      {showCopy && (
+        <CopyDietDialog diet={diet} onClose={() => setShowCopy(false)} />
       )}
     </div>
   )

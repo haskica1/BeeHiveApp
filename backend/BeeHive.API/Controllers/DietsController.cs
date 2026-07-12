@@ -18,17 +18,20 @@ public class DietsController : ControllerBase
 {
     private readonly IDietService _service;
     private readonly IValidator<CreateDietDto>    _createValidator;
+    private readonly IValidator<CopyDietDto>      _copyValidator;
     private readonly IValidator<UpdateDietDto>    _updateValidator;
     private readonly IValidator<CompleteEarlyDto> _completeEarlyValidator;
 
     public DietsController(
         IDietService service,
         IValidator<CreateDietDto> createValidator,
+        IValidator<CopyDietDto> copyValidator,
         IValidator<UpdateDietDto> updateValidator,
         IValidator<CompleteEarlyDto> completeEarlyValidator)
     {
         _service                = service;
         _createValidator        = createValidator;
+        _copyValidator          = copyValidator;
         _updateValidator        = updateValidator;
         _completeEarlyValidator = completeEarlyValidator;
     }
@@ -69,6 +72,23 @@ public class DietsController : ControllerBase
 
         var created = await _service.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+    }
+
+    /// <summary>Copies this diet's programme onto one or more other beehives the caller can access.</summary>
+    [HttpPost("{id:int}/copy")]
+    [ProducesResponseType(typeof(IEnumerable<DietDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status422UnprocessableEntity)]
+    public async Task<IActionResult> Copy(int id, [FromBody] CopyDietDto dto)
+    {
+        var validation = await _copyValidator.ValidateAsync(dto);
+        if (!validation.IsValid)
+            return BadRequest(validation.ToDictionary());
+
+        var created = await _service.CopyToBeehivesAsync(id, dto);
+        return Ok(created);
     }
 
     /// <summary>Updates a diet (only allowed when not completed/stopped).</summary>

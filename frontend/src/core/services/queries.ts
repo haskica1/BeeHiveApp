@@ -21,6 +21,7 @@ import type {
   CreateDietPayload,
   UpdateDietPayload,
   CompleteEarlyPayload,
+  CopyDietPayload,
 } from '../models'
 
 // ── Query Keys ────────────────────────────────────────────────────────────────
@@ -335,6 +336,20 @@ export const useCreateDiet = (beehiveId: number) => {
     mutationFn: (payload: CreateDietPayload) => dietService.create(payload),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(beehiveId) })
+      qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
+    },
+  })
+}
+
+export const useCopyDiet = (sourceDietId: number) => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (payload: CopyDietPayload) => dietService.copy(sourceDietId, payload),
+    onSuccess: (_created, payload) => {
+      // Each target hive's diet list is now stale; refresh them + the calendar.
+      payload.targetBeehiveIds.forEach(bId =>
+        qc.invalidateQueries({ queryKey: queryKeys.dietsByBeehive(bId) }),
+      )
       qc.invalidateQueries({ queryKey: queryKeys.calendarEvents })
     },
   })

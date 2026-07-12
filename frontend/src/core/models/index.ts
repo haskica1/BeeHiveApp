@@ -494,6 +494,11 @@ export interface CompleteEarlyPayload {
   comment: string
 }
 
+export interface CopyDietPayload {
+  /** Beehives that should receive a copy of the diet programme (source hive is ignored if present). */
+  targetBeehiveIds: number[]
+}
+
 // ── Calendar ──────────────────────────────────────────────────────────────────
 
 export interface CalendarTodo {
