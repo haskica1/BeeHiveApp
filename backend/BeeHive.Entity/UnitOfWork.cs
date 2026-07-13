@@ -33,6 +33,7 @@ public class UnitOfWork : IUnitOfWork
     private INotificationRepository? _notifications;
     private IRefreshTokenRepository? _refreshTokens;
     private IAdvisorConversationRepository? _advisorConversations;
+    private ICalendarSettingsRepository? _calendarSettings;
 
     public UnitOfWork(BeeHiveDbContext context)
     {
@@ -98,6 +99,9 @@ public class UnitOfWork : IUnitOfWork
 
     public IAdvisorConversationRepository AdvisorConversations =>
         _advisorConversations ??= new AdvisorConversationRepository(_context);
+
+    public ICalendarSettingsRepository CalendarSettings =>
+        _calendarSettings ??= new CalendarSettingsRepository(_context);
 
     public async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default) =>
         await _context.SaveChangesAsync(cancellationToken);

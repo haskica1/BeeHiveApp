@@ -532,6 +532,21 @@ export interface CalendarEventsResponse {
   feedingEntries: CalendarFeedingEntry[]
 }
 
+// Calendar sync (SPEC-11)
+export interface CalendarFeedInfo {
+  url: string
+  enabled: boolean
+}
+
+export interface CalendarSettings {
+  feedEnabled: boolean
+  syncFeedings: boolean
+  syncTodos: boolean
+  syncTreatments: boolean
+  syncInspections: boolean
+  dailyAgendaEnabled: boolean
+}
+
 // ── Admin ─────────────────────────────────────────────────────────────────────
 
 export interface AdminOrganization {

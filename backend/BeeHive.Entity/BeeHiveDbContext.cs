@@ -39,6 +39,7 @@ public class BeeHiveDbContext : DbContext
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<AdvisorConversation> AdvisorConversations => Set<AdvisorConversation>();
     public DbSet<AdvisorMessage> AdvisorMessages => Set<AdvisorMessage>();
+    public DbSet<CalendarSettings> CalendarSettings => Set<CalendarSettings>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

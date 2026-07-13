@@ -28,6 +28,7 @@
 | 08 | [Treatment Log](SPEC-08-treatments.md) | Zakonska evidencija tretmana (varoa i dr.): preparat, doza, LOT, karenca + PDF registar | M | — (02/04 soft) | ✅ Implemented (2026-07-03) |
 | 09 | [Plans & Billing](SPEC-09-plans-billing.md) | Paketi i naplata: Besplatni/Standard/Pro/Max + skriveni Partner, limiti + AI gating, 30-dnevni trial, ručna godišnja aktivacija (Paddle u fazi 2) | L | — (gejtuje 01 i 10) | ✅ Implemented (2026-07-06) |
 | 10 | [Apiary Migration](SPEC-10-apiary-migration.md) | Pašnjaci i selidbe: registar pašnjaka, historija selidbi, prinos po pašnjaku | M | — | ✅ Implemented (2026-07-04) |
+| 11 | [Calendar Sync](SPEC-11-calendar-sync.md) | Sinhronizacija obaveza (hranjenja, todo, izvedeni rokovi) u vanjski kalendar (ICS feed univerzalno + nativni Google/MS OAuth) + dnevni podsjetnik u 8h | L | — (reuse 04/08/09) | 🔨 Faza A (2026-07-13) · B/C planirane |
 
 **Recommended order = index order.** Rationale:
 

@@ -26,6 +26,10 @@ const TYPE_ICONS: Record<string, string> = {
   KarencaEnded:            '🍯',
   // Learning module (SPEC-06)
   LearningTopicPublished:  '🎓',
+  // Plans & billing (SPEC-09)
+  PlanExpiring:            '⏳',
+  // Calendar sync (SPEC-11) — daily 08:00 agenda
+  DailyAgenda:             '📅',
 }
 
 export default function NotificationBell() {

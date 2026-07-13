@@ -28,6 +28,8 @@ import type {
 
 export const queryKeys = {
   calendarEvents:     ['calendar', 'events'] as const,
+  calendarFeed:       ['calendar', 'feed'] as const,
+  calendarSettings:   ['calendar', 'settings'] as const,
   stats:              ['stats'] as const,
   apiaries:           ['apiaries'] as const,
   apiary:             (id: number) => ['apiaries', id] as const,
@@ -422,3 +424,31 @@ export const useCalendarEvents = () =>
     staleTime: 0,
     refetchOnMount: 'always',
   })
+
+// ── Calendar sync (SPEC-11) ─────────────────────────────────────────────────────
+
+export const useCalendarFeedUrl = () =>
+  useQuery({ queryKey: queryKeys.calendarFeed, queryFn: calendarService.getFeedUrl })
+
+export const useRotateCalendarFeed = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: calendarService.rotateFeedUrl,
+    onSuccess: (data) => qc.setQueryData(queryKeys.calendarFeed, data),
+  })
+}
+
+export const useCalendarSettings = () =>
+  useQuery({ queryKey: queryKeys.calendarSettings, queryFn: calendarService.getSettings })
+
+export const useUpdateCalendarSettings = () => {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: calendarService.updateSettings,
+    onSuccess: (data) => {
+      qc.setQueryData(queryKeys.calendarSettings, data)
+      // Feed enable/disable state lives in settings too — refresh the feed card.
+      qc.invalidateQueries({ queryKey: queryKeys.calendarFeed })
+    },
+  })
+}

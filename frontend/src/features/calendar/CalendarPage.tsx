@@ -4,7 +4,7 @@ import {
   isSameDay, isSameMonth, isToday, isPast, parseISO,
   startOfMonth, startOfWeek, subMonths,
 } from 'date-fns'
-import { ChevronLeft, ChevronRight as ChevronRightIcon, CheckSquare, Droplets, CalendarDays, AlertCircle, Clock } from 'lucide-react'
+import { ChevronLeft, ChevronRight as ChevronRightIcon, CheckSquare, Droplets, CalendarDays, AlertCircle, Clock, CalendarPlus } from 'lucide-react'
 import { Link } from 'react-router-dom'
 import clsx from 'clsx'
 import { useCalendarEvents } from '../../core/services/queries'
@@ -104,6 +104,13 @@ export default function CalendarPage() {
             <h1 className="font-display text-2xl sm:text-3xl font-bold text-gray-900 dark:text-slate-50">Kalendar</h1>
             <p className="mt-0.5 text-sm text-gray-600 dark:text-slate-400">Vaši zadaci i rasporedi hranjenja na jednom mjestu</p>
           </div>
+          <Link
+            to="/calendar/settings"
+            className="ml-auto shrink-0 inline-flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium bg-white/70 dark:bg-slate-800 border border-honey-200 dark:border-slate-700 text-honey-800 dark:text-honey-300 hover:bg-white dark:hover:bg-slate-700 transition-colors"
+          >
+            <CalendarPlus className="w-4 h-4" />
+            <span className="hidden sm:inline">Poveži kalendar</span>
+          </Link>
         </div>
       </div>
 

@@ -39,6 +39,7 @@ import ScanPage from './features/beehives/ScanPage'
 import ProfilePage from './features/profile/ProfilePage'
 import StatsPage from './features/stats/StatsPage'
 import CalendarPage from './features/calendar/CalendarPage'
+import CalendarSettingsPage from './features/calendar/CalendarSettingsPage'
 import PlansPage from './features/plans/PlansPage'
 import UpsellModal from './shared/components/UpsellModal'
 
@@ -106,6 +107,7 @@ export default function App() {
 
               {/* Calendar — all authenticated users */}
               <Route path="calendar" element={<CalendarPage />} />
+              <Route path="calendar/settings" element={<CalendarSettingsPage />} />
 
               {/* AI Advisor — all authenticated users */}
               <Route path="advisor" element={<AdvisorPage />} />

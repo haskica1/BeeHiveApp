@@ -9,78 +9,33 @@ public class CalendarService : ICalendarService
 {
     private readonly IUnitOfWork _uow;
     private readonly ICurrentUser _currentUser;
+    private readonly ICalendarAccessResolver _resolver;
 
-    public CalendarService(IUnitOfWork uow, ICurrentUser currentUser)
+    public CalendarService(IUnitOfWork uow, ICurrentUser currentUser, ICalendarAccessResolver resolver)
     {
         _uow = uow;
         _currentUser = currentUser;
+        _resolver = resolver;
     }
 
     public async Task<CalendarEventsDto> GetCalendarEventsAsync()
     {
-        var role     = _currentUser.Role;
-        var userId   = _currentUser.UserId;
-        var orgId    = _currentUser.OrganizationId;
-        var apiaryId = _currentUser.ApiaryId;
+        var role   = _currentUser.Role;
+        var userId = _currentUser.UserId;
+
+        if (role is null || userId is null)
+            return new CalendarEventsDto();
 
         // ── Step 1: Resolve accessible IDs and name lookup dictionaries ───────────
+        // Shared with the ICS feed + daily agenda so authorization lives in one place (SPEC-11).
 
-        HashSet<int> accessibleApiaryIds;
-        HashSet<int> accessibleBeehiveIds;
-        Dictionary<int, string> beehiveNames;
-        Dictionary<int, string> apiaryNames;
+        var scope = await _resolver.ResolveAsync(
+            new CalendarUserContext(userId.Value, role.Value, _currentUser.OrganizationId, _currentUser.ApiaryId));
 
-        if (role == UserRole.SystemAdmin)
-        {
-            var allBeehives = (await _uow.Beehives.GetAllAsync()).ToList();
-            var allApiaries = (await _uow.Apiaries.GetAllAsync()).ToList();
-            accessibleBeehiveIds = allBeehives.Select(b => b.Id).ToHashSet();
-            accessibleApiaryIds  = allApiaries.Select(a => a.Id).ToHashSet();
-            beehiveNames = allBeehives.ToDictionary(b => b.Id, b => b.Name);
-            apiaryNames  = allApiaries.ToDictionary(a => a.Id, a => a.Name);
-        }
-        else if (role == UserRole.OrganizationAdmin && orgId.HasValue)
-        {
-            var beehives = (await _uow.Beehives.GetByOrganizationAsync(orgId.Value)).ToList();
-            var apiaries = (await _uow.Apiaries.GetAllByOrganizationAsync(orgId.Value)).ToList();
-            accessibleBeehiveIds = beehives.Select(b => b.Id).ToHashSet();
-            accessibleApiaryIds  = apiaries.Select(a => a.Id).ToHashSet();
-            beehiveNames = beehives.ToDictionary(b => b.Id, b => b.Name);
-            apiaryNames  = apiaries.ToDictionary(a => a.Id, a => a.Name);
-        }
-        else if (role == UserRole.ApiaryAdmin && apiaryId.HasValue)
-        {
-            var beehives = (await _uow.Beehives.GetByApiaryIdAsync(apiaryId.Value)).ToList();
-            var apiary   = await _uow.Apiaries.GetByIdAsync(apiaryId.Value);
-            accessibleBeehiveIds = beehives.Select(b => b.Id).ToHashSet();
-            accessibleApiaryIds  = new HashSet<int> { apiaryId.Value };
-            beehiveNames = beehives.ToDictionary(b => b.Id, b => b.Name);
-            apiaryNames  = apiary != null
-                ? new Dictionary<int, string> { { apiary.Id, apiary.Name } }
-                : new Dictionary<int, string>();
-        }
-        else if (role == UserRole.Beekeeper && userId.HasValue)
-        {
-            var assignedIds = await _uow.Users.GetAssignedBeehiveIdsAsync(userId.Value);
-
-            var beehives = assignedIds.Count > 0
-                ? (await _uow.Beehives.FindAsync(b => assignedIds.Contains(b.Id))).ToList()
-                : new List<BeeHive.Domain.Entities.Beehive>();
-
-            accessibleBeehiveIds = assignedIds;
-            accessibleApiaryIds  = beehives.Select(b => b.ApiaryId).ToHashSet();
-            beehiveNames         = beehives.ToDictionary(b => b.Id, b => b.Name);
-
-            var apIds    = accessibleApiaryIds;
-            var apiaries = apIds.Count > 0
-                ? (await _uow.Apiaries.FindAsync(a => apIds.Contains(a.Id))).ToList()
-                : new List<BeeHive.Domain.Entities.Apiary>();
-            apiaryNames = apiaries.ToDictionary(a => a.Id, a => a.Name);
-        }
-        else
-        {
-            return new CalendarEventsDto();
-        }
+        var accessibleApiaryIds  = scope.ApiaryIds;
+        var accessibleBeehiveIds = scope.BeehiveIds;
+        var beehiveNames         = scope.BeehiveNames;
+        var apiaryNames          = scope.ApiaryNames;
 
         // ── Step 2: Load todos ────────────────────────────────────────────────────
 

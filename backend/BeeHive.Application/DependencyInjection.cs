@@ -19,6 +19,7 @@ using BeeHive.Application.Features.Inspections;
 using BeeHive.Application.Features.Learning;
 using BeeHive.Application.Features.Pastures;
 using BeeHive.Application.Features.Queens;
+using BeeHive.Application.Features.Reminders;
 using BeeHive.Application.Features.Todos;
 using BeeHive.Application.Features.Treatments;
 using FluentValidation;
@@ -49,6 +50,12 @@ public static class DependencyInjection
         // Application services
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<ICalendarService, CalendarService>();
+
+        // Calendar integration (SPEC-11): shared obligation aggregation + private ICS feed + 08:00 agenda
+        services.AddScoped<ICalendarAccessResolver, CalendarAccessResolver>();
+        services.AddScoped<ICalendarObligationService, CalendarObligationService>();
+        services.AddScoped<ICalendarFeedService, CalendarFeedService>();
+        services.AddScoped<IDailyAgendaService, DailyAgendaService>();
         services.AddScoped<IAdminService, AdminService>();
         services.AddScoped<IOrgManagementService, OrgManagementService>();
         services.AddScoped<IProfileService, ProfileService>();

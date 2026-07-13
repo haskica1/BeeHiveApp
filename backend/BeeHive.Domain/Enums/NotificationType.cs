@@ -28,4 +28,7 @@ public enum NotificationType
 
     // ── Plans & billing (SPEC-09) ──
     PlanExpiring           = 18,
+
+    // ── Calendar sync (SPEC-11) — daily 08:00 agenda of the day's obligations ──
+    DailyAgenda            = 19,
 }

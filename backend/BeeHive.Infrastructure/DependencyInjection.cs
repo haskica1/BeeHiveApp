@@ -1,6 +1,7 @@
 using BeeHive.Application.Common.Interfaces;
 using BeeHive.Infrastructure.Alerts;
 using BeeHive.Infrastructure.Email;
+using BeeHive.Infrastructure.Reminders;
 using BeeHive.Infrastructure.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -32,6 +33,9 @@ public static class DependencyInjection
 
         // Daily proactive alert scan + weekly AI summary (SPEC-04).
         services.AddHostedService<AlertScanWorker>();
+
+        // Daily 08:00-local obligation agenda (SPEC-11 Faza A.2).
+        services.AddHostedService<DailyAgendaWorker>();
 
         return services;
     }
