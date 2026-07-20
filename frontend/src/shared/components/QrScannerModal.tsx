@@ -39,8 +39,21 @@ async function runDigitOcr(image: Blob): Promise<{ number: string | null; confid
     // Hive numbers are digits — whitelisting them sharply improves accuracy on painted labels.
     await worker.setParameters({ tessedit_char_whitelist: '0123456789' })
     const { data } = await worker.recognize(image)
+
+    // Prefer the tallest digit-only word. "Longest run" picks a small "2024" on a sticker over a
+    // big painted "7", and `data.confidence` is the mean across the whole page — any other text in
+    // frame drags it to near zero even when the number itself was read perfectly, so score the
+    // chosen word on its own confidence instead.
+    const digitWords = (data.words ?? [])
+      .map(w => ({ text: w.text.trim(), confidence: w.confidence ?? 0, height: w.bbox.y1 - w.bbox.y0 }))
+      .filter(w => /^\d+$/.test(w.text))
+      .sort((a, b) => b.height - a.height)
+
+    if (digitWords.length > 0)
+      return { number: digitWords[0].text, confidence: digitWords[0].confidence }
+
+    // No word-level data — fall back to scanning the flat text.
     const groups = data.text.match(/\d+/g) ?? []
-    // The hive number is usually the most prominent mark → take the longest digit run.
     const number = [...groups].sort((a, b) => b.length - a.length)[0] ?? null
     return { number, confidence: data.confidence ?? 0 }
   } finally {
@@ -124,18 +137,31 @@ export default function QrScannerModal({ onClose }: Props) {
       }
 
       let matched: BeehiveNumberMatchResult | null = null
+      let uncertain = false
       if (local.number && local.confidence >= LOCAL_CONFIDENCE_THRESHOLD) {
         matched = await beehiveService.resolveByNumber(local.number)
       }
 
       // 2. Fall back to the Groq vision model when on-device was unsure or found nothing.
       if (!matched || matched.matches.length === 0) {
-        const groq = await beehiveService.scanByNumber(image)
-        if (groq.matches.length > 0 || !matched) matched = groq
+        try {
+          const groq = await beehiveService.scanByNumber(image)
+          if (groq.matches.length > 0 || !matched) matched = groq
+        } catch (err) {
+          // The AI pass is optional — it is unavailable whenever Groq:ApiKey is unset, the rate
+          // limit is hit, or the upstream call fails. A number Tesseract read below the confidence
+          // bar still beats an error screen, so resolve it and let the user confirm from the list.
+          if (!matched && local.number) {
+            matched = await beehiveService.resolveByNumber(local.number)
+            uncertain = true
+          }
+          if (!matched) throw err
+        }
       }
 
-      // Exactly one hive → open it straight away (per the "auto-open single match" choice).
-      if (matched.matches.length === 1) {
+      // Exactly one hive → open it straight away (per the "auto-open single match" choice), unless
+      // the number came from a reading we did not trust — then the user confirms it first.
+      if (matched.matches.length === 1 && !uncertain) {
         openHive(matched.matches[0].id)
         return
       }
