@@ -93,7 +93,9 @@ export const beehiveService = {
     formData.append('file', image, 'hive.jpg')
     const res = await apiClient.post<BeehiveNumberMatchResult>('/beehives/scan-by-number', formData, {
       headers: { 'Content-Type': undefined },
-      timeout: 30_000,
+      // Matches the backend's 90 s Groq HttpClient budget — a shorter client timeout would abandon
+      // an upload + inference that is still in flight on a slow mobile connection.
+      timeout: 90_000,
     })
     return res.data
   },

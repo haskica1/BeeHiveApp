@@ -61,7 +61,7 @@ function hardLogout(): void {
 // On 401: try to rotate the refresh token once and replay the request; otherwise sign out.
 apiClient.interceptors.response.use(
   (response) => response,
-  async (error: AxiosError<{ title?: string; message?: string }>) => {
+  async (error: AxiosError<{ title?: string; message?: string; errors?: { detail?: string[] } }>) => {
     const original = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined
     const status = error.response?.status
 
@@ -84,7 +84,12 @@ apiClient.interceptors.response.use(
       hardLogout()
     }
 
+    // GlobalExceptionMiddleware puts the human-readable (Bosnian) reason in errors.detail and only a
+    // generic English category in title — prefer the former, or callers surface "Business Rule
+    // Violation" to the user. This Error replaces the AxiosError, so `err.response` is gone
+    // downstream; read `err.message`.
     const message =
+      error.response?.data?.errors?.detail?.[0] ??
       error.response?.data?.title ??
       error.response?.data?.message ??
       error.message ??

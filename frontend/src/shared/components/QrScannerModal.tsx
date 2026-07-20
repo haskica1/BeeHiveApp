@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { X, AlertCircle, Camera, Upload, Loader2, QrCode, Hash, SearchX, ChevronRight } from 'lucide-react'
 import { BrowserQRCodeReader, IScannerControls } from '@zxing/browser'
 import { beehiveService } from '../../core/services/beehiveService'
+import { downscaleForScan } from '../utils/imageDownscale'
 import type { BeehiveNumberMatchResult } from '../../core/models'
 
 interface Props {
@@ -102,14 +103,26 @@ export default function QrScannerModal({ onClose }: Props) {
     navigate(`/beehives/${id}`)
   }
 
-  async function handleImage(image: Blob) {
+  async function handleImage(captured: Blob) {
     setNumberError(null)
     setResult(null)
     setNumberState('recognizing')
 
     try {
-      // 1. On-device OCR (free, offline-capable).
-      const local = await runDigitOcr(image)
+      // A raw phone photo is 12 MP and several MB — too slow for Tesseract and over the vision
+      // endpoint's size cap. Both passes below work off the bounded re-encode.
+      const image = await downscaleForScan(captured)
+
+      // 1. On-device OCR (free, offline-capable). Its WASM core and language data come from a CDN,
+      //    so a flaky mobile connection can sink it — that must degrade to the AI pass below, not
+      //    fail the whole scan.
+      let local = { number: null as string | null, confidence: 0 }
+      try {
+        local = await runDigitOcr(image)
+      } catch {
+        // keep the empty result — treated exactly like "read nothing"
+      }
+
       let matched: BeehiveNumberMatchResult | null = null
       if (local.number && local.confidence >= LOCAL_CONFIDENCE_THRESHOLD) {
         matched = await beehiveService.resolveByNumber(local.number)
@@ -130,11 +143,9 @@ export default function QrScannerModal({ onClose }: Props) {
       setResult(matched)
       setNumberState('results')
     } catch (err: any) {
-      setNumberError(
-        err?.response?.data?.errors?.detail?.[0] ??
-          err?.message ??
-          'Prepoznavanje nije uspjelo. Pokušajte ponovo.'
-      )
+      // apiClient's interceptor already reduces a failed call to an Error carrying the server's
+      // message, so `err.response` never survives to here.
+      setNumberError(err?.message ?? 'Prepoznavanje nije uspjelo. Pokušajte ponovo.')
       setNumberState('error')
     }
   }
